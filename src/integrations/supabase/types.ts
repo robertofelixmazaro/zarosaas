@@ -650,6 +650,7 @@ export type Database = {
       }
       tenants: {
         Row: {
+          active: boolean
           address: string | null
           created_at: string | null
           id: string
@@ -660,6 +661,7 @@ export type Database = {
           slug: string
         }
         Insert: {
+          active?: boolean
           address?: string | null
           created_at?: string | null
           id?: string
@@ -670,6 +672,7 @@ export type Database = {
           slug: string
         }
         Update: {
+          active?: boolean
           address?: string | null
           created_at?: string | null
           id?: string
@@ -725,9 +728,10 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_barber_user: { Args: { _barber_id: string }; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "barber" | "client"
+      app_role: "admin" | "barber" | "client" | "super_admin"
       appointment_status: "pendente" | "confirmado" | "cancelado" | "concluido"
     }
     CompositeTypes: {
@@ -856,7 +860,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "barber", "client"],
+      app_role: ["admin", "barber", "client", "super_admin"],
       appointment_status: ["pendente", "confirmado", "cancelado", "concluido"],
     },
   },
