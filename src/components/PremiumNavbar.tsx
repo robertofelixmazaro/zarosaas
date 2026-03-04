@@ -4,6 +4,7 @@ import { Scissors, ChevronRight, Star, Home, Briefcase, Calendar, ShoppingBag, M
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface PremiumNavbarProps {
   shopName?: string;
@@ -14,7 +15,7 @@ interface PremiumNavbarProps {
 const menuItems = [
   { label: "Início", href: "#", icon: Home },
   { label: "Serviços", href: "#servicos", icon: Briefcase },
-  { label: "Agendamento", href: "/agendar", icon: Calendar, isRoute: true },
+  { label: "Agendamento", href: "agendar", icon: Calendar, isRoute: true },
   { label: "Produtos", href: "#produtos", icon: ShoppingBag },
   { label: "Avaliações", href: "#avaliacoes", icon: MessageSquare },
   { label: "Galeria", href: "#galeria", icon: Image },
@@ -22,6 +23,8 @@ const menuItems = [
 ];
 
 const PremiumNavbar = ({ shopName = "CAETANO BARBER", logoUrl, avgRating = "5.0" }: PremiumNavbarProps) => {
+  const { tenantSlug } = useTenant();
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -93,7 +96,7 @@ const PremiumNavbar = ({ shopName = "CAETANO BARBER", logoUrl, avgRating = "5.0"
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link to="/agendar" className="hidden sm:inline-flex">
+            <Link to={`${basePath}/agendar`} className="hidden sm:inline-flex">
               <Button size="sm" className="gap-1.5 font-semibold shadow-md shadow-primary/20">
                 Agendar <ChevronRight className="h-3.5 w-3.5" />
               </Button>
@@ -180,7 +183,7 @@ const PremiumNavbar = ({ shopName = "CAETANO BARBER", logoUrl, avgRating = "5.0"
               return (
                 <li key={item.label}>
                   {item.isRoute ? (
-                    <Link to={item.href} onClick={() => setIsOpen(false)}>
+                    <Link to={`${basePath}/${item.href}`} onClick={() => setIsOpen(false)}>
                       {content}
                     </Link>
                   ) : (
@@ -203,7 +206,7 @@ const PremiumNavbar = ({ shopName = "CAETANO BARBER", logoUrl, avgRating = "5.0"
 
             {/* Login */}
             <li>
-              <Link to="/login" onClick={() => setIsOpen(false)}>
+              <Link to={`${basePath}/login`} onClick={() => setIsOpen(false)}>
                 <span className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-accent transition-all duration-200 cursor-pointer">
                   <LogIn className="h-4.5 w-4.5 text-primary" />
                   Entrar
@@ -215,7 +218,7 @@ const PremiumNavbar = ({ shopName = "CAETANO BARBER", logoUrl, avgRating = "5.0"
 
         {/* CTA */}
         <div className="p-4 border-t">
-          <Link to="/agendar" onClick={() => setIsOpen(false)}>
+          <Link to={`${basePath}/agendar`} onClick={() => setIsOpen(false)}>
             <Button className="w-full h-12 text-base font-semibold gap-2 shadow-lg shadow-primary/25">
               Agendar Agora <ChevronRight className="h-4 w-4" />
             </Button>

@@ -10,6 +10,7 @@ export interface DbService {
   icon: string;
   active: boolean;
   image_url: string | null;
+  tenant_id: string | null;
 }
 
 export interface DbBarber {
@@ -19,6 +20,7 @@ export interface DbBarber {
   specialty: string | null;
   active: boolean;
   photo_url: string | null;
+  tenant_id: string | null;
 }
 
 export interface DbAvailability {
@@ -28,6 +30,7 @@ export interface DbAvailability {
   start_time: string;
   end_time: string;
   active: boolean;
+  tenant_id: string | null;
 }
 
 export interface DbAppointment {
@@ -42,6 +45,7 @@ export interface DbAppointment {
   status: "pendente" | "confirmado" | "cancelado" | "concluido";
   price: number;
   created_at: string;
+  tenant_id: string | null;
   barbers?: { name: string };
   services?: { name: string };
 }
@@ -54,6 +58,7 @@ export interface DbProduct {
   stock: number;
   active: boolean;
   image_url: string | null;
+  tenant_id: string | null;
 }
 
 export interface DbBlockedDate {
@@ -64,25 +69,22 @@ export interface DbBlockedDate {
   start_time: string | null;
   end_time: string | null;
   barber_id: string | null;
+  tenant_id: string | null;
 }
 
-// Fetch functions
-export async function fetchServices(): Promise<DbService[]> {
-  const { data, error } = await supabase
-    .from("services" as any)
-    .select("*")
-    .eq("active", true)
-    .order("name");
+// Fetch functions - all accept tenantId for multi-tenant filtering
+export async function fetchServices(tenantId?: string): Promise<DbService[]> {
+  let query = supabase.from("services" as any).select("*").eq("active", true).order("name");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
 
-export async function fetchBarbers(): Promise<DbBarber[]> {
-  const { data, error } = await supabase
-    .from("barbers" as any)
-    .select("*")
-    .eq("active", true)
-    .order("name");
+export async function fetchBarbers(tenantId?: string): Promise<DbBarber[]> {
+  let query = supabase.from("barbers" as any).select("*").eq("active", true).order("name");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
@@ -98,23 +100,21 @@ export async function fetchBarberAvailability(barberId: string): Promise<DbAvail
   return (data as any) || [];
 }
 
-export async function fetchAllAvailability(): Promise<DbAvailability[]> {
-  const { data, error } = await supabase
-    .from("barber_availability" as any)
-    .select("*")
-    .eq("active", true);
+export async function fetchAllAvailability(tenantId?: string): Promise<DbAvailability[]> {
+  let query = supabase.from("barber_availability" as any).select("*").eq("active", true);
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
 
-export async function fetchAppointments(barberId?: string): Promise<DbAppointment[]> {
+export async function fetchAppointments(barberId?: string, tenantId?: string): Promise<DbAppointment[]> {
   let query = supabase
     .from("appointments" as any)
     .select("*, barbers(name), services(name)")
     .order("appointment_date", { ascending: false });
-  if (barberId) {
-    query = query.eq("barber_id", barberId);
-  }
+  if (barberId) query = query.eq("barber_id", barberId);
+  if (tenantId) query = query.eq("tenant_id", tenantId);
   const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
@@ -130,20 +130,18 @@ export async function fetchBarberByUserId(userId: string): Promise<DbBarber | nu
   return (data as any) || null;
 }
 
-export async function fetchBlockedDates(): Promise<DbBlockedDate[]> {
-  const { data, error } = await supabase
-    .from("blocked_dates" as any)
-    .select("*")
-    .order("blocked_date");
+export async function fetchBlockedDates(tenantId?: string): Promise<DbBlockedDate[]> {
+  let query = supabase.from("blocked_dates" as any).select("*").order("blocked_date");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
 
-export async function fetchProducts(): Promise<DbProduct[]> {
-  const { data, error } = await supabase
-    .from("products" as any)
-    .select("*")
-    .order("name");
+export async function fetchProducts(tenantId?: string): Promise<DbProduct[]> {
+  let query = supabase.from("products" as any).select("*").order("name");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
@@ -170,6 +168,7 @@ export async function createAppointment(data: {
   appointment_date: string;
   appointment_time: string;
   price: number;
+  tenant_id?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -200,10 +199,7 @@ export async function updateAppointmentStatus(id: string, status: string) {
 }
 
 export async function deleteAppointment(id: string) {
-  const { error } = await supabase
-    .from("appointments" as any)
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("appointments" as any).delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -224,7 +220,7 @@ export async function deleteService(id: string) {
 }
 
 // CRUD: Barbers
-export async function createBarber(data: { name: string; specialty?: string }) {
+export async function createBarber(data: { name: string; specialty?: string; tenant_id?: string }) {
   const { error } = await supabase.from("barbers" as any).insert(data as any);
   if (error) throw error;
 }
@@ -240,7 +236,7 @@ export async function deleteBarber(id: string) {
 }
 
 // CRUD: Barber Availability
-export async function upsertAvailability(data: { barber_id: string; day_of_week: number; start_time: string; end_time: string; active: boolean }[]) {
+export async function upsertAvailability(data: { barber_id: string; day_of_week: number; start_time: string; end_time: string; active: boolean; tenant_id?: string }[]) {
   for (const item of data) {
     const { data: existing } = await supabase.from("barber_availability" as any).select("id").eq("barber_id", item.barber_id).eq("day_of_week", item.day_of_week).maybeSingle();
     if (existing) {
@@ -268,15 +264,19 @@ export async function deleteProduct(id: string) {
 }
 
 // Fetch all services (including inactive) for admin
-export async function fetchAllServices(): Promise<DbService[]> {
-  const { data, error } = await supabase.from("services" as any).select("*").order("name");
+export async function fetchAllServices(tenantId?: string): Promise<DbService[]> {
+  let query = supabase.from("services" as any).select("*").order("name");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
 
 // Fetch all barbers (including inactive) for admin
-export async function fetchAllBarbers(): Promise<DbBarber[]> {
-  const { data, error } = await supabase.from("barbers" as any).select("*").order("name");
+export async function fetchAllBarbers(tenantId?: string): Promise<DbBarber[]> {
+  let query = supabase.from("barbers" as any).select("*").order("name");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
@@ -297,12 +297,10 @@ export function generateTimeSlots(startTime: string, endTime: string, durationMi
   return slots;
 }
 
-export async function fetchAdminPhone(): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("site_settings" as any)
-    .select("value")
-    .eq("key", "phone")
-    .maybeSingle();
+export async function fetchAdminPhone(tenantId?: string): Promise<string | null> {
+  let query = supabase.from("site_settings" as any).select("value").eq("key", "phone");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query.maybeSingle();
   if (error || !data) return null;
   return (data as any).value;
 }

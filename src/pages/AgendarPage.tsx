@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, generateTimeSlots, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { useTenant } from "@/contexts/TenantContext";
 import { Scissors, ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +15,8 @@ type Step = "servico" | "barbeiro" | "data" | "horario" | "dados" | "confirmacao
 
 const AgendarPage = () => {
   const navigate = useNavigate();
+  const { tenantId, tenantSlug } = useTenant();
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [searchParams] = useSearchParams();
   const preSelectedServiceId = searchParams.get("servico");
   const [step, setStep] = useState<Step>(preSelectedServiceId ? "barbeiro" : "servico");
@@ -39,7 +42,7 @@ const AgendarPage = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchServices(), fetchBarbers(), fetchBlockedDates()]).then(([s, b, bd]) => {
+    Promise.all([fetchServices(tenantId || undefined), fetchBarbers(tenantId || undefined), fetchBlockedDates(tenantId || undefined)]).then(([s, b, bd]) => {
       setServices(s);
       setBarbersList(b);
       setBlockedDates(bd);
@@ -49,7 +52,7 @@ const AgendarPage = () => {
       }
       setLoading(false);
     });
-  }, [preSelectedServiceId]);
+  }, [preSelectedServiceId, tenantId]);
 
   useEffect(() => {
     if (selectedBarber) {
@@ -190,6 +193,7 @@ const AgendarPage = () => {
         appointment_date: format(selectedDate, "yyyy-MM-dd"),
         appointment_time: selectedTime,
         price: selectedService.price,
+        tenant_id: tenantId || undefined,
       });
       toast.success("Agendamento confirmado com sucesso!", {
         description: "Você receberá um e-mail de confirmação.",
@@ -213,7 +217,7 @@ const AgendarPage = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto flex items-center h-16 px-4 gap-4">
-          <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to={basePath || "/"}><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
             <span className="font-bold tracking-tight">CAETANO BARBER</span>
@@ -379,7 +383,7 @@ const AgendarPage = () => {
               {selectedDate && format(selectedDate, "dd/MM/yyyy")} às {selectedTime}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button variant="outline" onClick={() => navigate("/")}>Voltar ao Início</Button>
+              <Button variant="outline" onClick={() => navigate(basePath || "/")}>Voltar ao Início</Button>
               <Button onClick={() => {
                 setStep("servico"); setSelectedService(null); setSelectedBarber(null);
                 setSelectedDate(undefined); setSelectedTime(null); setNome(""); setWhatsapp("");

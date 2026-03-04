@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -28,8 +29,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, userRole } = useAuth();
+  const { tenantSlug, tenant } = useTenant();
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const role = userRole || "client";
-  const navItems = allNavItems.filter((item) => item.roles.includes(role));
+  const navItems = allNavItems.filter((item) => item.roles.includes(role)).map(item => ({
+    ...item,
+    path: `${basePath}${item.path}`,
+  }));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
@@ -66,7 +72,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             duration: 8000,
             action: {
               label: "Ver pedidos",
-              onClick: () => navigate("/admin/pedidos"),
+              onClick: () => navigate(`${basePath}/admin/pedidos`),
             },
           });
         }
@@ -81,7 +87,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate(`${basePath}`);
   };
 
   return (
@@ -97,7 +103,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Scissors className="h-5 w-5" />
-          <span className="font-bold tracking-tight">CAETANO BARBER</span>
+          <span className="font-bold tracking-tight">{tenant?.name || "ADMIN"}</span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
           {navItems.map((item) => {
@@ -151,7 +157,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             variant="ghost"
             size="icon"
             className="relative"
-            onClick={() => { setNewCount(0); navigate("/admin/agendamentos"); }}
+            onClick={() => { setNewCount(0); navigate(`${basePath}/admin/agendamentos`); }}
           >
             <Bell className="h-5 w-5" />
             {newCount > 0 && (

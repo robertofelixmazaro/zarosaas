@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAppointments, fetchBarbers, fetchServices } from "@/lib/api";
+import { fetchAppointments, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -95,8 +95,8 @@ const AdminRelatorios = () => {
     queryKey: ["appointments"],
     queryFn: () => fetchAppointments(),
   });
-  const { data: barbers = [] } = useQuery({ queryKey: ["barbers"], queryFn: fetchBarbers });
-  const { data: services = [] } = useQuery({ queryKey: ["services"], queryFn: fetchServices });
+  const { data: barbers = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers"], queryFn: () => fetchBarbers() });
+  const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services"], queryFn: () => fetchServices() });
 
   const filtered = useMemo(() => {
     if (!startDate && !endDate) return appointments;

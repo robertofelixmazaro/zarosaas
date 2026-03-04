@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
       appointment_date,
       appointment_time,
       price,
+      tenant_id,
     } = body;
 
     // Validate required fields
@@ -110,18 +111,21 @@ Deno.serve(async (req) => {
     }
 
     // Insert with the unique constraint as final safety net
+    const insertData: any = {
+      id: id || crypto.randomUUID(),
+      client_name,
+      client_phone: client_phone || "",
+      barber_id,
+      service_id,
+      appointment_date,
+      appointment_time,
+      price,
+    };
+    if (tenant_id) insertData.tenant_id = tenant_id;
+
     const { error: insertError } = await supabase
       .from("appointments")
-      .insert({
-        id: id || crypto.randomUUID(),
-        client_name,
-        client_phone: client_phone || "",
-        barber_id,
-        service_id,
-        appointment_date,
-        appointment_time,
-        price,
-      });
+      .insert(insertData);
 
     if (insertError) {
       // Unique constraint violation
