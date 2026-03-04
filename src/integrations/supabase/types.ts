@@ -402,6 +402,66 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          active: boolean
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          max_appointments_month: number | null
+          max_barbers: number | null
+          max_products: number | null
+          name: string
+          price: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          max_appointments_month?: number | null
+          max_barbers?: number | null
+          max_products?: number | null
+          name: string
+          price?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          max_appointments_month?: number | null
+          max_barbers?: number | null
+          max_products?: number | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string | null
+          value?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean | null
@@ -658,6 +718,7 @@ export type Database = {
           name: string
           owner_user_id: string | null
           phone: string | null
+          plan_id: string | null
           slug: string
         }
         Insert: {
@@ -669,6 +730,7 @@ export type Database = {
           name: string
           owner_user_id?: string | null
           phone?: string | null
+          plan_id?: string | null
           slug: string
         }
         Update: {
@@ -680,9 +742,18 @@ export type Database = {
           name?: string
           owner_user_id?: string | null
           phone?: string | null
+          plan_id?: string | null
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
