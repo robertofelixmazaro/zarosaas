@@ -31,7 +31,7 @@ const LandingPage = () => {
             <ThemeToggle />
             <Link to="/novo-negocio">
               <Button size="sm" className="gap-1.5">
-                <Plus className="h-4 w-4" /> Criar Barbearia
+                <Plus className="h-4 w-4" /> Criar Negócio
               </Button>
             </Link>
           </div>
@@ -45,7 +45,7 @@ const LandingPage = () => {
             Sistema Completo de<br />Agendamentos para Todo<br />Tipo de Negócio
           </h1>
           <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-            Agendamentos, gestão de equipe, produtos e relatórios. Tudo em um só lugar, pronto em minutos.
+            Agendamentos online, gestão de equipe, produtos e relatórios. Ideal para barbearias, salões, clínicas, estúdios e muito mais.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/novo-negocio">
@@ -63,9 +63,9 @@ const LandingPage = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {[
               { icon: Calendar, title: "Agendamentos Online", desc: "Seus clientes agendam 24h pelo site" },
-              { icon: Users, title: "Gestão de Equipe", desc: "Controle barbeiros, horários e disponibilidade" },
+              { icon: Users, title: "Gestão de Equipe", desc: "Controle profissionais, horários e disponibilidade" },
               { icon: Store, title: "Loja de Produtos", desc: "Venda produtos direto pelo site" },
-              { icon: Shield, title: "Multi-Tenant Seguro", desc: "Cada barbearia com dados isolados" },
+              { icon: Shield, title: "Multi-Tenant Seguro", desc: "Cada negócio com dados isolados" },
             ].map((f) => (
               <div key={f.title} className="text-center p-6">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -83,14 +83,14 @@ const LandingPage = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-3">Barbearias Cadastradas</h2>
-            <p className="text-muted-foreground">Encontre sua barbearia ou crie a sua</p>
+            <h2 className="text-3xl font-bold tracking-tight mb-3">Negócios Cadastrados</h2>
+            <p className="text-muted-foreground">Encontre seu negócio ou crie o seu</p>
           </div>
           {isLoading ? (
             <div className="text-center text-muted-foreground">Carregando...</div>
           ) : tenants.length === 0 ? (
             <div className="text-center text-muted-foreground">
-              Nenhuma barbearia cadastrada ainda.{" "}
+              Nenhum negócio cadastrado ainda.{" "}
               <Link to="/novo-negocio" className="text-primary underline">Seja o primeiro!</Link>
             </div>
           ) : (
