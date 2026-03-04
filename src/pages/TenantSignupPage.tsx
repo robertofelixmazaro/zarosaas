@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Store, Phone, MapPin } from "lucide-react";
+import { ArrowLeft, Store, Phone, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import zaroLogo from "@/assets/zaro-logo.png";
 
 const TenantSignupPage = () => {
@@ -74,7 +75,7 @@ const TenantSignupPage = () => {
       await supabase.from("profiles").update({ tenant_id: tenantId } as any).eq("auth_id", userId);
       await supabase.from("user_roles").update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", userId);
 
-      toast.success("Negócio criado com sucesso!");
+      toast.success("Negócio criado com sucesso! 🎉");
       navigate(`/t/${slug}/admin`);
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
@@ -84,16 +85,29 @@ const TenantSignupPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
         <Link to="/" className="flex flex-col items-center gap-3 justify-center mb-8">
           <img src={zaroLogo} alt="Zaro Logo" className="h-14 w-14 object-contain" />
           <span className="text-xl font-bold tracking-tight">Criar seu Negócio</span>
         </Link>
 
-        <div className="rounded-lg border bg-card p-6 space-y-6">
-          <div>
-            <h2 className="text-xl font-bold mb-1">Dados do Negócio</h2>
-            <p className="text-sm text-muted-foreground">Configure seu negócio na plataforma</p>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="rounded-xl border bg-card p-8 shadow-lg space-y-6"
+        >
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">Dados do Negócio</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Configure seu negócio na plataforma e comece a receber agendamentos</p>
           </div>
           <div className="space-y-3">
             <div className="relative">
@@ -113,17 +127,17 @@ const TenantSignupPage = () => {
               <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Endereço (opcional)" className="pl-10" />
             </div>
           </div>
-          <Button className="w-full" onClick={handleCreateTenant} disabled={loading || !shopName.trim() || !slug.trim()}>
+          <Button className="w-full h-11" onClick={handleCreateTenant} disabled={loading || !shopName.trim() || !slug.trim()}>
             {loading ? "Criando..." : "Criar Negócio"}
           </Button>
-        </div>
+        </motion.div>
 
-        <div className="text-center mt-4">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
+        <div className="text-center mt-6">
+          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors">
             <ArrowLeft className="h-3 w-3" /> Voltar ao início
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
