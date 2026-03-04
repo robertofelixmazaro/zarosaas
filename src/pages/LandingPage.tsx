@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Scissors, ChevronRight, Plus, Store, Users, Calendar, Shield } from "lucide-react";
+import { ChevronRight, Plus, Store, Users, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import zaroLogo from "@/assets/zaro-logo.png";
 
 const LandingPage = () => {
   const { data: tenants = [], isLoading } = useQuery({
@@ -22,9 +23,9 @@ const LandingPage = () => {
       {/* Navbar */}
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <div className="flex items-center gap-2">
-            <Scissors className="h-5 w-5" />
-            <span className="text-lg font-bold tracking-tight">BarberSaaS</span>
+          <div className="flex items-center gap-2.5">
+            <img src={zaroLogo} alt="Zaro Logo" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold tracking-tight">ZARO AGENDAMENTOS</span>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -105,7 +106,7 @@ const LandingPage = () => {
                       <img src={t.logo_url} alt={t.name} className="w-12 h-12 rounded-full object-cover" />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Scissors className="h-5 w-5 text-primary" />
+                        <Store className="h-5 w-5 text-primary" />
                       </div>
                     )}
                     <div>
@@ -127,7 +128,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © 2026 BarberSaaS. Todos os direitos reservados.
+          © 2026 ZARO AGENDAMENTOS. Todos os direitos reservados.
         </div>
       </footer>
     </div>
