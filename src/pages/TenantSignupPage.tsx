@@ -11,7 +11,7 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const TenantSignupPage = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUserRole } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [shopName, setShopName] = useState("");
@@ -74,6 +74,9 @@ const TenantSignupPage = () => {
 
       await supabase.from("profiles").update({ tenant_id: tenantId } as any).eq("auth_id", userId);
       await supabase.from("user_roles").update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", userId);
+
+      // Refresh the role in AuthContext so ProtectedRoute allows access
+      await refreshUserRole();
 
       toast.success("Negócio criado com sucesso! 🎉");
       navigate(`/t/${slug}/admin`);

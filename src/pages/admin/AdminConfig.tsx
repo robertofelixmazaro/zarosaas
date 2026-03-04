@@ -182,7 +182,7 @@ const AdminConfig = () => {
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Settings className="h-5 w-5" />
-          <h3 className="font-semibold">Dados da Barbearia</h3>
+          <h3 className="font-semibold">Dados do Negócio</h3>
         </div>
         <div className="space-y-3">
           <div>
@@ -297,7 +297,7 @@ const AdminConfig = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">Deixe "Todos" para bloquear para toda a barbearia</p>
+              <p className="text-xs text-muted-foreground mt-1">Deixe "Todos" para bloquear para todo o negócio</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -542,7 +542,7 @@ const AdminConfig = () => {
           <QrCode className="h-5 w-5" />
           <h3 className="font-semibold">QR Code de Acesso</h3>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Imprima e coloque na barbearia para os clientes acessarem o site</p>
+        <p className="text-sm text-muted-foreground mb-4">Imprima e coloque no seu negócio para os clientes acessarem o site</p>
         <div className="flex items-center gap-6">
           <div className="bg-white p-3 rounded-xl">
             <QRCodeSVG

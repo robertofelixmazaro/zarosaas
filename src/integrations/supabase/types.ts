@@ -755,6 +755,36 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_status: string
+          message_text: string
+          phone: string | null
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_status?: string
+          message_text: string
+          phone?: string | null
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_status?: string
+          message_text?: string
+          phone?: string | null
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
