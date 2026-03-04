@@ -132,86 +132,93 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/40 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <Link to={basePath || "/"} className="flex flex-col items-center gap-3 justify-center mb-8">
           {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-full object-cover border-2 border-border" />
+            <img src={logoUrl} alt="Logo" className="h-20 w-20 rounded-full object-cover border-2 border-primary/20 shadow-lg" />
           ) : (
-            <Scissors className="h-8 w-8" />
+            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-lg">
+              <Scissors className="h-10 w-10 text-primary" />
+            </div>
           )}
-          <span className="text-xl font-bold tracking-tight">{tenant?.name || shopName}</span>
+          <span className="text-2xl font-bold tracking-tight">{tenant?.name || shopName}</span>
         </Link>
 
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="text-xl font-bold text-center mb-1">
-            {isLogin ? "Entrar" : "Criar Conta"}
+        <div className="rounded-xl border bg-card p-6 shadow-lg">
+          <h2 className="text-2xl font-bold text-center mb-1">
+            {isLogin ? "Bem-vindo de volta" : "Criar Conta"}
           </h2>
           <p className="text-sm text-muted-foreground text-center mb-6">
-            {isLogin ? "Acesse o painel administrativo" : "Preencha todos os dados para se cadastrar"}
+            {isLogin ? "Faça login para acessar sua conta" : "Preencha todos os dados para se cadastrar"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-3" autoComplete="off">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {!isLogin && (
               <>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className="pl-10" required />
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className="pl-10 h-11" required />
                 </div>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="CPF (000.000.000-00)" className="pl-10" required />
+                  <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="CPF (000.000.000-00)" className="pl-10 h-11" required />
                 </div>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp (com DDD)" className="pl-10" required />
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp (com DDD)" className="pl-10 h-11" required />
                 </div>
 
                 <p className="text-xs font-medium text-muted-foreground pt-1">Endereço</p>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua / Avenida" className="pl-10" required />
+                  <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua / Avenida" className="pl-10 h-11" required />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número" required />
-                  <Input value={addressNeighborhood} onChange={(e) => setAddressNeighborhood(e.target.value)} placeholder="Bairro" required />
+                  <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número" className="h-11" required />
+                  <Input value={addressNeighborhood} onChange={(e) => setAddressNeighborhood(e.target.value)} placeholder="Bairro" className="h-11" required />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade" required />
-                  <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="Estado (UF)" maxLength={2} required />
+                  <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade" className="h-11" required />
+                  <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="Estado (UF)" maxLength={2} className="h-11" required />
                 </div>
-                <Input value={addressZip} onChange={(e) => setAddressZip(formatCEP(e.target.value))} placeholder="CEP (00000-000)" />
+                <Input value={addressZip} onChange={(e) => setAddressZip(formatCEP(e.target.value))} placeholder="CEP (00000-000)" className="h-11" />
               </>
             )}
 
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="pl-10" required autoComplete="off" />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="pl-10 h-11" required autoComplete="off" />
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="pl-10 pr-10" required minLength={6} autoComplete="new-password" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="pl-10 pr-11 h-11" required minLength={6} autoComplete="new-password" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>
               {loading ? "Carregando..." : isLogin ? "Entrar" : "Criar Conta"}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-5 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {isLogin ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
+              {isLogin ? (
+                <>Não tem conta? <span className="font-semibold text-primary">Cadastre-se agora</span></>
+              ) : (
+                <>Já tem conta? <span className="font-semibold text-primary">Entrar</span></>
+              )}
             </button>
           </div>
         </div>
 
-        <div className="text-center mt-4">
-          <Link to={basePath || "/"} className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
+        <div className="text-center mt-5">
+          <Link to={basePath || "/"} className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors">
             <ArrowLeft className="h-3 w-3" /> Voltar ao site
           </Link>
         </div>
