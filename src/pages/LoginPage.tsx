@@ -22,12 +22,17 @@ const formatCEP = (value: string) => {
   return `${digits.slice(0, 5)}-${digits.slice(5)}`;
 };
 
+type LoginView = "login" | "signup" | "forgot";
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp, user, userRole, loading: authLoading } = useAuth();
   const { tenantId, tenantSlug, tenant } = useTenant();
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<LoginView>("login");
+  const isLogin = view === "login";
+  const isForgot = view === "forgot";
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -147,73 +152,118 @@ const LoginPage = () => {
 
         <div className="rounded-xl border bg-card p-6 shadow-lg">
           <h2 className="text-2xl font-bold text-center mb-1">
-            {isLogin ? "Bem-vindo de volta" : "Criar Conta"}
+            {isForgot ? "Recuperar Senha" : isLogin ? "Bem-vindo de volta" : "Criar Conta"}
           </h2>
           <p className="text-sm text-muted-foreground text-center mb-6">
-            {isLogin ? "Faça login para acessar sua conta" : "Preencha todos os dados para se cadastrar"}
+            {isForgot
+              ? "Informe seu email para receber o link de recuperação"
+              : isLogin
+              ? "Faça login para acessar sua conta"
+              : "Preencha todos os dados para se cadastrar"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-            {!isLogin && (
-              <>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className="pl-10 h-11" required />
-                </div>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="CPF (000.000.000-00)" className="pl-10 h-11" required />
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp (com DDD)" className="pl-10 h-11" required />
-                </div>
-
-                <p className="text-xs font-medium text-muted-foreground pt-1">Endereço</p>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua / Avenida" className="pl-10 h-11" required />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número" className="h-11" required />
-                  <Input value={addressNeighborhood} onChange={(e) => setAddressNeighborhood(e.target.value)} placeholder="Bairro" className="h-11" required />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade" className="h-11" required />
-                  <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="Estado (UF)" maxLength={2} className="h-11" required />
-                </div>
-                <Input value={addressZip} onChange={(e) => setAddressZip(formatCEP(e.target.value))} placeholder="CEP (00000-000)" className="h-11" />
-              </>
-            )}
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="pl-10 h-11" required autoComplete="off" />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="pl-10 pr-11 h-11" required minLength={6} autoComplete="new-password" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-
-            <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>
-              {loading ? "Carregando..." : isLogin ? "Entrar" : "Criar Conta"}
-            </Button>
-          </form>
-
-          <div className="mt-5 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          {isForgot ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setForgotLoading(true);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${window.location.origin}/reset-password`,
+                });
+                if (error) {
+                  toast.error("Erro ao enviar email", { description: error.message });
+                } else {
+                  toast.success("Email enviado!", { description: "Verifique sua caixa de entrada." });
+                }
+                setForgotLoading(false);
+              }}
+              className="space-y-4"
             >
-              {isLogin ? (
-                <>Não tem conta? <span className="font-semibold text-primary">Cadastre-se agora</span></>
-              ) : (
-                <>Já tem conta? <span className="font-semibold text-primary">Entrar</span></>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="pl-10 h-11" required />
+              </div>
+              <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={forgotLoading}>
+                {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+              {!isLogin && (
+                <>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className="pl-10 h-11" required />
+                  </div>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="CPF (000.000.000-00)" className="pl-10 h-11" required />
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp (com DDD)" className="pl-10 h-11" required />
+                  </div>
+
+                  <p className="text-xs font-medium text-muted-foreground pt-1">Endereço</p>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua / Avenida" className="pl-10 h-11" required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número" className="h-11" required />
+                    <Input value={addressNeighborhood} onChange={(e) => setAddressNeighborhood(e.target.value)} placeholder="Bairro" className="h-11" required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade" className="h-11" required />
+                    <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="Estado (UF)" maxLength={2} className="h-11" required />
+                  </div>
+                  <Input value={addressZip} onChange={(e) => setAddressZip(formatCEP(e.target.value))} placeholder="CEP (00000-000)" className="h-11" />
+                </>
               )}
-            </button>
+
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="pl-10 h-11" required autoComplete="off" />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="pl-10 pr-11 h-11" required minLength={6} autoComplete="new-password" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+
+              {isLogin && (
+                <div className="text-right">
+                  <button type="button" onClick={() => setView("forgot")} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                    Esqueci minha senha
+                  </button>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>
+                {loading ? "Carregando..." : isLogin ? "Entrar" : "Criar Conta"}
+              </Button>
+            </form>
+          )}
+
+          <div className="mt-5 text-center space-y-2">
+            {isForgot ? (
+              <button onClick={() => setView("login")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <span className="font-semibold text-primary">Voltar ao login</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setView(isLogin ? "signup" : "login")}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isLogin ? (
+                  <>Não tem conta? <span className="font-semibold text-primary">Cadastre-se agora</span></>
+                ) : (
+                  <>Já tem conta? <span className="font-semibold text-primary">Entrar</span></>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

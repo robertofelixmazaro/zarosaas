@@ -13,6 +13,7 @@ import TenantSignupPage from "./pages/TenantSignupPage";
 import Index from "./pages/Index";
 import AgendarPage from "./pages/AgendarPage";
 import LoginPage from "./pages/LoginPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAgendamentos from "./pages/admin/AdminAgendamentos";
@@ -112,6 +113,7 @@ const AppRoutes = () => (
     <Route path="/admin/*" element={<LegacyAdminRedirect />} />
     <Route path="/admin-platform" element={<SuperAdminRoute><PlatformDashboard /></SuperAdminRoute>} />
     <Route path="/admin-platform/tenants" element={<SuperAdminRoute><PlatformTenants /></SuperAdminRoute>} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/login" element={<Navigate to="/" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
