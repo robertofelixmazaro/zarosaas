@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Plus, Store, Users, Calendar, Shield } from "lucide-react";
+import { ChevronRight, Store, Users, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
@@ -35,9 +35,14 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/novo-negocio">
-              <Button size="sm" className="gap-1.5">
-                <Plus className="h-4 w-4" /> Criar Negócio
+            <Link to="/entrar">
+              <Button variant="ghost" size="sm">
+                Entrar
+              </Button>
+            </Link>
+            <Link to="/cadastrar">
+              <Button size="sm">
+                Cadastrar
               </Button>
             </Link>
           </div>
@@ -69,7 +74,7 @@ const LandingPage = () => {
             transition={{ duration: 0.5, delay: 0.65 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/novo-negocio">
+            <Link to="/cadastrar">
               <Button size="lg" className="text-base px-8 gap-2">
                 Começar Agora <ChevronRight className="h-4 w-4" />
               </Button>
