@@ -27,6 +27,8 @@ import AdminLembretes from "./pages/admin/AdminLembretes";
 import AdminGaleria from "./pages/admin/AdminGaleria";
 import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
 import QRCodePage from "./pages/QRCodePage";
+import PlatformDashboard from "./pages/platform/PlatformDashboard";
+import PlatformTenants from "./pages/platform/PlatformTenants";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +39,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!user) return <Navigate to="/" replace />;
   if (userRole && userRole !== "admin" && userRole !== "barber") return <Navigate to="/" replace />;
   if (!userRole) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  return <>{children}</>;
+};
+
+const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading, userRole } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!user) return <Navigate to="/" replace />;
+  if (userRole !== "super_admin") return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
@@ -100,6 +110,8 @@ const AppRoutes = () => (
     <Route path="/novo-negocio" element={<TenantSignupPage />} />
     <Route path="/t/:slug/*" element={<TenantRoutes />} />
     <Route path="/admin/*" element={<LegacyAdminRedirect />} />
+    <Route path="/admin-platform" element={<SuperAdminRoute><PlatformDashboard /></SuperAdminRoute>} />
+    <Route path="/admin-platform/tenants" element={<SuperAdminRoute><PlatformTenants /></SuperAdminRoute>} />
     <Route path="/login" element={<Navigate to="/" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
