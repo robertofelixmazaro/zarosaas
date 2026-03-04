@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import PlatformHeader from "@/components/PlatformHeader";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -58,15 +59,11 @@ const PlatformTenants = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card px-6 py-4 flex items-center gap-4">
+      <PlatformHeader>
         <Link to="/admin-platform">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Gerenciar Negócios</h1>
-          <p className="text-sm text-muted-foreground">Visualize e gerencie todos os tenants</p>
-        </div>
-      </header>
+      </PlatformHeader>
 
       <main className="p-6 max-w-7xl mx-auto">
         <Card>
