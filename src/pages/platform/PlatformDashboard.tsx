@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, Users, CalendarCheck, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import PlatformHeader from "@/components/PlatformHeader";
 
 interface Stats {
   totalTenants: number;
@@ -53,15 +54,11 @@ const PlatformDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">ZARO — Painel da Plataforma</h1>
-          <p className="text-sm text-muted-foreground">Visão geral do SaaS</p>
-        </div>
+      <PlatformHeader>
         <Link to="/admin-platform/tenants">
           <Button variant="outline">Gerenciar Negócios</Button>
         </Link>
-      </header>
+      </PlatformHeader>
 
       <main className="p-6 max-w-7xl mx-auto">
         {loading ? (
