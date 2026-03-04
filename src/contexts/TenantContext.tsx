@@ -50,9 +50,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           .eq("slug", slug)
           .maybeSingle();
         if (err) {
-          setError("Erro ao carregar barbearia.");
+          setError("Erro ao carregar negócio.");
         } else if (!data) {
-          setError("Barbearia não encontrada.");
+          setError("Negócio não encontrado.");
         } else {
           setTenant(data as any);
         }
