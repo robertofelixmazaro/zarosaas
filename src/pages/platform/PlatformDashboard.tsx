@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Users, CalendarCheck, TrendingUp } from "lucide-react";
+import { Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3, Settings, UserCog } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import PlatformHeader from "@/components/PlatformHeader";
@@ -55,9 +55,13 @@ const PlatformDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/admin-platform/tenants">
-          <Button variant="outline">Gerenciar Negócios</Button>
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link to="/admin-platform/tenants"><Button variant="outline" size="sm"><Building2 className="h-4 w-4 mr-1" />Negócios</Button></Link>
+          <Link to="/admin-platform/planos"><Button variant="outline" size="sm"><CreditCard className="h-4 w-4 mr-1" />Planos</Button></Link>
+          <Link to="/admin-platform/relatorios"><Button variant="outline" size="sm"><BarChart3 className="h-4 w-4 mr-1" />Relatórios</Button></Link>
+          <Link to="/admin-platform/usuarios"><Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Usuários</Button></Link>
+          <Link to="/admin-platform/configuracoes"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" />Configurações</Button></Link>
+        </div>
       </PlatformHeader>
 
       <main className="p-6 max-w-7xl mx-auto">

@@ -31,6 +31,10 @@ import QRCodePage from "./pages/QRCodePage";
 import PlatformDashboard from "./pages/platform/PlatformDashboard";
 import PlatformTenants from "./pages/platform/PlatformTenants";
 import PlatformLoginPage from "./pages/platform/PlatformLoginPage";
+import PlatformPlans from "./pages/platform/PlatformPlans";
+import PlatformReports from "./pages/platform/PlatformReports";
+import PlatformSettings from "./pages/platform/PlatformSettings";
+import PlatformUsers from "./pages/platform/PlatformUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -115,6 +119,10 @@ const AppRoutes = () => (
     <Route path="/admin-platform/login" element={<PlatformLoginPage />} />
     <Route path="/admin-platform" element={<SuperAdminRoute><PlatformDashboard /></SuperAdminRoute>} />
     <Route path="/admin-platform/tenants" element={<SuperAdminRoute><PlatformTenants /></SuperAdminRoute>} />
+    <Route path="/admin-platform/planos" element={<SuperAdminRoute><PlatformPlans /></SuperAdminRoute>} />
+    <Route path="/admin-platform/relatorios" element={<SuperAdminRoute><PlatformReports /></SuperAdminRoute>} />
+    <Route path="/admin-platform/configuracoes" element={<SuperAdminRoute><PlatformSettings /></SuperAdminRoute>} />
+    <Route path="/admin-platform/usuarios" element={<SuperAdminRoute><PlatformUsers /></SuperAdminRoute>} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/login" element={<Navigate to="/" replace />} />
     <Route path="*" element={<NotFound />} />
