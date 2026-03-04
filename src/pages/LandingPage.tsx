@@ -42,7 +42,7 @@ const LandingPage = () => {
       <section className="py-24 text-center">
         <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Sistema Completo para<br />sua Barbearia
+            Sistema Completo de<br />Agendamentos para Todo<br />Tipo de Negócio
           </h1>
           <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
             Agendamentos, gestão de equipe, produtos e relatórios. Tudo em um só lugar, pronto em minutos.
