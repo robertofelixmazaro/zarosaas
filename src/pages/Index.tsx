@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
+import { useTenant } from "@/contexts/TenantContext";
 import heroBg from "@/assets/hero-barbershop.jpg";
 import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,15 +18,16 @@ import { usePwaInstall } from "@/hooks/usePwaInstall";
 
 const Index = () => {
   const queryClient = useQueryClient();
+  const { tenantId, tenantSlug, tenant, loading: tenantLoading, error: tenantError } = useTenant();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [shouldOpenCart, setShouldOpenCart] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
 
-  const { data: barbersList = [] } = useQuery({ queryKey: ["barbers"], queryFn: fetchBarbers });
-  const { data: services = [] } = useQuery({ queryKey: ["services"], queryFn: fetchServices });
-  const { data: products = [] } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
+  const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services", tenantId], queryFn: () => fetchServices(tenantId || undefined), enabled: !!tenantId });
+  const { data: products = [] } = useQuery<DbProduct[]>({ queryKey: ["products", tenantId], queryFn: () => fetchProducts(tenantId || undefined), enabled: !!tenantId });
 
   const { data: galleryItems = [] } = useQuery({
     queryKey: ["gallery_items"],
@@ -77,6 +79,11 @@ const Index = () => {
     });
     setShouldOpenCart(true);
   };
+
+  if (tenantLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (tenantError) return <div className="min-h-screen flex items-center justify-center text-destructive">{tenantError}</div>;
+
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -174,7 +181,7 @@ const Index = () => {
                       <Clock className="h-3 w-3" /> {s.duration_minutes} min
                     </span>
                   </div>
-                  <Link to={`/agendar?servico=${s.id}`}>
+                  <Link to={`${basePath}/agendar?servico=${s.id}`}>
                     <Button className="w-full gap-2">
                       Agendar <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -184,7 +191,7 @@ const Index = () => {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link to="/agendar">
+            <Link to={`${basePath}/agendar`}>
               <Button size="lg" className="gap-2">
                 Ver Todos os Horários <ChevronRight className="h-4 w-4" />
               </Button>
@@ -354,7 +361,7 @@ const Index = () => {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Deixe Sua Avaliação</h2>
             <p className="text-muted-foreground max-w-md mx-auto">Conte como foi sua experiência, mesmo sem agendamento</p>
           </div>
-          <WalkinReviewForm barbers={barbersList} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["public-reviews"] })} />
+          <WalkinReviewForm barbers={barbersList} tenantId={tenantId} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["public-reviews"] })} />
         </div>
       </section>
 
@@ -364,7 +371,7 @@ const Index = () => {
           <div className="bg-primary text-primary-foreground rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para transformar seu visual?</h2>
             <p className="text-primary-foreground/70 mb-8 max-w-md mx-auto">Agende agora e garanta seu horário com os melhores barbeiros da cidade.</p>
-            <Link to="/agendar">
+            <Link to={`${basePath}/agendar`}>
               <Button size="lg" variant="secondary" className="text-base px-10 gap-2">
                 Agendar Horário <ChevronRight className="h-4 w-4" />
               </Button>
@@ -425,7 +432,7 @@ const Index = () => {
   );
 };
 
-function WalkinReviewForm({ barbers, onSuccess }: { barbers: DbBarber[]; onSuccess: () => void }) {
+function WalkinReviewForm({ barbers, onSuccess, tenantId }: { barbers: DbBarber[]; onSuccess: () => void; tenantId?: string | null }) {
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -462,6 +469,7 @@ function WalkinReviewForm({ barbers, onSuccess }: { barbers: DbBarber[]; onSucce
         client_user_id: null,
         client_name: clientName.trim(),
         client_photo_url: photoUrl,
+        tenant_id: tenantId || null,
       } as any);
       if (error) throw error;
     },

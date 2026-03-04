@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Mail, Lock, User, ArrowLeft, Phone, MapPin, CreditCard, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ const formatCEP = (value: string) => {
 const LoginPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp, user, userRole, loading: authLoading } = useAuth();
+  const { tenantId, tenantSlug, tenant } = useTenant();
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,9 +48,9 @@ const LoginPage = () => {
   useEffect(() => {
     if (!authLoading && user && userRole) {
       if (userRole === "admin" || userRole === "barber") {
-        navigate("/admin", { replace: true });
+        navigate(`${basePath}/admin`, { replace: true });
       } else {
-        navigate("/", { replace: true });
+        navigate(basePath || "/", { replace: true });
       }
     }
   }, [authLoading, user, userRole, navigate]);
@@ -85,13 +88,13 @@ const LoginPage = () => {
           const role = (roleData as any)?.role;
           if (role === "admin" || role === "barber") {
             toast.success("Bem-vindo de volta!");
-            navigate("/admin");
+            navigate(`${basePath}/admin`);
           } else {
             toast.success("Bem-vindo!");
-            navigate("/");
+            navigate(basePath || "/");
           }
         } else {
-          navigate("/");
+          navigate(basePath || "/");
         }
       }
     } else {
@@ -107,6 +110,7 @@ const LoginPage = () => {
         cpf: cpfDigits,
         whatsapp,
         phone: whatsapp,
+        tenant_id: tenantId || "",
         address_street: addressStreet,
         address_number: addressNumber,
         address_neighborhood: addressNeighborhood,
@@ -121,7 +125,7 @@ const LoginPage = () => {
         toast.error("Erro ao criar conta", { description: msg });
       } else {
         toast.success("Conta criada com sucesso!");
-        navigate("/admin");
+        navigate(`${basePath}/admin`);
       }
     }
     setLoading(false);
@@ -130,13 +134,13 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
-        <Link to="/" className="flex flex-col items-center gap-3 justify-center mb-8">
+        <Link to={basePath || "/"} className="flex flex-col items-center gap-3 justify-center mb-8">
           {logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-full object-cover border-2 border-border" />
           ) : (
             <Scissors className="h-8 w-8" />
           )}
-          <span className="text-xl font-bold tracking-tight">{shopName}</span>
+          <span className="text-xl font-bold tracking-tight">{tenant?.name || shopName}</span>
         </Link>
 
         <div className="rounded-lg border bg-card p-6">
@@ -207,7 +211,7 @@ const LoginPage = () => {
         </div>
 
         <div className="text-center mt-4">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
+          <Link to={basePath || "/"} className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
             <ArrowLeft className="h-3 w-3" /> Voltar ao site
           </Link>
         </div>
