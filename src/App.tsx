@@ -9,6 +9,8 @@ import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import LandingPage from "./pages/LandingPage";
+import SaasLoginPage from "./pages/SaasLoginPage";
+import SaasSignupPage from "./pages/SaasSignupPage";
 import TenantSignupPage from "./pages/TenantSignupPage";
 import Index from "./pages/Index";
 import AgendarPage from "./pages/AgendarPage";
@@ -113,6 +115,8 @@ const LegacyAdminRedirect = () => {
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<LandingPage />} />
+    <Route path="/entrar" element={<SaasLoginPage />} />
+    <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/novo-negocio" element={<TenantSignupPage />} />
     <Route path="/t/:slug/*" element={<TenantRoutes />} />
     <Route path="/admin/*" element={<LegacyAdminRedirect />} />
