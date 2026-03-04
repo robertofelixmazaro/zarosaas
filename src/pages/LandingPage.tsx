@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Plus, Store, Users, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { motion } from "framer-motion";
 import zaroLogo from "@/assets/zaro-logo.png";
 
 const LandingPage = () => {
@@ -21,7 +22,12 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50"
+      >
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2.5">
             <img src={zaroLogo} alt="Zaro Logo" className="h-8 w-8 object-contain" />
@@ -36,24 +42,39 @@ const LandingPage = () => {
             </Link>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Hero */}
-      <section className="py-24 text-center">
+      <section className="py-24 text-center overflow-hidden">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-4xl md:text-6xl font-bold tracking-tight mb-6"
+          >
             Sistema Completo de<br />Agendamentos para Todo<br />Tipo de Negócio
-          </h1>
-          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto"
+          >
             Agendamentos online, gestão de equipe, produtos e relatórios. Ideal para barbearias, salões, clínicas, estúdios e muito mais.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.65 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
             <Link to="/novo-negocio">
               <Button size="lg" className="text-base px-8 gap-2">
                 Começar Agora <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -66,14 +87,21 @@ const LandingPage = () => {
               { icon: Users, title: "Gestão de Equipe", desc: "Controle profissionais, horários e disponibilidade" },
               { icon: Store, title: "Loja de Produtos", desc: "Venda produtos direto pelo site" },
               { icon: Shield, title: "Multi-Tenant Seguro", desc: "Cada negócio com dados isolados" },
-            ].map((f) => (
-              <div key={f.title} className="text-center p-6">
+            ].map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="text-center p-6"
+              >
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <f.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground">{f.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -82,10 +110,16 @@ const LandingPage = () => {
       {/* Tenant list */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl font-bold tracking-tight mb-3">Negócios Cadastrados</h2>
             <p className="text-muted-foreground">Encontre seu negócio ou crie o seu</p>
-          </div>
+          </motion.div>
           {isLoading ? (
             <div className="text-center text-muted-foreground">Carregando...</div>
           ) : tenants.length === 0 ? (
@@ -95,30 +129,37 @@ const LandingPage = () => {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {tenants.map((t: any) => (
-                <Link
+              {tenants.map((t: any, i: number) => (
+                <motion.div
                   key={t.id}
-                  to={`/t/${t.slug}`}
-                  className="p-6 rounded-lg border bg-card hover:shadow-lg transition-all group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
                 >
-                  <div className="flex items-center gap-4 mb-4">
-                    {t.logo_url ? (
-                      <img src={t.logo_url} alt={t.name} className="w-12 h-12 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Store className="h-5 w-5 text-primary" />
+                  <Link
+                    to={`/t/${t.slug}`}
+                    className="block p-6 rounded-lg border bg-card hover:shadow-lg transition-all group"
+                  >
+                    <div className="flex items-center gap-4 mb-4">
+                      {t.logo_url ? (
+                        <img src={t.logo_url} alt={t.name} className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Store className="h-5 w-5 text-primary" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-semibold group-hover:text-primary transition-colors">{t.name}</h3>
+                        <p className="text-xs text-muted-foreground">/{t.slug}</p>
                       </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold group-hover:text-primary transition-colors">{t.name}</h3>
-                      <p className="text-xs text-muted-foreground">/{t.slug}</p>
                     </div>
-                  </div>
-                  {t.address && <p className="text-sm text-muted-foreground">{t.address}</p>}
-                  <div className="mt-4 flex items-center gap-2 text-sm text-primary font-medium">
-                    Visitar <ChevronRight className="h-4 w-4" />
-                  </div>
-                </Link>
+                    {t.address && <p className="text-sm text-muted-foreground">{t.address}</p>}
+                    <div className="mt-4 flex items-center gap-2 text-sm text-primary font-medium">
+                      Visitar <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           )}
