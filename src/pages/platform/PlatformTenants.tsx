@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
@@ -20,28 +21,37 @@ interface Tenant {
   phone: string | null;
   address: string | null;
   active: boolean;
+  plan_id: string | null;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  active: boolean;
 }
 
 const PlatformTenants = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTenants = async () => {
-    const { data, error } = await supabase
-      .from("tenants")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
+  const fetchData = async () => {
+    const [tenantsRes, plansRes] = await Promise.all([
+      supabase.from("tenants").select("*").order("created_at", { ascending: false }),
+      supabase.from("plans").select("id, name, active").eq("active", true).order("price", { ascending: true }),
+    ]);
+
+    if (tenantsRes.error) {
       toast.error("Erro ao carregar negócios");
       return;
     }
-    // tenants table may not have 'active' column yet, default to true
-    setTenants((data || []).map((t: any) => ({ ...t, active: t.active ?? true })));
+    setTenants((tenantsRes.data || []).map((t: any) => ({ ...t, active: t.active ?? true })));
+    setPlans(plansRes.data || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchTenants();
+    fetchData();
   }, []);
 
   const toggleTenant = async (id: string, currentActive: boolean) => {
@@ -54,7 +64,21 @@ const PlatformTenants = () => {
       return;
     }
     toast.success(currentActive ? "Negócio desativado" : "Negócio ativado");
-    fetchTenants();
+    fetchData();
+  };
+
+  const assignPlan = async (tenantId: string, planId: string) => {
+    const value = planId === "none" ? null : planId;
+    const { error } = await supabase
+      .from("tenants")
+      .update({ plan_id: value } as any)
+      .eq("id", tenantId);
+    if (error) {
+      toast.error("Erro ao atribuir plano");
+      return;
+    }
+    toast.success("Plano atualizado");
+    setTenants((prev) => prev.map((t) => (t.id === tenantId ? { ...t, plan_id: value } : t)));
   };
 
   return (
@@ -83,6 +107,7 @@ const PlatformTenants = () => {
                       <TableHead>Nome</TableHead>
                       <TableHead>Slug</TableHead>
                       <TableHead>Telefone</TableHead>
+                      <TableHead>Plano</TableHead>
                       <TableHead>Criado em</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
@@ -94,6 +119,24 @@ const PlatformTenants = () => {
                         <TableCell className="font-medium">{t.name}</TableCell>
                         <TableCell className="text-muted-foreground">/t/{t.slug}</TableCell>
                         <TableCell>{t.phone || "—"}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={t.plan_id || "none"}
+                            onValueChange={(val) => assignPlan(t.id, val)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Sem plano" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sem plano</SelectItem>
+                              {plans.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
                         <TableCell>
                           {t.created_at ? format(new Date(t.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
                         </TableCell>

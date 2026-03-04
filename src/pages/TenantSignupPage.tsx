@@ -51,36 +51,13 @@ const TenantSignupPage = () => {
     try {
       let userId = user?.id;
 
-      // If no user, create account first
+      // If no user, create account and sign in first
       if (!userId) {
-        // First create the tenant to get its ID
-        const { data: tenantData, error: tenantErr } = await supabase
-          .from("tenants" as any)
-          .insert({ name: shopName, slug, phone, address } as any)
-          .select("id")
-          .single();
-
-        if (tenantErr) {
-          if (tenantErr.message?.includes("duplicate") || tenantErr.message?.includes("unique")) {
-            toast.error("Este slug já está em uso. Escolha outro.");
-          } else {
-            toast.error("Erro ao criar barbearia: " + tenantErr.message);
-          }
-          setLoading(false);
-          return;
-        }
-
-        const tenantId = (tenantData as any).id;
-
-        // Sign up with tenant_id in metadata
         const { error: signupErr } = await signUp(email, password, {
           name: ownerName,
-          tenant_id: tenantId,
         });
 
         if (signupErr) {
-          // Cleanup tenant
-          await supabase.from("tenants" as any).delete().eq("id", tenantId);
           toast.error("Erro ao criar conta: " + signupErr.message);
           setLoading(false);
           return;
@@ -90,56 +67,46 @@ const TenantSignupPage = () => {
         const { error: loginErr } = await signIn(email, password);
         if (loginErr) {
           toast.info("Conta criada! Verifique seu e-mail e faça login.");
-          navigate(`/t/${slug}/login`);
+          navigate("/login");
           setLoading(false);
           return;
         }
 
-        // Get user after sign in
         const { data: session } = await supabase.auth.getSession();
         userId = session?.session?.user?.id;
 
-        if (userId) {
-          // Update tenant owner and user role to admin
-          await supabase.from("tenants" as any).update({ owner_user_id: userId } as any).eq("id", tenantId);
-          await supabase.from("user_roles" as any).update({ role: "admin" } as any).eq("user_id", userId);
-        }
-
-        toast.success("Barbearia criada com sucesso!");
-        navigate(`/t/${slug}/admin`);
-      } else {
-        // User already logged in - create tenant and assign
-        const { data: profile } = await supabase
-          .from("profiles" as any)
-          .select("tenant_id")
-          .eq("auth_id", userId)
-          .maybeSingle();
-
-        const { data: tenantData, error: tenantErr } = await supabase
-          .from("tenants" as any)
-          .insert({ name: shopName, slug, phone, address, owner_user_id: userId } as any)
-          .select("id")
-          .single();
-
-        if (tenantErr) {
-          if (tenantErr.message?.includes("duplicate") || tenantErr.message?.includes("unique")) {
-            toast.error("Este slug já está em uso. Escolha outro.");
-          } else {
-            toast.error("Erro ao criar barbearia: " + tenantErr.message);
-          }
+        if (!userId) {
+          toast.error("Erro ao obter sessão. Tente fazer login manualmente.");
           setLoading(false);
           return;
         }
-
-        const tenantId = (tenantData as any).id;
-
-        // Update profile and role with tenant
-        await supabase.from("profiles" as any).update({ tenant_id: tenantId } as any).eq("auth_id", userId);
-        await supabase.from("user_roles" as any).update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", userId);
-
-        toast.success("Barbearia criada com sucesso!");
-        navigate(`/t/${slug}/admin`);
       }
+
+      // Now create tenant with owner_user_id set (satisfies RLS)
+      const { data: tenantData, error: tenantErr } = await supabase
+        .from("tenants")
+        .insert({ name: shopName, slug, phone, address, owner_user_id: userId })
+        .select("id")
+        .single();
+
+      if (tenantErr) {
+        if (tenantErr.message?.includes("duplicate") || tenantErr.message?.includes("unique")) {
+          toast.error("Este slug já está em uso. Escolha outro.");
+        } else {
+          toast.error("Erro ao criar barbearia: " + tenantErr.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      const tenantId = tenantData.id;
+
+      // Update profile and role with tenant_id
+      await supabase.from("profiles").update({ tenant_id: tenantId } as any).eq("auth_id", userId);
+      await supabase.from("user_roles").update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", userId);
+
+      toast.success("Barbearia criada com sucesso!");
+      navigate(`/t/${slug}/admin`);
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
     }
