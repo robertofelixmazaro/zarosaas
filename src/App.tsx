@@ -1,0 +1,76 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import Index from "./pages/Index";
+import AgendarPage from "./pages/AgendarPage";
+import LoginPage from "./pages/LoginPage";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminAgendamentos from "./pages/admin/AdminAgendamentos";
+import AdminServicos from "./pages/admin/AdminServicos";
+import AdminBarbeiros from "./pages/admin/AdminBarbeiros";
+import AdminProdutos from "./pages/admin/AdminProdutos";
+import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import AdminConfig from "./pages/admin/AdminConfig";
+import AdminAvaliacoes from "./pages/admin/AdminAvaliacoes";
+import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminLembretes from "./pages/admin/AdminLembretes";
+import AdminGaleria from "./pages/admin/AdminGaleria";
+import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
+import QRCodePage from "./pages/QRCodePage";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading, userRole } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (userRole && userRole !== "admin" && userRole !== "barber") return <Navigate to="/" replace />;
+  if (!userRole) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  return <>{children}</>;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Index />} />
+    <Route path="/agendar" element={<AgendarPage />} />
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/minhas-avaliacoes" element={<MinhasAvaliacoes />} />
+    <Route path="/qrcode" element={<QRCodePage />} />
+    <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/agendamentos" element={<ProtectedRoute><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/servicos" element={<ProtectedRoute><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/barbeiros" element={<ProtectedRoute><AdminLayout><AdminBarbeiros /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/produtos" element={<ProtectedRoute><AdminLayout><AdminProdutos /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/relatorios" element={<ProtectedRoute><AdminLayout><AdminRelatorios /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/config" element={<ProtectedRoute><AdminLayout><AdminConfig /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/avaliacoes" element={<ProtectedRoute><AdminLayout><AdminAvaliacoes /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/pedidos" element={<ProtectedRoute><AdminLayout><AdminPedidos /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/lembretes" element={<ProtectedRoute><AdminLayout><AdminLembretes /></AdminLayout></ProtectedRoute>} />
+    <Route path="/admin/galeria" element={<ProtectedRoute><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
+const App = () => (
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
+);
+
+export default App;

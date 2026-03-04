@@ -1,0 +1,395 @@
+import { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, generateTimeSlots, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { Scissors, ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+
+type Step = "servico" | "barbeiro" | "data" | "horario" | "dados" | "confirmacao";
+
+const AgendarPage = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preSelectedServiceId = searchParams.get("servico");
+  const [step, setStep] = useState<Step>(preSelectedServiceId ? "barbeiro" : "servico");
+  const [services, setServices] = useState<DbService[]>([]);
+  const [barbersList, setBarbersList] = useState<DbBarber[]>([]);
+  const [availability, setAvailability] = useState<DbAvailability[]>([]);
+  const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<{ time: string; duration: number }[]>([]);
+  const [selectedService, setSelectedService] = useState<DbService | null>(null);
+  const [selectedBarber, setSelectedBarber] = useState<DbBarber | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(new Date());
+
+  // Real-time clock update every 30s
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    Promise.all([fetchServices(), fetchBarbers(), fetchBlockedDates()]).then(([s, b, bd]) => {
+      setServices(s);
+      setBarbersList(b);
+      setBlockedDates(bd);
+      if (preSelectedServiceId) {
+        const found = s.find((svc) => svc.id === preSelectedServiceId);
+        if (found) setSelectedService(found);
+      }
+      setLoading(false);
+    });
+  }, [preSelectedServiceId]);
+
+  useEffect(() => {
+    if (selectedBarber) {
+      fetchBarberAvailability(selectedBarber.id).then(setAvailability);
+    }
+  }, [selectedBarber]);
+
+  const refreshBookedSlots = useCallback(() => {
+    if (selectedBarber && selectedDate) {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      fetchBookedSlots(selectedBarber.id, dateStr).then(setBookedSlots).catch(() => setBookedSlots([]));
+    }
+  }, [selectedBarber, selectedDate]);
+
+  // Fetch booked slots when date or barber changes
+  useEffect(() => {
+    refreshBookedSlots();
+  }, [refreshBookedSlots]);
+
+  // Realtime: listen for appointment changes and refresh slots
+  useEffect(() => {
+    if (!selectedBarber || !selectedDate) return;
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const channel = supabase
+      .channel(`appointments-${selectedBarber.id}-${dateStr}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "appointments",
+          filter: `barber_id=eq.${selectedBarber.id}`,
+        },
+        (payload: any) => {
+          const row = payload.new || payload.old;
+          if (row?.appointment_date === dateStr) {
+            refreshBookedSlots();
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedBarber, selectedDate, refreshBookedSlots]);
+
+  const steps: { key: Step; label: string }[] = [
+    { key: "servico", label: "Serviço" },
+    { key: "barbeiro", label: "Barbeiro" },
+    { key: "data", label: "Data" },
+    { key: "horario", label: "Horário" },
+    { key: "dados", label: "Dados" },
+    { key: "confirmacao", label: "Confirmação" },
+  ];
+
+  const currentStepIndex = steps.findIndex((s) => s.key === step);
+
+  const isSlotInPast = (slot: string) => {
+    if (!selectedDate) return false;
+    const today = format(now, "yyyy-MM-dd");
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    if (dateStr < today) return true;
+    if (dateStr === today) {
+      const currentTime = format(now, "HH:mm");
+      return slot <= currentTime;
+    }
+    return false;
+  };
+
+  const getAvailableSlots = () => {
+    if (!selectedBarber || !selectedDate || !selectedService) return [];
+    const dayOfWeek = selectedDate.getDay();
+    const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
+    if (!avail) return [];
+    const allSlots = generateTimeSlots(avail.start_time, avail.end_time, selectedService.duration_minutes);
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const blocksForDate = blockedDates.filter((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && !bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber.id));
+    const serviceDuration = selectedService.duration_minutes;
+    return allSlots.filter((slot) => {
+      // Filter past slots
+      if (isSlotInPast(slot)) return false;
+      // Filter blocked slots
+      const isBlocked = blocksForDate.some((bd) => {
+        const start = bd.start_time?.slice(0, 5) || "00:00";
+        const end = bd.end_time?.slice(0, 5) || "23:59";
+        return slot >= start && slot < end;
+      });
+      if (isBlocked) return false;
+      // Filter already booked slots (with overlap detection)
+      const slotStart = timeToMin(slot);
+      const slotEnd = slotStart + serviceDuration;
+      const isBooked = bookedSlots.some((b) => {
+        const bStart = timeToMin(b.time);
+        const bEnd = bStart + b.duration;
+        return slotStart < bEnd && slotEnd > bStart;
+      });
+      return !isBooked;
+    });
+  };
+
+  const timeToMin = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const sendWebhook = async (appointmentId: string) => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      await fetch(`https://${projectId}.supabase.co/functions/v1/notify-webhook`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({
+          nome_cliente: nome,
+          email_cliente: email,
+          telefone_cliente: whatsapp,
+          servico: selectedService!.name,
+          data_agendamento: format(selectedDate!, "yyyy-MM-dd"),
+          hora_agendamento: selectedTime,
+          id_agendamento: appointmentId,
+        }),
+      });
+    } catch (err) {
+      console.error("Erro ao enviar webhook:", err);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) return;
+    try {
+      const appointmentId = await createAppointment({
+        client_name: nome,
+        client_phone: whatsapp,
+        barber_id: selectedBarber.id,
+        service_id: selectedService.id,
+        appointment_date: format(selectedDate, "yyyy-MM-dd"),
+        appointment_time: selectedTime,
+        price: selectedService.price,
+      });
+      toast.success("Agendamento confirmado com sucesso!", {
+        description: "Você receberá um e-mail de confirmação.",
+      });
+      sendWebhook(appointmentId);
+      setStep("confirmacao");
+    } catch (err: any) {
+      toast.error("Erro ao agendar", { description: err.message });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto flex items-center h-16 px-4 gap-4">
+          <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
+          <div className="flex items-center gap-2">
+            <Scissors className="h-5 w-5" />
+            <span className="font-bold tracking-tight">CAETANO BARBER</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* Progress */}
+        <div className="flex items-center gap-1 mb-10 overflow-x-auto pb-2">
+          {steps.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-1 flex-shrink-0">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
+                i < currentStepIndex ? "bg-primary text-primary-foreground" :
+                i === currentStepIndex ? "bg-primary text-primary-foreground" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {i < currentStepIndex ? <Check className="h-4 w-4" /> : i + 1}
+              </div>
+              <span className={`text-xs hidden sm:inline ${i === currentStepIndex ? "font-semibold" : "text-muted-foreground"}`}>{s.label}</span>
+              {i < steps.length - 1 && <ChevronRight className="h-3 w-3 text-muted-foreground mx-1" />}
+            </div>
+          ))}
+        </div>
+
+        {step === "servico" && (
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-2">Escolha o Serviço</h2>
+            <p className="text-muted-foreground mb-6">Selecione o serviço que deseja agendar</p>
+            <div className="grid gap-3">
+              {services.map((s) => (
+                <button key={s.id} onClick={() => { setSelectedService(s); setStep("barbeiro"); }}
+                  className="flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:shadow-md hover:border-foreground/20">
+                  {s.image_url ? (
+                    <img src={s.image_url} alt={s.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                  ) : (
+                    <span className="text-2xl w-12 h-12 flex items-center justify-center flex-shrink-0">{s.icon}</span>
+                  )}
+                  <div className="flex-1">
+                    <div className="font-semibold">{s.name}</div>
+                    <div className="text-sm text-muted-foreground">{s.description}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold">R$ {Number(s.price).toFixed(0)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {s.duration_minutes}min</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === "barbeiro" && (
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-2">Escolha o Barbeiro</h2>
+            <p className="text-muted-foreground mb-6">Selecione o profissional de sua preferência</p>
+            <div className="grid gap-4">
+              {barbersList.map((b) => (
+                <button key={b.id} onClick={() => { setSelectedBarber(b); setStep("data"); }}
+                  className="flex items-center gap-4 p-5 rounded-lg border text-left transition-all hover:shadow-md hover:border-foreground/20">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold">{b.name[0]}</div>
+                  <div>
+                    <div className="font-semibold text-lg">{b.name}</div>
+                    <div className="text-sm text-muted-foreground">{b.specialty}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <Button variant="ghost" className="mt-4" onClick={() => setStep("servico")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
+          </div>
+        )}
+
+        {step === "data" && (
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-2">Escolha a Data</h2>
+            <p className="text-muted-foreground mb-6">Selecione o dia do seu agendamento</p>
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => { setSelectedDate(d); if (d) setStep("horario"); }}
+                disabled={(date) => {
+                  if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
+                  const dateStr = format(date, "yyyy-MM-dd");
+                  const allDayBlock = blockedDates.some((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber?.id));
+                  if (allDayBlock) return true;
+                  const day = date.getDay();
+                  return !availability.some((a) => a.day_of_week === day && a.active);
+                }}
+                locale={ptBR}
+                className="rounded-lg border p-3 pointer-events-auto"
+              />
+            </div>
+            <Button variant="ghost" className="mt-4" onClick={() => setStep("barbeiro")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
+          </div>
+        )}
+
+        {step === "horario" && (
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-2">Escolha o Horário</h2>
+            <p className="text-muted-foreground mb-6">{selectedDate && format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {getAvailableSlots().map((slot) => (
+                <button key={slot} onClick={() => { setSelectedTime(slot); setStep("dados"); }}
+                  className="p-3 rounded-lg border text-center font-medium transition-all hover:shadow-md hover:border-foreground/20">{slot}</button>
+              ))}
+            </div>
+            {getAvailableSlots().length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum horário disponível.</p>}
+            <Button variant="ghost" className="mt-4" onClick={() => setStep("data")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
+          </div>
+        )}
+
+        {step === "dados" && (
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-2">Seus Dados</h2>
+            <p className="text-muted-foreground mb-6">Preencha para confirmar o agendamento</p>
+            <div className="space-y-4 max-w-sm">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Nome completo</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="pl-10" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">E-mail</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" type="email" className="pl-10" required />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">WhatsApp</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(11) 99999-0000" className="pl-10" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 p-5 rounded-lg border bg-muted/50 space-y-2 text-sm">
+              <div className="font-semibold text-base mb-3">Resumo do Agendamento</div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Serviço</span><span className="font-medium">{selectedService?.name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Barbeiro</span><span className="font-medium">{selectedBarber?.name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span className="font-medium">{selectedDate && format(selectedDate, "dd/MM/yyyy")}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span className="font-medium">{selectedTime}</span></div>
+              <div className="flex justify-between border-t pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-bold text-lg">R$ {selectedService && Number(selectedService.price).toFixed(0)}</span></div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <Button variant="ghost" onClick={() => setStep("horario")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
+              <Button onClick={handleConfirm} disabled={!nome || !email || !whatsapp} className="flex-1">Confirmar Agendamento</Button>
+            </div>
+          </div>
+        )}
+
+        {step === "confirmacao" && (
+          <div className="animate-fade-in text-center py-12">
+            <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-success" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Agendamento Confirmado!</h2>
+            <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
+              {selectedService?.name} com {selectedBarber?.name}<br />
+              {selectedDate && format(selectedDate, "dd/MM/yyyy")} às {selectedTime}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button variant="outline" onClick={() => navigate("/")}>Voltar ao Início</Button>
+              <Button onClick={() => {
+                setStep("servico"); setSelectedService(null); setSelectedBarber(null);
+                setSelectedDate(undefined); setSelectedTime(null); setNome(""); setWhatsapp("");
+              }}>Novo Agendamento</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AgendarPage;
