@@ -53,20 +53,40 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Cascade delete all tenant data in order
-    const tables = [
+    // Cascade delete all tenant data in order (respect FK constraints)
+    // Only include tables that have a tenant_id column
+    const tenantTables = [
       "order_items", "orders", "email_logs", "blocked_dates",
       "barber_availability", "appointments", "reviews", "gallery_items",
-      "products", "services", "barbers", "site_settings", "profiles",
-      "user_roles", "tenants",
+      "products", "services", "barbers", "site_settings",
+      "payments", "subscriptions",
+      "profiles", "user_roles",
     ];
 
-    for (const table of tables) {
-      const col = table === "tenants" ? "id" : "tenant_id";
-      const { error } = await supabaseAdmin.from(table).delete().eq(col, tenant_id);
+    const errors: string[] = [];
+
+    for (const table of tenantTables) {
+      const { error } = await supabaseAdmin.from(table).delete().eq("tenant_id", tenant_id);
       if (error) {
         console.error(`Error deleting from ${table}:`, error.message);
+        errors.push(`${table}: ${error.message}`);
       }
+    }
+
+    // Now delete the tenant itself
+    const { error: tenantDeleteError } = await supabaseAdmin.from("tenants").delete().eq("id", tenant_id);
+    if (tenantDeleteError) {
+      console.error("Error deleting tenant:", tenantDeleteError.message);
+      // Fallback: mark as inactive
+      await supabaseAdmin.from("tenants").update({ active: false }).eq("id", tenant_id);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        fallback: true,
+        message: "Não foi possível excluir a loja. Ela foi desativada.",
+        errors: [...errors, tenantDeleteError.message],
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
