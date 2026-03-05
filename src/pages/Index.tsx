@@ -30,37 +30,45 @@ const Index = () => {
   const { data: products = [] } = useQuery<DbProduct[]>({ queryKey: ["products", tenantId], queryFn: () => fetchProducts(tenantId || undefined), enabled: !!tenantId });
 
   const { data: galleryItems = [] } = useQuery({
-    queryKey: ["gallery_items"],
+    queryKey: ["gallery_items", tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
       const { data } = await supabase
         .from("gallery_items" as any)
         .select("*")
+        .eq("tenant_id", tenantId)
         .eq("active", true)
         .order("sort_order", { ascending: true });
       return (data as any[]) || [];
     },
+    enabled: !!tenantId,
   });
 
   const { data: reviews = [] } = useQuery({
-    queryKey: ["reviews"],
+    queryKey: ["reviews", tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
       const { data } = await supabase
         .from("reviews")
         .select("*, barbers(name)")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(10);
       return data || [];
     },
+    enabled: !!tenantId,
   });
 
   const { data: siteSettings = {} as any } = useQuery({
-    queryKey: ["site_settings"],
+    queryKey: ["site_settings", tenantId],
     queryFn: async () => {
-      const { data } = await supabase.from("site_settings").select("*");
+      if (!tenantId) return {};
+      const { data } = await supabase.from("site_settings").select("*").eq("tenant_id", tenantId);
       const map: Record<string, string> = {};
       (data || []).forEach((s: any) => { map[s.key] = s.value; });
       return map;
     },
+    enabled: !!tenantId,
   });
 
   const avgRating = reviews.length > 0
