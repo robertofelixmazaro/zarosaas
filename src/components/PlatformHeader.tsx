@@ -27,7 +27,7 @@ const PlatformHeader = ({ children }: PlatformHeaderProps) => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/admin-platform/login");
+    navigate("/login");
   };
 
   return (
