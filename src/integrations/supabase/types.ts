@@ -285,6 +285,7 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
+          description: string | null
           id: string
           media_type: string
           media_url: string
@@ -295,6 +296,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           created_at?: string | null
+          description?: string | null
           id?: string
           media_type?: string
           media_url: string
@@ -305,6 +307,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           created_at?: string | null
+          description?: string | null
           id?: string
           media_type?: string
           media_url?: string
@@ -581,6 +584,7 @@ export type Database = {
       reviews: {
         Row: {
           appointment_id: string | null
+          approved: boolean
           barber_id: string
           client_name: string | null
           client_photo_url: string | null
@@ -593,6 +597,7 @@ export type Database = {
         }
         Insert: {
           appointment_id?: string | null
+          approved?: boolean
           barber_id: string
           client_name?: string | null
           client_photo_url?: string | null
@@ -605,6 +610,7 @@ export type Database = {
         }
         Update: {
           appointment_id?: string | null
+          approved?: boolean
           barber_id?: string
           client_name?: string | null
           client_photo_url?: string | null
