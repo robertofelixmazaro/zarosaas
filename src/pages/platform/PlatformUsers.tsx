@@ -173,7 +173,7 @@ const PlatformUsers = () => {
     const { error } = await supabase.from("profiles").delete().eq("id", deleteUser.profile_id);
     if (error) { toast.error("Erro ao excluir usuário"); setDeleting(false); return; }
 
-    toast.success("Usuário excluído");
+    toast.success("Usuário removido com sucesso");
     setDeleting(false);
     setDeleteOpen(false);
     fetchUsers();
