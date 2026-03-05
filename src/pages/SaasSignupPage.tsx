@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { formatCpf, validateCpf, formatPhone } from "@/lib/cpfValidator";
@@ -55,12 +56,14 @@ const AccountTypeSelector = ({ value, onChange }: { value: AccountType; onChange
 
 const SaasSignupPage = () => {
   const navigate = useNavigate();
-  const { signUp, signIn } = useAuth();
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>("admin");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -98,21 +101,32 @@ const SaasSignupPage = () => {
     setGoogleLoading(false);
   };
 
-  const createWelcomeNotification = async (userId: string, userPhone: string, userWhatsapp: string) => {
-    try {
-      const message = accountType === "affiliate"
-        ? "Olá! Bem-vindo ao ZARO AGENDAMENTOS 🚀\n\nSua conta de afiliado foi criada com sucesso.\n\nAcesse seu painel para começar a vender e ganhar comissões."
-        : "Olá! Bem-vindo ao ZARO AGENDAMENTOS 🚀\n\nSua conta foi criada com sucesso.\n\nAgora vamos configurar seu negócio para começar a receber agendamentos.";
-      await supabase.from("user_notifications" as any).insert({
-        user_id: userId,
-        phone: userPhone.replace(/\D/g, ""),
-        whatsapp: userWhatsapp.replace(/\D/g, ""),
-        message_text: message,
-        message_status: "pending",
-      });
-    } catch (err) {
-      console.error("Error creating welcome notification:", err);
+  const resendConfirmationEmail = async (targetEmail: string) => {
+    const { error } = await supabase.auth.resend({ type: "signup", email: targetEmail });
+    if (error) {
+      toast.error("Erro ao reenviar email: " + error.message);
+      return false;
     }
+    return true;
+  };
+
+  const handleConfirmNow = async () => {
+    const sent = await resendConfirmationEmail(signupEmail);
+    if (!sent) return;
+
+    if (signupEmail.toLowerCase().endsWith("@gmail.com")) {
+      window.open("https://mail.google.com", "_blank", "noopener,noreferrer");
+    }
+
+    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
+    setConfirmDialogOpen(false);
+    navigate("/login", { replace: true });
+  };
+
+  const handleConfirmLater = () => {
+    setConfirmDialogOpen(false);
+    toast.warning("Você pode confirmar seu email depois para ativar sua conta.");
+    navigate("/login", { replace: true });
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -147,22 +161,8 @@ const SaasSignupPage = () => {
       return;
     }
 
-    const { error: loginErr } = await signIn(email, password);
-    if (loginErr) {
-      toast.info("Conta criada! Faça login para continuar.");
-      navigate("/login");
-    } else {
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.user?.id) {
-        await createWelcomeNotification(session.session.user.id, phone, whatsapp);
-      }
-      toast.success("Conta criada com sucesso! 🚀");
-      if (accountType === "affiliate") {
-        navigate("/affiliate/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-    }
+    setSignupEmail(email);
+    setConfirmDialogOpen(true);
     setLoading(false);
   };
 
@@ -297,6 +297,21 @@ const SaasSignupPage = () => {
           </Link>
         </div>
       </motion.div>
+
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirme seu email</DialogTitle>
+            <DialogDescription>
+              Confirme seu email para ativar sua conta.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleConfirmLater}>Confirmar depois</Button>
+            <Button onClick={handleConfirmNow}>Confirmar agora</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { fetchAppointmentsAdmin, fetchBarbers, fetchBarberByUserId, DbAppointment, DbBarber } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
-import { Calendar, DollarSign, Users, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   confirmado: { label: "Confirmado", className: "bg-info/10 text-info border-info/20" },
@@ -20,7 +23,9 @@ const AdminDashboard = () => {
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const isAdmin = userRole === "admin";
+  const emailConfirmed = Boolean((user as any)?.email_confirmed_at);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -42,6 +47,24 @@ const AdminDashboard = () => {
     load();
   }, [user, isAdmin, tenantId]);
 
+  const resendConfirmationEmail = async () => {
+    if (!user?.email) {
+      toast.error("Não foi possível identificar seu e-mail.");
+      return;
+    }
+
+    setResendingConfirmation(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email: user.email });
+    setResendingConfirmation(false);
+
+    if (error) {
+      toast.error("Erro ao reenviar email: " + error.message);
+      return;
+    }
+
+    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
+  };
+
   const today = format(new Date(), "yyyy-MM-dd");
   const todayAppts = appointments.filter((a) => a.appointment_date === today);
   const totalHoje = todayAppts.reduce((acc, a) => acc + Number(a.price), 0);
@@ -58,6 +81,20 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {!emailConfirmed && (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2">
+              <TriangleAlert className="mt-0.5 h-4 w-4 text-warning" />
+              <p className="text-sm text-foreground">⚠️ Seu email ainda não foi confirmado. Verifique sua caixa de entrada.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={resendConfirmationEmail} disabled={resendingConfirmation}>
+              {resendingConfirmation ? "Reenviando..." : "Reenviar email de confirmação"}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {!isAdmin && currentBarber && (
         <div className="p-4 rounded-lg border bg-card">
           <p className="text-sm text-muted-foreground">Logado como barbeiro</p>
