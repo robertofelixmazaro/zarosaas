@@ -219,26 +219,31 @@ const PlatformUsers = () => {
                 <Input placeholder="Buscar por nome, email, negócio..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Select value={filterRole} onValueChange={setFilterRole}>
-                <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Filtrar por role" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as roles</SelectItem>
-                  <SelectItem value="super_admin">super_admin</SelectItem>
-                  <SelectItem value="admin">admin</SelectItem>
-                  <SelectItem value="affiliate">affiliate</SelectItem>
-                  <SelectItem value="barber">barber</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterTenant} onValueChange={setFilterTenant}>
-                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por loja" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as lojas</SelectItem>
-                  {tenantNames.map(name => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Select value={filterRole} onValueChange={setFilterRole}>
+                  <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Filtrar por role" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as roles</SelectItem>
+                    <SelectItem value="super_admin">super_admin</SelectItem>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="affiliate">affiliate</SelectItem>
+                    <SelectItem value="barber">barber</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterTenant} onValueChange={setFilterTenant}>
+                  <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por loja" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as lojas</SelectItem>
+                    {tenantNames.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button variant="outline" size="sm" onClick={exportCsv}>
+                <Download className="h-4 w-4 mr-1" /> Exportar CSV
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
