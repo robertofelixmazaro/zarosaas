@@ -99,16 +99,21 @@ const PlatformUsers = () => {
 
   useEffect(() => { fetchUsers(); }, []);
 
+  const tenantNames = [...new Set(users.map(u => u.tenant_name).filter(Boolean))] as string[];
+
   useEffect(() => {
     const q = search.toLowerCase();
-    setFiltered(users.filter(u =>
-      u.name.toLowerCase().includes(q) ||
-      (u.email || "").toLowerCase().includes(q) ||
-      (u.tenant_name || "").toLowerCase().includes(q) ||
-      u.role.toLowerCase().includes(q)
-    ));
+    setFiltered(users.filter(u => {
+      const matchSearch = u.name.toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.tenant_name || "").toLowerCase().includes(q) ||
+        u.role.toLowerCase().includes(q);
+      const matchRole = filterRole === "all" || u.role === filterRole;
+      const matchTenant = filterTenant === "all" || u.tenant_name === filterTenant;
+      return matchSearch && matchRole && matchTenant;
+    }));
     setPage(1);
-  }, [search, users]);
+  }, [search, users, filterRole, filterTenant]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
