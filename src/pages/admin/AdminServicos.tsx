@@ -2,10 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { fetchAllServices, createService, updateService, deleteService, DbService } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Upload, ImageIcon, X } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, ImageIcon, X, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -23,6 +24,7 @@ const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, i
 
 const AdminServicos = () => {
   const { tenantId } = useTenant();
+  const { canAddService, limits } = usePlanLimits();
   const [services, setServices] = useState<DbService[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +46,10 @@ const AdminServicos = () => {
   useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const openCreate = () => {
+    if (!canAddService()) {
+      toast.error(`Limite de ${limits.maxServices} serviços atingido. Faça upgrade do seu plano.`);
+      return;
+    }
     setForm(emptyForm);
     setEditingId(null);
     setErrors({});

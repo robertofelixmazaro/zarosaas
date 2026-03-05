@@ -72,6 +72,28 @@ const TenantSignupPage = () => {
 
       const tenantId = tenantData.id;
 
+      // Auto-assign Free Trial plan
+      const { data: trialPlan } = await supabase
+        .from("plans")
+        .select("id")
+        .eq("name", "Teste Grátis")
+        .eq("active", true)
+        .maybeSingle();
+
+      if (trialPlan) {
+        const trialEnds = new Date();
+        trialEnds.setDate(trialEnds.getDate() + 7);
+        
+        await supabase.from("subscriptions" as any).insert({
+          tenant_id: tenantId,
+          plan_id: trialPlan.id,
+          status: "trial",
+          trial_ends_at: trialEnds.toISOString(),
+        });
+
+        await supabase.from("tenants").update({ plan_id: trialPlan.id } as any).eq("id", tenantId);
+      }
+
       await supabase.from("profiles").update({ tenant_id: tenantId } as any).eq("auth_id", userId);
       await supabase.from("user_roles").update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", userId);
 

@@ -20,6 +20,7 @@ interface Plan {
   description: string | null;
   price: number;
   max_barbers: number;
+  max_services: number;
   max_appointments_month: number;
   max_products: number;
   features: string[];
@@ -32,6 +33,7 @@ const emptyPlan = {
   description: "",
   price: 0,
   max_barbers: 5,
+  max_services: 10,
   max_appointments_month: 500,
   max_products: 50,
   features: "",
@@ -70,6 +72,7 @@ const PlatformPlans = () => {
       description: plan.description || "",
       price: plan.price,
       max_barbers: plan.max_barbers,
+      max_services: plan.max_services || 10,
       max_appointments_month: plan.max_appointments_month,
       max_products: plan.max_products,
       features: (plan.features || []).join(", "),
@@ -85,6 +88,7 @@ const PlatformPlans = () => {
       description: form.description || null,
       price: form.price,
       max_barbers: form.max_barbers,
+      max_services: form.max_services,
       max_appointments_month: form.max_appointments_month,
       max_products: form.max_products,
       features: featuresArray,
@@ -146,8 +150,12 @@ const PlatformPlans = () => {
                     <Input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
                   </div>
                   <div>
-                    <Label>Max Barbeiros</Label>
+                    <Label>Max Profissionais</Label>
                     <Input type="number" value={form.max_barbers} onChange={e => setForm({ ...form, max_barbers: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label>Max Serviços</Label>
+                    <Input type="number" value={form.max_services} onChange={e => setForm({ ...form, max_services: Number(e.target.value) })} />
                   </div>
                   <div>
                     <Label>Max Agendamentos/mês</Label>
@@ -179,14 +187,15 @@ const PlatformPlans = () => {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Barbeiros</TableHead>
-                    <TableHead>Agend./mês</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
+                 <TableRow>
+                     <TableHead>Nome</TableHead>
+                     <TableHead>Preço</TableHead>
+                     <TableHead>Profissionais</TableHead>
+                     <TableHead>Serviços</TableHead>
+                     <TableHead>Agend./mês</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead>Ações</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {plans.map(plan => (
@@ -194,6 +203,7 @@ const PlatformPlans = () => {
                       <TableCell className="font-medium">{plan.name}</TableCell>
                       <TableCell>R$ {plan.price.toFixed(2)}</TableCell>
                       <TableCell>{plan.max_barbers >= 999 ? "∞" : plan.max_barbers}</TableCell>
+                      <TableCell>{(plan.max_services || 0) >= 999 ? "∞" : plan.max_services}</TableCell>
                       <TableCell>{plan.max_appointments_month >= 99999 ? "∞" : plan.max_appointments_month}</TableCell>
                       <TableCell>
                         <Badge variant={plan.active ? "default" : "destructive"}>
