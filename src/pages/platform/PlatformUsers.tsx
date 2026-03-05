@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Eye, Pencil, Trash2 } from "lucide-react";
@@ -173,7 +173,7 @@ const PlatformUsers = () => {
     const { error } = await supabase.from("profiles").delete().eq("id", deleteUser.profile_id);
     if (error) { toast.error("Erro ao excluir usuário"); setDeleting(false); return; }
 
-    toast.success("Usuário excluído");
+    toast.success("Usuário removido com sucesso");
     setDeleting(false);
     setDeleteOpen(false);
     fetchUsers();
@@ -304,7 +304,7 @@ const PlatformUsers = () => {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { if (!deleting) setDeleteOpen(open); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
@@ -314,12 +314,12 @@ const PlatformUsers = () => {
               {" "}Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
               {deleting ? "Excluindo..." : "Excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+            </Button>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
