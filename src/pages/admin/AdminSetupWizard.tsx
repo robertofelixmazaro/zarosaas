@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Store, Phone, MapPin, Building2, Scissors, Sparkles, Stethoscope, Briefcase, LayoutGrid } from "lucide-react";
+import { Store, Phone, MapPin, Building2, Scissors, Sparkles, Stethoscope, Briefcase, LayoutGrid, Check, Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,17 @@ const defaultServicesByType: Record<BusinessType, { name: string; price: number;
   other: [],
 };
 
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  features: any;
+  max_barbers: number | null;
+  max_services: number | null;
+  max_appointments_month: number | null;
+}
+
 const AdminSetupWizard = () => {
   const navigate = useNavigate();
   const { user, refreshUserRole } = useAuth();
@@ -58,6 +70,14 @@ const AdminSetupWizard = () => {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType | "">("");
+  const [createdTenantSlug, setCreatedTenantSlug] = useState("");
+  const [createdTenantId, setCreatedTenantId] = useState("");
+
+  // Plan selection state
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const generateSlug = (name: string) =>
     name
@@ -82,7 +102,6 @@ const AdminSetupWizard = () => {
     }
     setLoading(true);
     try {
-      // Use edge function for atomic tenant creation (bypasses RLS safely)
       const { data, error: fnErr } = await supabase.functions.invoke("setup-tenant", {
         body: {
           name: shopName,
@@ -106,6 +125,8 @@ const AdminSetupWizard = () => {
       }
 
       const tenantId = data.tenant_id;
+      setCreatedTenantId(tenantId);
+      setCreatedTenantSlug(data.slug);
 
       // Create default services based on business type
       const defaultServices = defaultServicesByType[businessType as BusinessType] || [];
@@ -120,11 +141,72 @@ const AdminSetupWizard = () => {
 
       await refreshUserRole();
       toast.success("Negócio criado com sucesso! 🎉");
-      navigate(`/t/${data.slug}/admin`);
+      
+      // Go to plan selection step
+      setStep(3);
+      loadPlans();
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
     }
     setLoading(false);
+  };
+
+  const loadPlans = async () => {
+    setPlansLoading(true);
+    const { data } = await supabase
+      .from("plans")
+      .select("*")
+      .eq("active", true)
+      .gt("price", 0)
+      .order("price", { ascending: true });
+    setPlans((data || []) as any[]);
+    setPlansLoading(false);
+  };
+
+  const formatFeatures = (plan: Plan): string[] => {
+    const features: string[] = [];
+    if (plan.max_barbers) features.push(`${plan.max_barbers === 999 ? "Ilimitados" : plan.max_barbers} profissionais`);
+    if (plan.max_services) features.push(`${plan.max_services === 999 ? "Ilimitados" : plan.max_services} serviços`);
+    if (plan.max_appointments_month) features.push(`${plan.max_appointments_month === 99999 ? "Ilimitados" : plan.max_appointments_month} agendamentos/mês`);
+    if (Array.isArray(plan.features)) {
+      plan.features.forEach((f: any) => {
+        if (typeof f === "string") features.push(f);
+        else if (f?.name) features.push(f.name);
+      });
+    }
+    return features;
+  };
+
+  const handleSubscribe = async () => {
+    if (!selectedPlan || !user) return;
+    setCheckoutLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mp-create-checkout", {
+        body: {
+          plan_id: selectedPlan.id,
+          plan_name: selectedPlan.name,
+          plan_price: selectedPlan.price,
+          client_email: user.email,
+          client_name: user.user_metadata?.name || user.email,
+          tenant_id: createdTenantId,
+        },
+      });
+
+      if (error || data?.error) {
+        toast.error(data?.error || "Erro ao criar checkout");
+        setCheckoutLoading(false);
+        return;
+      }
+
+      window.location.href = data.checkout_url;
+    } catch {
+      toast.error("Erro ao processar pagamento");
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleSkipPlan = () => {
+    navigate(`/t/${createdTenantSlug}/admin`);
   };
 
   return (
@@ -133,14 +215,17 @@ const AdminSetupWizard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-2xl"
       >
         <div className="rounded-xl border bg-card p-8 shadow-lg space-y-6">
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>1</div>
-            <div className={cn("w-12 h-0.5", step >= 2 ? "bg-primary" : "bg-muted")} />
-            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</div>
+            {[1, 2, 3].map((s, i) => (
+              <div key={s} className="flex items-center gap-2">
+                {i > 0 && <div className={cn("w-10 h-0.5", step >= s ? "bg-primary" : "bg-muted")} />}
+                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step >= s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{s}</div>
+              </div>
+            ))}
           </div>
 
           {step === 1 && (
@@ -158,7 +243,7 @@ const AdminSetupWizard = () => {
                     key={bt.id}
                     onClick={() => setBusinessType(bt.id)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border text-left transition-all",
+                      "flex items-center gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer",
                       businessType === bt.id
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                         : "border-border hover:border-primary/40 hover:bg-muted/50"
@@ -236,6 +321,83 @@ const AdminSetupWizard = () => {
                   {loading ? "Criando..." : "Criar Negócio"}
                 </Button>
               </div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Crown className="h-6 w-6 text-primary" />
+                  <h2 className="text-2xl font-bold">Escolha seu Plano</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Sua loja foi criada! Agora escolha um plano para desbloquear todos os recursos.
+                </p>
+              </div>
+
+              {plansLoading ? (
+                <p className="text-center text-muted-foreground py-8">Carregando planos...</p>
+              ) : plans.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">Nenhum plano disponível no momento.</p>
+                  <Button onClick={handleSkipPlan}>Ir para o painel</Button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {plans.map((plan, i) => (
+                      <Card
+                        key={plan.id}
+                        className={cn(
+                          "cursor-pointer transition-all hover:shadow-lg",
+                          selectedPlan?.id === plan.id ? "ring-2 ring-primary border-primary" : ""
+                        )}
+                        onClick={() => setSelectedPlan(plan)}
+                      >
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <Zap className="h-5 w-5 text-primary" />
+                            {plan.name}
+                          </CardTitle>
+                          {plan.description && <CardDescription className="text-xs">{plan.description}</CardDescription>}
+                          <div className="pt-1">
+                            <span className="text-2xl font-bold">R$ {plan.price.toFixed(2)}</span>
+                            <span className="text-muted-foreground text-sm">/mês</span>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-1.5">
+                            {formatFeatures(plan).map((f, j) => (
+                              <li key={j} className="flex items-center gap-2 text-sm">
+                                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button
+                      className="w-full h-12 text-base"
+                      onClick={handleSubscribe}
+                      disabled={!selectedPlan || checkoutLoading}
+                    >
+                      {checkoutLoading ? "Processando..." : selectedPlan ? `Assinar ${selectedPlan.name} — R$ ${selectedPlan.price.toFixed(2)}/mês` : "Selecione um plano"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={handleSkipPlan}
+                      className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      Começar com o teste grátis →
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
         </div>
