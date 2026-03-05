@@ -69,7 +69,7 @@ const PlatformPayments = () => {
       <PlatformHeader />
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
-          <Link to="/admin-platform" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to="/super-admin/dashboard" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
           <h1 className="text-2xl font-bold">Pagamentos</h1>
         </div>
 
