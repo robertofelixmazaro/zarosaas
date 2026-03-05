@@ -247,7 +247,6 @@ const PlatformUsers = () => {
                     <SelectItem value="super_admin">super_admin</SelectItem>
                     <SelectItem value="admin">admin</SelectItem>
                     <SelectItem value="affiliate">affiliate</SelectItem>
-                    <SelectItem value="barber">barber</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={filterTenant} onValueChange={setFilterTenant}>
