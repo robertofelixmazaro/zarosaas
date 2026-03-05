@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization")!;
 
-    // Verify caller is admin
+    // Verify caller is authenticated
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -25,6 +25,8 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    // Verify caller is admin
     const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: caller.id, _role: "admin" });
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Sem permissão" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -35,10 +37,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "barber_id, email e password são obrigatórios" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Check if barber already has a user_id
-    const { data: barber } = await adminClient.from("barbers").select("user_id, name").eq("id", barber_id).single();
+    // SECURITY: Get caller's tenant_id
+    const { data: callerProfile } = await adminClient
+      .from("profiles")
+      .select("tenant_id")
+      .eq("auth_id", caller.id)
+      .single();
+
+    if (!callerProfile?.tenant_id) {
+      return new Response(JSON.stringify({ error: "Tenant do chamador não encontrado" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Check if barber exists AND belongs to caller's tenant
+    const { data: barber } = await adminClient
+      .from("barbers")
+      .select("user_id, name, tenant_id")
+      .eq("id", barber_id)
+      .single();
+
     if (!barber) {
       return new Response(JSON.stringify({ error: "Barbeiro não encontrado" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // SECURITY: Verify barber belongs to caller's tenant
+    if (barber.tenant_id !== callerProfile.tenant_id) {
+      return new Response(JSON.stringify({ error: "Sem permissão para gerenciar este profissional" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (barber.user_id) {
@@ -49,24 +72,28 @@ Deno.serve(async (req) => {
         email_confirm: true,
       });
       if (updateErr) {
-        return new Response(JSON.stringify({ error: updateErr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao atualizar credenciais." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       return new Response(JSON.stringify({ success: true, message: "Credenciais atualizadas" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Create new user
+    // Create new user with tenant metadata
     const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { name: barber.name },
+      user_metadata: { name: barber.name, tenant_id: callerProfile.tenant_id },
     });
     if (createErr) {
-      return new Response(JSON.stringify({ error: createErr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Erro ao criar usuário." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Assign barber role
-    await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: "barber" });
+    // Assign barber role with tenant_id
+    await adminClient.from("user_roles").insert({
+      user_id: newUser.user.id,
+      role: "barber",
+      tenant_id: callerProfile.tenant_id,
+    });
 
     // Link user to barber
     await adminClient.from("barbers").update({ user_id: newUser.user.id }).eq("id", barber_id);

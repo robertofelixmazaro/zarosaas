@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAppointments, fetchBarbers, fetchBarberByUserId, DbAppointment, DbBarber } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchBarbers, fetchBarberByUserId, DbAppointment, DbBarber } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { Calendar, DollarSign, Users, TrendingUp } from "lucide-react";
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
         barberId = barber?.id;
       }
       const [a, b] = await Promise.all([
-        fetchAppointments(barberId, tenantId),
+        fetchAppointmentsAdmin(barberId, tenantId),
         fetchBarbers(tenantId),
       ]);
       setAppointments(a);

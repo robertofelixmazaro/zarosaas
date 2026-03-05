@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAppointments, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -95,7 +95,7 @@ const AdminRelatorios = () => {
 
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
     queryKey: ["appointments", tenantId],
-    queryFn: () => fetchAppointments(undefined, tenantId || undefined),
+    queryFn: () => fetchAppointmentsAdmin(undefined, tenantId || undefined),
     enabled: !!tenantId,
   });
   const { data: barbers = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });

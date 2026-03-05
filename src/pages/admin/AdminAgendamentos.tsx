@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchAppointments, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, generateTimeSlots, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, generateTimeSlots, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ const AdminAgendamentos = () => {
 
   const loadData = useCallback(async (barberId?: string) => {
     const [data, bList, sList] = await Promise.all([
-      fetchAppointments(barberId, tenantId || undefined),
+      fetchAppointmentsAdmin(barberId, tenantId || undefined),
       fetchBarbers(tenantId || undefined),
       fetchServices(tenantId || undefined),
     ]);
