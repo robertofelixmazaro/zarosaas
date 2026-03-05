@@ -31,7 +31,6 @@ const UnifiedLoginPage = () => {
         break;
       case "admin":
       case "barber":
-      case "client":
       default:
         navigate("/dashboard", { replace: true });
         break;
