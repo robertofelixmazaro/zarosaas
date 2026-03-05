@@ -22,6 +22,7 @@ const allNavItems = [
   { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin", "barber"] },
   { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin", "barber"] },
   { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
+  { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
   { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin"] },
 ];
 
