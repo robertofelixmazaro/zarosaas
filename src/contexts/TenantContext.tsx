@@ -12,6 +12,7 @@ export interface Tenant {
   phone: string | null;
   address: string | null;
   created_at: string;
+  active?: boolean;
 }
 
 interface TenantContextType {
@@ -43,18 +44,25 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
 
       if (slug) {
-        // Public route: resolve by slug
-        const { data, error: err } = await supabase
-          .from("tenants" as any)
-          .select("*")
-          .eq("slug", slug)
-          .maybeSingle();
+        // Public route: resolve by slug using safe RPC (no phone/address exposed)
+        const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_slug", { _slug: slug });
+        const row = Array.isArray(data) ? data[0] : data;
         if (err) {
           setError("Erro ao carregar negócio.");
-        } else if (!data) {
+        } else if (!row) {
           setError("Negócio não encontrado.");
         } else {
-          setTenant(data as any);
+          setTenant({
+            id: row.id,
+            name: row.name,
+            slug: row.slug,
+            logo_url: row.logo_url,
+            active: row.active,
+            owner_user_id: null,
+            phone: null,
+            address: null,
+            created_at: "",
+          });
         }
       } else if (user) {
         // Admin route without slug: resolve from user profile
