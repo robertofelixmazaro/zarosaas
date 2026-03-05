@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -12,6 +12,47 @@ import { motion } from "framer-motion";
 import { formatCpf, validateCpf, formatPhone } from "@/lib/cpfValidator";
 import zaroLogo from "@/assets/zaro-logo.png";
 
+type AccountType = "admin" | "affiliate";
+
+const AccountTypeSelector = ({ value, onChange }: { value: AccountType; onChange: (v: AccountType) => void }) => (
+  <div className="grid grid-cols-2 gap-3">
+    <button
+      type="button"
+      onClick={() => onChange("admin")}
+      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+        value === "admin"
+          ? "border-primary bg-primary/5 shadow-md"
+          : "border-muted hover:border-primary/40"
+      }`}
+    >
+      <Store className={`h-7 w-7 ${value === "admin" ? "text-primary" : "text-muted-foreground"}`} />
+      <span className={`text-sm font-semibold ${value === "admin" ? "text-primary" : "text-foreground"}`}>
+        Criar minha loja
+      </span>
+      <span className="text-xs text-muted-foreground text-center leading-tight">
+        Gerencie agendamentos do seu negócio
+      </span>
+    </button>
+    <button
+      type="button"
+      onClick={() => onChange("affiliate")}
+      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+        value === "affiliate"
+          ? "border-primary bg-primary/5 shadow-md"
+          : "border-muted hover:border-primary/40"
+      }`}
+    >
+      <Users className={`h-7 w-7 ${value === "affiliate" ? "text-primary" : "text-muted-foreground"}`} />
+      <span className={`text-sm font-semibold ${value === "affiliate" ? "text-primary" : "text-foreground"}`}>
+        Quero ser afiliado
+      </span>
+      <span className="text-xs text-muted-foreground text-center leading-tight">
+        Ganhe comissões vendendo o sistema
+      </span>
+    </button>
+  </div>
+);
+
 const SaasSignupPage = () => {
   const navigate = useNavigate();
   const { signUp, signIn } = useAuth();
@@ -19,6 +60,7 @@ const SaasSignupPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [accountType, setAccountType] = useState<AccountType>("admin");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,8 +85,9 @@ const SaasSignupPage = () => {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
+      const redirectPath = accountType === "affiliate" ? "/affiliate/dashboard" : "/admin";
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/admin`,
+        redirect_uri: `${window.location.origin}${redirectPath}`,
       });
       if (error) {
         toast.error("Erro ao entrar com Google: " + (error as Error).message);
@@ -57,11 +100,14 @@ const SaasSignupPage = () => {
 
   const createWelcomeNotification = async (userId: string, userPhone: string, userWhatsapp: string) => {
     try {
+      const message = accountType === "affiliate"
+        ? "Olá! Bem-vindo ao ZARO AGENDAMENTOS 🚀\n\nSua conta de afiliado foi criada com sucesso.\n\nAcesse seu painel para começar a vender e ganhar comissões."
+        : "Olá! Bem-vindo ao ZARO AGENDAMENTOS 🚀\n\nSua conta foi criada com sucesso.\n\nAgora vamos configurar seu negócio para começar a receber agendamentos.";
       await supabase.from("user_notifications" as any).insert({
         user_id: userId,
         phone: userPhone.replace(/\D/g, ""),
         whatsapp: userWhatsapp.replace(/\D/g, ""),
-        message_text: "Olá! Bem-vindo ao ZARO AGENDAMENTOS 🚀\n\nSua conta foi criada com sucesso.\n\nAgora vamos configurar seu negócio para começar a receber agendamentos.",
+        message_text: message,
         message_status: "pending",
       });
     } catch (err) {
@@ -92,6 +138,7 @@ const SaasSignupPage = () => {
       cpf: strippedCpf,
       phone: phone.replace(/\D/g, ""),
       whatsapp: whatsapp.replace(/\D/g, ""),
+      account_type: accountType,
     });
 
     if (signupErr) {
@@ -107,14 +154,14 @@ const SaasSignupPage = () => {
     } else {
       const { data: session } = await supabase.auth.getSession();
       if (session?.session?.user?.id) {
-        await createWelcomeNotification(
-          session.session.user.id,
-          phone,
-          whatsapp
-        );
+        await createWelcomeNotification(session.session.user.id, phone, whatsapp);
       }
       toast.success("Conta criada com sucesso! 🚀");
-      navigate("/admin");
+      if (accountType === "affiliate") {
+        navigate("/affiliate/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     }
     setLoading(false);
   };
@@ -144,12 +191,14 @@ const SaasSignupPage = () => {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Rocket className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-bold">Crie sua conta e comece a receber agendamentos hoje mesmo</h2>
+              <h2 className="text-xl font-bold">Crie sua conta</h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Configure seu sistema de agendamentos em poucos minutos e comece a organizar seus clientes de forma profissional.
+              Escolha como deseja usar a plataforma
             </p>
           </div>
+
+          <AccountTypeSelector value={accountType} onChange={setAccountType} />
 
           <Button
             variant="outline"
@@ -230,7 +279,7 @@ const SaasSignupPage = () => {
             </div>
 
             <Button type="submit" className="w-full h-11" disabled={loading || !isValid}>
-              {loading ? "Criando conta..." : "Cadastrar"}
+              {loading ? "Criando conta..." : accountType === "affiliate" ? "Criar conta de afiliado" : "Criar minha loja"}
             </Button>
           </form>
 
