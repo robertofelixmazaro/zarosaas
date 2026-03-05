@@ -39,7 +39,6 @@ const SaasLoginPage = () => {
       return;
     }
     toast.success("Login realizado com sucesso!");
-    setLoginAttempted(true);
     setLoading(false);
   };
 
