@@ -165,8 +165,8 @@ const PlatformDashboard = () => {
       <PlatformHeader>
         <div className="flex gap-2 flex-wrap">
           <Link to="/super-admin/stores"><Button variant="outline" size="sm"><Building2 className="h-4 w-4 mr-1" />Lojas</Button></Link>
+          <Link to="/super-admin/affiliates"><Button variant="outline" size="sm"><Handshake className="h-4 w-4 mr-1" />Afiliados</Button></Link>
           <Link to="/super-admin/planos"><Button variant="outline" size="sm"><CreditCard className="h-4 w-4 mr-1" />Planos</Button></Link>
-          <Link to="/super-admin/relatorios"><Button variant="outline" size="sm"><BarChart3 className="h-4 w-4 mr-1" />Relatórios</Button></Link>
           <Link to="/super-admin/usuarios"><Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Usuários</Button></Link>
           <Link to="/super-admin/pagamentos"><Button variant="outline" size="sm"><DollarSign className="h-4 w-4 mr-1" />Pagamentos</Button></Link>
           <Link to="/super-admin/configuracoes"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" />Configurações</Button></Link>
