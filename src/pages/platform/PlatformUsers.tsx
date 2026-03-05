@@ -63,7 +63,7 @@ const PlatformUsers = () => {
 
   const fetchUsers = async () => {
     const [profilesRes, rolesRes, tenantsRes] = await Promise.all([
-      supabase.from("profiles").select("id, auth_id, name, email, phone, tenant_id"),
+      supabase.from("profiles").select("id, auth_id, name, email, phone, tenant_id, created_at"),
       supabase.from("user_roles").select("id, user_id, role, tenant_id"),
       supabase.from("tenants").select("id, name"),
     ]);
