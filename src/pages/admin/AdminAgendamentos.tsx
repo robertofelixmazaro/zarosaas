@@ -143,7 +143,6 @@ const AdminAgendamentos = () => {
         service_id: selectedServiceId,
         appointment_date: format(selectedDate, "yyyy-MM-dd"),
         appointment_time: selectedTime,
-        price: selectedService.price,
         tenant_id: tenantId || undefined,
       });
       toast.success("Agendamento criado com sucesso!");

@@ -192,7 +192,6 @@ const AgendarPage = () => {
         service_id: selectedService.id,
         appointment_date: format(selectedDate, "yyyy-MM-dd"),
         appointment_time: selectedTime,
-        price: selectedService.price,
         tenant_id: tenantId || undefined,
       });
       toast.success("Agendamento confirmado com sucesso!", {
