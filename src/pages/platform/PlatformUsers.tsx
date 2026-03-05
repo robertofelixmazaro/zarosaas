@@ -117,7 +117,7 @@ const PlatformUsers = () => {
   }, [search, users, filterRole, filterTenant]);
 
   const exportCsv = () => {
-    const header = "Nome,Email,Telefone,Negócio,Role";
+    const header = "Nome,Email,Telefone,Negócio,Role,Criado em";
     const rows = filtered.map(u =>
       [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role]
         .map(v => `"${v.replace(/"/g, '""')}"`)
