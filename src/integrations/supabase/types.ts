@@ -431,6 +431,7 @@ export type Database = {
           max_appointments_month: number | null
           max_barbers: number | null
           max_products: number | null
+          max_services: number | null
           name: string
           price: number
         }
@@ -443,6 +444,7 @@ export type Database = {
           max_appointments_month?: number | null
           max_barbers?: number | null
           max_products?: number | null
+          max_services?: number | null
           name: string
           price?: number
         }
@@ -455,6 +457,7 @@ export type Database = {
           max_appointments_month?: number | null
           max_barbers?: number | null
           max_products?: number | null
+          max_services?: number | null
           name?: string
           price?: number
         }
@@ -725,6 +728,54 @@ export type Database = {
             foreignKeyName: "site_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string
+          status: string
+          tenant_id: string
+          trial_ends_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          tenant_id: string
+          trial_ends_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          tenant_id?: string
+          trial_ends_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },

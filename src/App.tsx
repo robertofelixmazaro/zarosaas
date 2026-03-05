@@ -28,6 +28,7 @@ import AdminLembretes from "./pages/admin/AdminLembretes";
 import AdminGaleria from "./pages/admin/AdminGaleria";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import AdminClientes from "./pages/admin/AdminClientes";
+import AdminBilling from "./pages/admin/AdminBilling";
 import AdminRouter from "./pages/admin/AdminRouter";
 import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
 import QRCodePage from "./pages/QRCodePage";
@@ -38,6 +39,7 @@ import PlatformPlans from "./pages/platform/PlatformPlans";
 import PlatformReports from "./pages/platform/PlatformReports";
 import PlatformSettings from "./pages/platform/PlatformSettings";
 import PlatformUsers from "./pages/platform/PlatformUsers";
+import PlatformPayments from "./pages/platform/PlatformPayments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,6 +81,7 @@ const TenantRoutes = () => (
       <Route path="admin/galeria" element={<ProtectedRoute><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/landing" element={<ProtectedRoute><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/clientes" element={<ProtectedRoute><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/billing" element={<ProtectedRoute><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
     </Routes>
   </TenantProvider>
 );
@@ -97,6 +100,7 @@ const AppRoutes = () => (
     <Route path="/admin-platform/relatorios" element={<SuperAdminRoute><PlatformReports /></SuperAdminRoute>} />
     <Route path="/admin-platform/configuracoes" element={<SuperAdminRoute><PlatformSettings /></SuperAdminRoute>} />
     <Route path="/admin-platform/usuarios" element={<SuperAdminRoute><PlatformUsers /></SuperAdminRoute>} />
+    <Route path="/admin-platform/pagamentos" element={<SuperAdminRoute><PlatformPayments /></SuperAdminRoute>} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/login" element={<Navigate to="/entrar" replace />} />
     <Route path="/novo-negocio" element={<Navigate to="/admin" replace />} />
