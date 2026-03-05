@@ -145,14 +145,33 @@ Deno.serve(async (req) => {
       throw insertError;
     }
 
+    // Trigger notification emails server-side
+    try {
+      const notifyUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-webhook`;
+      await fetch(notifyUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          id_agendamento: insertData.id,
+          email_cliente: body.email_cliente || "",
+        }),
+      });
+    } catch (notifyErr) {
+      console.error("Notify webhook trigger failed:", notifyErr);
+      // Don't fail the appointment creation if notification fails
+    }
+
     return new Response(
-      JSON.stringify({ status: "success", id: id }),
+      JSON.stringify({ status: "success", id: insertData.id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Create appointment error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Erro ao criar agendamento." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -168,6 +168,7 @@ export async function createAppointment(data: {
   appointment_date: string;
   appointment_time: string;
   tenant_id?: string;
+  email_cliente?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
