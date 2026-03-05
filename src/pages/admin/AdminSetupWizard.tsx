@@ -82,33 +82,30 @@ const AdminSetupWizard = () => {
     }
     setLoading(true);
     try {
-      const { data: tenantData, error: tenantErr } = await supabase
-        .from("tenants")
-        .insert({ name: shopName, slug, phone, address, owner_user_id: user.id })
-        .select("id")
-        .single();
+      // Use edge function for atomic tenant creation (bypasses RLS safely)
+      const { data, error: fnErr } = await supabase.functions.invoke("setup-tenant", {
+        body: {
+          name: shopName,
+          slug,
+          phone: phone || null,
+          address: address || null,
+          business_type: businessType,
+        },
+      });
 
-      if (tenantErr) {
-        if (tenantErr.message?.includes("duplicate") || tenantErr.message?.includes("unique")) {
-          toast.error("Este slug já está em uso. Escolha outro.");
-        } else {
-          toast.error("Erro ao criar negócio: " + tenantErr.message);
-        }
+      if (fnErr) {
+        toast.error("Erro ao criar negócio: " + fnErr.message);
         setLoading(false);
         return;
       }
 
-      const tenantId = tenantData.id;
+      if (data?.error) {
+        toast.error(data.error);
+        setLoading(false);
+        return;
+      }
 
-      // Update profile and role
-      await supabase.from("profiles").update({ tenant_id: tenantId } as any).eq("auth_id", user.id);
-      await supabase.from("user_roles").update({ role: "admin", tenant_id: tenantId } as any).eq("user_id", user.id);
-
-      // Store business type in site_settings
-      await supabase.from("site_settings" as any).insert({ key: "business_type", value: businessType, tenant_id: tenantId } as any);
-      await supabase.from("site_settings" as any).insert({ key: "shop_name", value: shopName, tenant_id: tenantId } as any);
-      if (phone) await supabase.from("site_settings" as any).insert({ key: "phone", value: phone, tenant_id: tenantId } as any);
-      if (address) await supabase.from("site_settings" as any).insert({ key: "address", value: address, tenant_id: tenantId } as any);
+      const tenantId = data.tenant_id;
 
       // Create default services based on business type
       const defaultServices = defaultServicesByType[businessType as BusinessType] || [];
@@ -123,7 +120,7 @@ const AdminSetupWizard = () => {
 
       await refreshUserRole();
       toast.success("Negócio criado com sucesso! 🎉");
-      navigate(`/t/${slug}/admin`);
+      navigate(`/t/${data.slug}/admin`);
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
     }

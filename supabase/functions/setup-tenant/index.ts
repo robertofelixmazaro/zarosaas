@@ -1,0 +1,131 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Verify the calling user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authErr } = await anonClient.auth.getUser();
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { name, slug, phone, address, business_type } = await req.json();
+
+    if (!name?.trim() || !slug?.trim()) {
+      return new Response(JSON.stringify({ error: "Nome e slug são obrigatórios" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if user already has a tenant
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    const { data: existingProfile } = await adminClient
+      .from("profiles")
+      .select("tenant_id")
+      .eq("auth_id", user.id)
+      .maybeSingle();
+
+    if (existingProfile?.tenant_id) {
+      return new Response(JSON.stringify({ error: "Usuário já possui um negócio" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 1. Create tenant
+    const { data: tenant, error: tenantErr } = await adminClient
+      .from("tenants")
+      .insert({
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        phone: phone || null,
+        address: address || null,
+        owner_user_id: user.id,
+      })
+      .select("id, slug")
+      .single();
+
+    if (tenantErr) {
+      const msg = tenantErr.message?.includes("duplicate") || tenantErr.message?.includes("unique")
+        ? "Este slug já está em uso. Escolha outro."
+        : "Erro ao criar negócio: " + tenantErr.message;
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const tenantId = tenant.id;
+
+    // 2. Update profile with tenant_id
+    await adminClient
+      .from("profiles")
+      .update({ tenant_id: tenantId })
+      .eq("auth_id", user.id);
+
+    // 3. Assign admin role (update existing client role)
+    const { error: roleUpdateErr } = await adminClient
+      .from("user_roles")
+      .update({ role: "admin", tenant_id: tenantId })
+      .eq("user_id", user.id);
+
+    // If no existing role to update, insert one
+    if (roleUpdateErr) {
+      await adminClient
+        .from("user_roles")
+        .insert({ user_id: user.id, role: "admin", tenant_id: tenantId });
+    }
+
+    // 4. Store business settings
+    const settings = [
+      { key: "business_type", value: business_type || "other", tenant_id: tenantId },
+      { key: "shop_name", value: name.trim(), tenant_id: tenantId },
+    ];
+    if (phone) settings.push({ key: "phone", value: phone, tenant_id: tenantId });
+    if (address) settings.push({ key: "address", value: address, tenant_id: tenantId });
+
+    await adminClient.from("site_settings").insert(settings);
+
+    return new Response(
+      JSON.stringify({ tenant_id: tenantId, slug: tenant.slug }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (err) {
+    return new Response(JSON.stringify({ error: "Erro interno: " + (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
