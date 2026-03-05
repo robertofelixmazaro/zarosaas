@@ -54,18 +54,18 @@ Deno.serve(async (req) => {
     }
 
     // Cascade delete all tenant data in order (respect FK constraints)
-    const tables = [
-      "affiliate_commissions", "affiliate_sales",
+    // Only include tables that have a tenant_id column
+    const tenantTables = [
       "order_items", "orders", "email_logs", "blocked_dates",
       "barber_availability", "appointments", "reviews", "gallery_items",
       "products", "services", "barbers", "site_settings",
-      "user_notifications", "payments", "subscriptions",
+      "payments", "subscriptions",
       "profiles", "user_roles",
     ];
 
     const errors: string[] = [];
 
-    for (const table of tables) {
+    for (const table of tenantTables) {
       const { error } = await supabaseAdmin.from(table).delete().eq("tenant_id", tenant_id);
       if (error) {
         console.error(`Error deleting from ${table}:`, error.message);
