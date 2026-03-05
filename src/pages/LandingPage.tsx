@@ -130,7 +130,7 @@ const LandingPage = () => {
           ) : tenants.length === 0 ? (
             <div className="text-center text-muted-foreground">
               Nenhum negócio cadastrado ainda.{" "}
-              <Link to="/novo-negocio" className="text-primary underline">Seja o primeiro!</Link>
+              <Link to="/cadastrar" className="text-primary underline">Seja o primeiro!</Link>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
