@@ -1,0 +1,100 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const mpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN")!;
+
+    if (!mpAccessToken) {
+      return new Response(JSON.stringify({ error: "Mercado Pago não configurado" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { plan_id, plan_name, plan_price, client_email, client_name, ref_code } = await req.json();
+
+    if (!plan_id || !plan_price || !client_email) {
+      return new Response(JSON.stringify({ error: "Dados incompletos" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create Mercado Pago Checkout Pro preference
+    const preference = {
+      items: [
+        {
+          title: `ZARO Agendamentos - ${plan_name || "Plano"}`,
+          quantity: 1,
+          unit_price: Number(plan_price),
+          currency_id: "BRL",
+        },
+      ],
+      payer: {
+        email: client_email,
+        name: client_name || "",
+      },
+      back_urls: {
+        success: `${supabaseUrl}/functions/v1/mp-payment-success?plan_id=${plan_id}&email=${encodeURIComponent(client_email)}&name=${encodeURIComponent(client_name || "")}&ref=${encodeURIComponent(ref_code || "")}`,
+        failure: `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/comprar?status=failure`,
+        pending: `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/comprar?status=pending`,
+      },
+      auto_return: "approved",
+      external_reference: JSON.stringify({
+        plan_id,
+        client_email,
+        client_name: client_name || "",
+        ref_code: ref_code || "",
+      }),
+      notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
+    };
+
+    const mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${mpAccessToken}`,
+      },
+      body: JSON.stringify(preference),
+    });
+
+    const mpData = await mpRes.json();
+
+    if (!mpRes.ok) {
+      console.error("MP error:", mpData);
+      return new Response(JSON.stringify({ error: "Erro ao criar checkout" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        checkout_url: mpData.init_point,
+        preference_id: mpData.id,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (err) {
+    console.error("Error:", err);
+    return new Response(JSON.stringify({ error: "Erro interno do servidor" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
