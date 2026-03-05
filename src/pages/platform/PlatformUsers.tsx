@@ -115,6 +115,24 @@ const PlatformUsers = () => {
     setPage(1);
   }, [search, users, filterRole, filterTenant]);
 
+  const exportCsv = () => {
+    const header = "Nome,Email,Telefone,Negócio,Role";
+    const rows = filtered.map(u =>
+      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role]
+        .map(v => `"${v.replace(/"/g, '""')}"`)
+        .join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `usuarios-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV exportado com sucesso");
+  };
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
