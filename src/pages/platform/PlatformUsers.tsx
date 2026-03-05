@@ -291,6 +291,9 @@ const PlatformUsers = () => {
                           <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
                           <TableCell>{u.phone || "—"}</TableCell>
                           <TableCell>{u.tenant_name || "—"}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : "—"}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={ROLE_COLORS[u.role] || "outline"}>{u.role}</Badge>
                           </TableCell>
