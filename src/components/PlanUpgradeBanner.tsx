@@ -3,11 +3,36 @@ import { AlertTriangle, Crown, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { useTenant } from "@/contexts/TenantContext";
 
 const PlanUpgradeBanner = () => {
   const { limits, loading } = usePlanLimits();
+  const navigate = useNavigate();
+  const { tenantSlug } = useTenant();
+  const billingPath = tenantSlug ? `/t/${tenantSlug}/admin/billing` : "/admin/billing";
 
   if (loading) return null;
+
+  // Cancelled subscription
+  if (limits.subscriptionStatus === "cancelled") {
+    return (
+      <div className="mx-4 mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-destructive">Assinatura cancelada</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Sua assinatura foi cancelada. Reative para continuar criando agendamentos.
+            </p>
+            <Button size="sm" className="mt-3" variant="default" onClick={() => navigate(billingPath)}>
+              <Crown className="h-4 w-4 mr-2" /> Reativar Plano
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Trial expired
   if (limits.trialExpired) {
@@ -20,9 +45,8 @@ const PlanUpgradeBanner = () => {
             <p className="text-sm text-muted-foreground mt-1">
               Seu período de teste terminou. Escolha um plano para continuar usando a plataforma.
             </p>
-            <Button size="sm" className="mt-3" variant="default">
-              <Crown className="h-4 w-4 mr-2" />
-              Escolher Plano
+            <Button size="sm" className="mt-3" variant="default" onClick={() => navigate(billingPath)}>
+              <Crown className="h-4 w-4 mr-2" /> Escolher Plano
             </Button>
           </div>
         </div>
@@ -53,9 +77,8 @@ const PlanUpgradeBanner = () => {
               <span>•</span>
               <span>{limits.currentMonthAppointments}/{limits.maxAppointments} agend./mês</span>
             </div>
-            <Button size="sm" variant="outline" className="mt-3">
-              <Crown className="h-4 w-4 mr-2" />
-              Ver Planos
+            <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate(billingPath)}>
+              <Crown className="h-4 w-4 mr-2" /> Ver Planos
             </Button>
           </div>
         </div>
@@ -82,9 +105,8 @@ const PlanUpgradeBanner = () => {
               <span>•</span>
               <span>{limits.currentMonthAppointments}/{limits.maxAppointments >= 99999 ? "∞" : limits.maxAppointments} agend.</span>
             </div>
-            <Button size="sm" variant="outline" className="mt-3">
-              <Crown className="h-4 w-4 mr-2" />
-              Fazer Upgrade
+            <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate(billingPath)}>
+              <Crown className="h-4 w-4 mr-2" /> Fazer Upgrade
             </Button>
           </div>
         </div>

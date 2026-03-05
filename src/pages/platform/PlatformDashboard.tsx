@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3, Settings, UserCog } from "lucide-react";
+import { Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3, Settings, UserCog, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import PlatformHeader from "@/components/PlatformHeader";
@@ -61,6 +61,7 @@ const PlatformDashboard = () => {
           <Link to="/admin-platform/relatorios"><Button variant="outline" size="sm"><BarChart3 className="h-4 w-4 mr-1" />Relatórios</Button></Link>
           <Link to="/admin-platform/usuarios"><Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Usuários</Button></Link>
           <Link to="/admin-platform/configuracoes"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" />Configurações</Button></Link>
+          <Link to="/admin-platform/pagamentos"><Button variant="outline" size="sm"><DollarSign className="h-4 w-4 mr-1" />Pagamentos</Button></Link>
         </div>
       </PlatformHeader>
 
