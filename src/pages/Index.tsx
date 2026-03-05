@@ -4,8 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
-import heroBg from "@/assets/hero-barbershop.jpg";
-import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,12 +48,13 @@ const Index = () => {
     queryFn: async () => {
       if (!tenantId) return [];
       const { data } = await supabase
-        .from("reviews")
+        .from("reviews" as any)
         .select("*, barbers(name)")
         .eq("tenant_id", tenantId)
+        .eq("approved", true)
         .order("created_at", { ascending: false })
         .limit(10);
-      return data || [];
+      return (data as any[]) || [];
     },
     enabled: !!tenantId,
   });
@@ -92,46 +92,67 @@ const Index = () => {
   if (tenantError) return <div className="min-h-screen flex items-center justify-center text-destructive">{tenantError}</div>;
 
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const shopName = siteSettings.shop_name || tenant?.name || "Meu Negócio";
+  const primaryColor = siteSettings.primary_color || "";
+  const secondaryColor = siteSettings.secondary_color || "";
+  const buttonColor = siteSettings.button_color || "";
+  const coverImage = siteSettings.cover_image_url || "";
+  const logoUrl = siteSettings.logo_url || tenant?.logo_url || "";
+  const description = siteSettings.description || "";
+  const whatsapp = siteSettings.whatsapp || tenant?.phone || "";
+
+  // Dynamic style overrides
+  const dynamicStyles: React.CSSProperties = {};
+  const btnStyle: React.CSSProperties = buttonColor ? { backgroundColor: buttonColor, borderColor: buttonColor, color: "#fff" } : {};
 
   return (
     <div className="min-h-screen bg-background">
       <ProductCart cart={cart} setCart={setCart} autoOpen={shouldOpenCart} onAutoOpenHandled={() => setShouldOpenCart(false)} />
       <PremiumNavbar
-        shopName={siteSettings.shop_name || "CAETANO BARBER"}
-        logoUrl={siteSettings.logo_url}
+        shopName={shopName}
+        logoUrl={logoUrl}
         avgRating={avgRating}
       />
 
       {/* Hero */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroBg} alt="Barbearia" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-foreground/70" />
+          {coverImage ? (
+            <img src={coverImage} alt={shopName} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full" style={{ backgroundColor: primaryColor || "hsl(var(--primary))" }} />
+          )}
+          <div className="absolute inset-0 bg-black/60" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-3xl mx-auto animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary-foreground/20 text-primary-foreground/80 text-sm mb-6">
-            <Star className="h-3.5 w-3.5 fill-current" /> Avaliação {avgRating} · +2.000 clientes
+          {logoUrl && (
+            <img src={logoUrl} alt={shopName} className="w-24 h-24 rounded-full object-cover mx-auto mb-6 border-2 border-white/30 shadow-xl" />
+          )}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/20 text-white/80 text-sm mb-6">
+            <Star className="h-3.5 w-3.5 fill-current" /> Avaliação {avgRating} · {barbersList.length} profissiona{barbersList.length === 1 ? "l" : "is"}
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground tracking-tight mb-6">
-            Estilo & Precisão<br />em Cada Corte
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight mb-6">
+            {shopName}
           </h1>
-          <p className="text-lg md:text-xl text-primary-foreground/70 mb-10 max-w-xl mx-auto">
-            Experiência premium em barbearia. Transforme seu visual com os melhores profissionais da cidade.
-          </p>
+          {description && (
+            <p className="text-lg md:text-xl text-white/70 mb-10 max-w-xl mx-auto">
+              {description}
+            </p>
+          )}
+          {!description && (
+            <p className="text-lg md:text-xl text-white/70 mb-10 max-w-xl mx-auto">
+              Agende seu horário com os melhores profissionais
+            </p>
+          )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#servicos">
-              <Button size="lg" variant="secondary" className="text-base px-8 gap-2">
+            <Link to={`${basePath}/agendar`}>
+              <Button size="lg" className="text-base px-8 gap-2" style={btnStyle}>
                 Agendar Horário <ChevronRight className="h-4 w-4" />
               </Button>
-            </a>
+            </Link>
             <a href="#servicos">
-              <Button size="lg" className="text-base px-8">
+              <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10">
                 Ver Serviços
-              </Button>
-            </a>
-            <a href="#produtos">
-              <Button size="lg" className="text-base px-8">
-                Ver Produtos
               </Button>
             </a>
           </div>
@@ -139,17 +160,17 @@ const Index = () => {
       </section>
 
       {/* Stats */}
-      <section className="py-12 border-b">
+      <section className="py-12 border-b" style={primaryColor ? { borderColor: `${primaryColor}20` } : {}}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { number: "+2.000", label: "Clientes Satisfeitos" },
               { number: String(barbersList.length), label: "Profissionais" },
               { number: String(services.length), label: "Serviços" },
               { number: `${avgRating}★`, label: "Avaliação Média" },
+              { number: String(reviews.length), label: "Avaliações" },
             ].map((s) => (
               <div key={s.label}>
-                <div className="text-2xl md:text-3xl font-bold">{s.number}</div>
+                <div className="text-2xl md:text-3xl font-bold" style={primaryColor ? { color: primaryColor } : {}}>{s.number}</div>
                 <div className="text-sm text-muted-foreground mt-1">{s.label}</div>
               </div>
             ))}
@@ -162,14 +183,13 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Nossos Serviços</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">Cada serviço é uma experiência única, pensada para o seu estilo</p>
+            <p className="text-muted-foreground max-w-md mx-auto">Conheça todos os serviços disponíveis</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {services.map((s, i) => (
               <div
                 key={s.id}
                 className="group rounded-lg border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden"
-                style={{ animationDelay: `${i * 100}ms` }}
               >
                 {s.image_url ? (
                   <div className="w-full h-40 bg-muted">
@@ -190,7 +210,7 @@ const Index = () => {
                     </span>
                   </div>
                   <Link to={`${basePath}/agendar?servico=${s.id}`}>
-                    <Button className="w-full gap-2">
+                    <Button className="w-full gap-2" style={btnStyle}>
                       Agendar <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -200,7 +220,7 @@ const Index = () => {
           </div>
           <div className="text-center mt-10">
             <Link to={`${basePath}/agendar`}>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" style={btnStyle}>
                 Ver Todos os Horários <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -209,31 +229,36 @@ const Index = () => {
       </section>
 
       {/* Equipe */}
-      <section id="equipe" className="py-20 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Nossa Equipe</h2>
-            <p className="text-muted-foreground">Profissionais dedicados ao seu estilo</p>
+      {barbersList.length > 0 && (
+        <section id="equipe" className="py-20 bg-muted/50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Nossa Equipe</h2>
+              <p className="text-muted-foreground">Profissionais dedicados ao seu atendimento</p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              {barbersList.map((b) => (
+                <div key={b.id} className="text-center group">
+                  {b.photo_url ? (
+                    <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 group-hover:scale-105 transition-transform">
+                      <img src={b.photo_url} alt={b.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-4 text-4xl font-bold group-hover:scale-105 transition-transform"
+                      style={primaryColor ? { backgroundColor: `${primaryColor}15`, color: primaryColor } : {}}
+                    >
+                      {b.name[0]}
+                    </div>
+                  )}
+                  <h3 className="text-lg font-semibold">{b.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{b.specialty}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {barbersList.map((b) => (
-              <div key={b.id} className="text-center group">
-                {b.photo_url ? (
-                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 group-hover:scale-105 transition-transform">
-                    <img src={b.photo_url} alt={b.name} className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-32 h-32 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4 text-4xl font-bold text-primary group-hover:scale-105 transition-transform">
-                    {b.name[0]}
-                  </div>
-                )}
-                <h3 className="text-lg font-semibold">{b.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{b.specialty}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Galeria */}
       {galleryItems.length > 0 && (
@@ -253,16 +278,17 @@ const Index = () => {
                   {item.media_type === "video" ? (
                     <>
                       <video src={item.media_url} className="w-full h-full object-cover" muted preload="metadata" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-foreground/20 group-hover:bg-foreground/40 transition-colors">
-                        <Play className="h-10 w-10 text-primary-foreground fill-primary-foreground" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                        <Play className="h-10 w-10 text-white fill-white" />
                       </div>
                     </>
                   ) : (
                     <img src={item.media_url} alt={item.title || "Galeria"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   )}
-                  {item.title && (
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-foreground/60 to-transparent">
-                      <span className="text-xs text-primary-foreground font-medium">{item.title}</span>
+                  {(item.title || item.description) && (
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                      {item.title && <span className="text-xs text-white font-medium block">{item.title}</span>}
+                      {item.description && <span className="text-xs text-white/70 block line-clamp-1">{item.description}</span>}
                     </div>
                   )}
                 </button>
@@ -274,8 +300,8 @@ const Index = () => {
 
       {/* Lightbox */}
       {lightboxUrl && (
-        <div className="fixed inset-0 z-[100] bg-foreground/90 flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
-          <button className="absolute top-4 right-4 text-primary-foreground" onClick={() => setLightboxUrl(null)}>
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+          <button className="absolute top-4 right-4 text-white" onClick={() => setLightboxUrl(null)}>
             <X className="h-8 w-8" />
           </button>
           <div className="max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
@@ -309,14 +335,14 @@ const Index = () => {
                     </div>
                   )}
                   <div className="p-5">
-                  <h3 className="font-semibold mb-1">{p.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{p.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold">R$ {Number(p.price).toFixed(0)}</span>
-                    <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0}>
-                      {p.stock > 0 ? "Comprar" : "Esgotado"}
-                    </Button>
-                  </div>
+                    <h3 className="font-semibold mb-1">{p.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{p.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl font-bold">R$ {Number(p.price).toFixed(0)}</span>
+                      <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0} style={btnStyle}>
+                        {p.stock > 0 ? "Comprar" : "Esgotado"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -344,14 +370,14 @@ const Index = () => {
                   {r.comment && <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{r.comment}</p>}
                   <div className="flex items-center gap-3">
                     {r.client_photo_url ? (
-                      <img src={r.client_photo_url} alt={r.display_name} className="w-9 h-9 rounded-full object-cover" />
+                      <img src={r.client_photo_url} alt={r.client_name} className="w-9 h-9 rounded-full object-cover" />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
-                        {r.display_name?.[0] || "?"}
+                        {(r.client_name || "?")?.[0]}
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-medium">{r.display_name}</p>
+                      <p className="text-sm font-medium">{r.client_name || "Cliente"}</p>
                       <p className="text-xs text-muted-foreground">com {r.barbers?.name}</p>
                     </div>
                   </div>
@@ -367,18 +393,21 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Deixe Sua Avaliação</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">Conte como foi sua experiência, mesmo sem agendamento</p>
+            <p className="text-muted-foreground max-w-md mx-auto">Conte como foi sua experiência</p>
           </div>
-          <WalkinReviewForm barbers={barbersList} tenantId={tenantId} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["public-reviews"] })} />
+          <WalkinReviewForm barbers={barbersList} tenantId={tenantId} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["reviews", tenantId] })} buttonStyle={btnStyle} />
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="bg-primary text-primary-foreground rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para transformar seu visual?</h2>
-            <p className="text-primary-foreground/70 mb-8 max-w-md mx-auto">Agende agora e garanta seu horário com os melhores barbeiros da cidade.</p>
+          <div
+            className={cn("rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto", !primaryColor && "bg-primary text-primary-foreground")}
+            style={primaryColor ? { backgroundColor: primaryColor, color: "#fff" } : {}}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para agendar?</h2>
+            <p className="opacity-70 mb-8 max-w-md mx-auto">Agende agora e garanta seu horário com os melhores profissionais.</p>
             <Link to={`${basePath}/agendar`}>
               <Button size="lg" variant="secondary" className="text-base px-10 gap-2">
                 Agendar Horário <ChevronRight className="h-4 w-4" />
@@ -388,40 +417,59 @@ const Index = () => {
         </div>
       </section>
 
+      {/* WhatsApp FAB */}
+      {whatsapp && (
+        <a
+          href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors"
+          title="Falar no WhatsApp"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </a>
+      )}
+
       {/* Footer */}
       <footer id="contato" className="border-t py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-10">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                {siteSettings.logo_url ? (
-                  <img src={siteSettings.logo_url} alt="Logo" className="h-8 w-8 rounded-full object-cover" />
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   <Scissors className="h-5 w-5" />
                 )}
-                <span className="font-bold tracking-tight">{siteSettings.shop_name || "CAETANO BARBER"}</span>
+                <span className="font-bold tracking-tight">{shopName}</span>
               </div>
-              <p className="text-sm text-muted-foreground">Estilo e precisão em cada corte. A melhor experiência em barbearia da cidade.</p>
+              <p className="text-sm text-muted-foreground">{description || "Agende seu horário com facilidade."}</p>
             </div>
             <div>
               <h4 className="font-semibold mb-3">Horário de Funcionamento</h4>
               <div className="text-sm text-muted-foreground space-y-1">
-                <p>{siteSettings.hours_weekday || "Segunda a Sexta: 08:00 - 20:00"}</p>
-                <p>{siteSettings.hours_saturday || "Sábado: 09:00 - 15:00"}</p>
-                <p>{siteSettings.hours_sunday || "Domingo: Fechado"}</p>
+                <p>{siteSettings.hours_weekday || "Segunda a Sexta"}</p>
+                <p>{siteSettings.hours_saturday || "Sábado"}</p>
+                <p>{siteSettings.hours_sunday || "Domingo"}</p>
               </div>
             </div>
             <div>
               <h4 className="font-semibold mb-3">Contato</h4>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {siteSettings.address || "Rua da Barbearia, 123"}</p>
-                <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {siteSettings.phone || "(11) 99999-0000"}</p>
-                <p className="flex items-center gap-2"><Instagram className="h-4 w-4" /> {siteSettings.instagram || "@caetanobarber"}</p>
+                {(siteSettings.address || tenant?.address) && (
+                  <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {siteSettings.address || tenant?.address}</p>
+                )}
+                {(siteSettings.phone || tenant?.phone) && (
+                  <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {siteSettings.phone || tenant?.phone}</p>
+                )}
+                {siteSettings.instagram && (
+                  <p className="flex items-center gap-2"><Instagram className="h-4 w-4" /> {siteSettings.instagram}</p>
+                )}
               </div>
             </div>
           </div>
           <div className="border-t mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs text-muted-foreground">© 2026 {siteSettings.shop_name || "Caetano Barber"}. Todos os direitos reservados.</span>
+            <span className="text-xs text-muted-foreground">© {new Date().getFullYear()} {shopName}. Todos os direitos reservados.</span>
             {canInstall && !isInstalled && (
               <Button variant="outline" size="sm" className="gap-2" onClick={async () => {
                 const ok = await install();
@@ -430,9 +478,6 @@ const Index = () => {
                 <Download className="h-4 w-4" /> Instalar App
               </Button>
             )}
-            {isInstalled && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">✅ App instalado</span>
-            )}
           </div>
         </div>
       </footer>
@@ -440,7 +485,7 @@ const Index = () => {
   );
 };
 
-function WalkinReviewForm({ barbers, onSuccess, tenantId }: { barbers: DbBarber[]; onSuccess: () => void; tenantId?: string | null }) {
+function WalkinReviewForm({ barbers, onSuccess, tenantId, buttonStyle }: { barbers: DbBarber[]; onSuccess: () => void; tenantId?: string | null; buttonStyle?: React.CSSProperties }) {
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -478,11 +523,12 @@ function WalkinReviewForm({ barbers, onSuccess, tenantId }: { barbers: DbBarber[
         client_name: clientName.trim(),
         client_photo_url: photoUrl,
         tenant_id: tenantId || null,
+        approved: false,
       } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Avaliação enviada! Obrigado pelo feedback.");
+      toast.success("Avaliação enviada! Será exibida após aprovação.");
       setRating(0);
       setComment("");
       setBarberId("");
@@ -522,10 +568,10 @@ function WalkinReviewForm({ barbers, onSuccess, tenantId }: { barbers: DbBarber[
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium mb-2 block">Barbeiro</label>
+        <label className="text-sm font-medium mb-2 block">Profissional</label>
         <Select value={barberId} onValueChange={setBarberId}>
           <SelectTrigger>
-            <SelectValue placeholder="Selecione o barbeiro" />
+            <SelectValue placeholder="Selecione o profissional" />
           </SelectTrigger>
           <SelectContent>
             {barbers.map((b) => (
@@ -562,6 +608,7 @@ function WalkinReviewForm({ barbers, onSuccess, tenantId }: { barbers: DbBarber[
         onClick={() => mutation.mutate()}
         disabled={rating === 0 || !barberId || !clientName.trim() || mutation.isPending}
         className="w-full"
+        style={buttonStyle}
       >
         {mutation.isPending ? "Enviando..." : "Enviar Avaliação"}
       </Button>

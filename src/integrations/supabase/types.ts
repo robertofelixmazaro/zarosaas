@@ -238,6 +238,7 @@ export type Database = {
           recipient_name: string | null
           status: string
           subject: string | null
+          tenant_id: string | null
         }
         Insert: {
           appointment_id?: string | null
@@ -249,6 +250,7 @@ export type Database = {
           recipient_name?: string | null
           status?: string
           subject?: string | null
+          tenant_id?: string | null
         }
         Update: {
           appointment_id?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           recipient_name?: string | null
           status?: string
           subject?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -267,6 +270,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -819,6 +829,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_appointment_availability: {
+        Args: { _barber_id: string; _date: string }
+        Returns: {
+          appointment_time: string
+          duration_minutes: number
+        }[]
+      }
       get_user_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {
