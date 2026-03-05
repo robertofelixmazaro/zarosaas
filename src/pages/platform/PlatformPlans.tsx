@@ -119,7 +119,7 @@ const PlatformPlans = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/admin-platform">
+        <Link to="/super-admin/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
       </PlatformHeader>
