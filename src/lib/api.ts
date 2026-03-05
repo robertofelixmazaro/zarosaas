@@ -167,7 +167,6 @@ export async function createAppointment(data: {
   service_id: string;
   appointment_date: string;
   appointment_time: string;
-  price: number;
   tenant_id?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();

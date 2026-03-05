@@ -26,12 +26,11 @@ Deno.serve(async (req) => {
       service_id,
       appointment_date,
       appointment_time,
-      price,
       tenant_id,
     } = body;
 
     // Validate required fields
-    if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time || price == null) {
+    if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
       return new Response(
         JSON.stringify({ error: "Campos obrigatórios não preenchidos." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -76,14 +75,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Also check overlapping appointments based on service duration
+    // Fetch service data (duration and authoritative price) from the database
     const { data: serviceData } = await supabase
       .from("services")
-      .select("duration_minutes")
+      .select("duration_minutes, price")
       .eq("id", service_id)
       .single();
 
-    const duration = serviceData?.duration_minutes || 30;
+    if (!serviceData) {
+      return new Response(
+        JSON.stringify({ error: "Serviço não encontrado." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const duration = serviceData.duration_minutes || 30;
+    const validatedPrice = serviceData.price;
 
     // Check if new appointment would overlap with existing ones
     const { data: dayAppointments } = await supabase
@@ -119,7 +126,7 @@ Deno.serve(async (req) => {
       service_id,
       appointment_date,
       appointment_time,
-      price,
+      price: validatedPrice,
     };
     if (tenant_id) insertData.tenant_id = tenant_id;
 
