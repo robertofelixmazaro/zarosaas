@@ -103,7 +103,7 @@ const SaasSignupPage = () => {
     const { error: loginErr } = await signIn(email, password);
     if (loginErr) {
       toast.info("Conta criada! Faça login para continuar.");
-      navigate("/entrar");
+      navigate("/login");
     } else {
       const { data: session } = await supabase.auth.getSession();
       if (session?.session?.user?.id) {
