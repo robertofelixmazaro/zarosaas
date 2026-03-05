@@ -12,18 +12,19 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 
 const allNavItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "barber"] },
-  { icon: Calendar, label: "Agendamentos", path: "/admin/agendamentos", roles: ["admin", "barber"] },
-  { icon: Sparkles, label: "Serviços", path: "/admin/servicos", roles: ["admin"] },
-  { icon: Users, label: "Barbeiros", path: "/admin/barbeiros", roles: ["admin"] },
-  { icon: Package, label: "Produtos", path: "/admin/produtos", roles: ["admin"] },
-  { icon: ShoppingBag, label: "Pedidos", path: "/admin/pedidos", roles: ["admin"] },
-  { icon: BarChart3, label: "Relatórios", path: "/admin/relatorios", roles: ["admin"] },
-  { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin", "barber"] },
-  { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin", "barber"] },
-  { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
-  { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
-  { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin"] },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "barber", "client"] },
+  { icon: Calendar, label: "Agendamentos", path: "/admin/agendamentos", roles: ["admin", "barber", "client"] },
+  { icon: Users, label: "Clientes", path: "/admin/clientes", roles: ["admin", "client"] },
+  { icon: Sparkles, label: "Serviços", path: "/admin/servicos", roles: ["admin", "client"] },
+  { icon: Users, label: "Equipe", path: "/admin/barbeiros", roles: ["admin", "client"] },
+  { icon: Package, label: "Produtos", path: "/admin/produtos", roles: ["admin", "client"] },
+  { icon: ShoppingBag, label: "Pedidos", path: "/admin/pedidos", roles: ["admin", "client"] },
+  { icon: BarChart3, label: "Relatórios", path: "/admin/relatorios", roles: ["admin", "client"] },
+  { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin", "barber", "client"] },
+  { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin", "barber", "client"] },
+  { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin", "client"] },
+  { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin", "client"] },
+  { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin", "client"] },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

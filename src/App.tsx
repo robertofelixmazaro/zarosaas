@@ -27,6 +27,7 @@ import AdminPedidos from "./pages/admin/AdminPedidos";
 import AdminLembretes from "./pages/admin/AdminLembretes";
 import AdminGaleria from "./pages/admin/AdminGaleria";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
+import AdminClientes from "./pages/admin/AdminClientes";
 import AdminRouter from "./pages/admin/AdminRouter";
 import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
 import QRCodePage from "./pages/QRCodePage";
@@ -79,6 +80,7 @@ const TenantRoutes = () => (
       <Route path="admin/lembretes" element={<ProtectedRoute><AdminLayout><AdminLembretes /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/galeria" element={<ProtectedRoute><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/landing" element={<ProtectedRoute><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/clientes" element={<ProtectedRoute><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
     </Routes>
   </TenantProvider>
 );
