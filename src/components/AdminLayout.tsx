@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { playNotificationSound, playOrderSound } from "@/lib/notificationSound";
 import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 
 const allNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "barber", "client"] },
@@ -176,6 +177,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             )}
           </Button>
         </header>
+        <PlanUpgradeBanner />
         <div className="p-4 lg:p-6">
           {children}
         </div>

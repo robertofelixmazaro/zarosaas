@@ -25,6 +25,8 @@ export type Database = {
           created_at: string | null
           id: string
           price: number
+          reminder_24h_sent: boolean
+          reminder_2h_sent: boolean
           reminder_sent: boolean
           service_id: string
           status: Database["public"]["Enums"]["appointment_status"]
@@ -42,6 +44,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           price: number
+          reminder_24h_sent?: boolean
+          reminder_2h_sent?: boolean
           reminder_sent?: boolean
           service_id: string
           status?: Database["public"]["Enums"]["appointment_status"]
@@ -59,6 +63,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           price?: number
+          reminder_24h_sent?: boolean
+          reminder_2h_sent?: boolean
           reminder_sent?: boolean
           service_id?: string
           status?: Database["public"]["Enums"]["appointment_status"]

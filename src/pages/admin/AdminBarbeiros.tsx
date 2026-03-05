@@ -2,12 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { fetchAllBarbers, fetchAllAvailability, updateBarber, deleteBarber, upsertAvailability, DbBarber, DbAvailability } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -30,6 +31,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const AdminBarbeiros = () => {
   const { tenantId } = useTenant();
+  const { canAddStaff, limits } = usePlanLimits();
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +63,10 @@ const AdminBarbeiros = () => {
   useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const openCreate = () => {
+    if (!canAddStaff()) {
+      toast.error(`Limite de ${limits.maxStaff} profissionais atingido. Faça upgrade do seu plano.`);
+      return;
+    }
     setForm({ name: "", specialty: "" }); setEditingId(null); setErrors({});
     setAvailForm(defaultAvail); setPhotoFile(null); setPhotoPreview(null);
     setDialogOpen(true);
