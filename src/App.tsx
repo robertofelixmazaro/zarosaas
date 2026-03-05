@@ -96,6 +96,7 @@ const AppRoutes = () => (
     <Route path="/login" element={<UnifiedLoginPage />} />
     <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/comprar" element={<ComprarPage />} />
 
     {/* Legacy redirects */}
     <Route path="/entrar" element={<Navigate to="/login" replace />} />
