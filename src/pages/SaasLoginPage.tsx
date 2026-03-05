@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
@@ -12,12 +12,28 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const SaasLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user, userRole, loading: authLoading, roleLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false);
+
+  // Role-based redirect after login
+  useEffect(() => {
+    if (!loginAttempted || authLoading || roleLoading || !user) return;
+    
+    if (userRole === "super_admin") {
+      navigate("/admin-platform", { replace: true });
+    } else if (userRole === "admin") {
+      navigate("/admin", { replace: true });
+    } else if (userRole === "barber") {
+      navigate("/admin", { replace: true });
+    } else {
+      navigate("/admin", { replace: true });
+    }
+  }, [loginAttempted, authLoading, roleLoading, user, userRole, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +41,11 @@ const SaasLoginPage = () => {
     const { error } = await signIn(email, password);
     if (error) {
       toast.error("Erro ao entrar: " + error.message);
-    } else {
-      toast.success("Login realizado com sucesso!");
-      navigate("/admin");
+      setLoading(false);
+      return;
     }
+    toast.success("Login realizado com sucesso!");
+    setLoginAttempted(true);
     setLoading(false);
   };
 
