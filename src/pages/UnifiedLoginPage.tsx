@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,13 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const UnifiedLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, user, userRole, loading: authLoading, roleLoading } = useAuth();
+  const { signIn, signOut, user, userRole, loading: authLoading, roleLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (authLoading || roleLoading || !user || !userRole) return;
@@ -24,7 +27,7 @@ const UnifiedLoginPage = () => {
   const redirectByRole = (role: string) => {
     switch (role) {
       case "super_admin":
-        navigate("/super-admin/dashboard", { replace: true });
+        navigate("/admin-platform", { replace: true });
         break;
       case "affiliate":
         navigate("/affiliate/dashboard", { replace: true });
@@ -36,16 +39,70 @@ const UnifiedLoginPage = () => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error("Informe seu e-mail para reenviar a confirmação.");
+      return;
+    }
+
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    setResendLoading(false);
+
+    if (error) {
+      toast.error("Erro ao reenviar email: " + error.message);
+      return;
+    }
+
+    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowResendConfirmation(false);
+
     const { error } = await signIn(email, password);
     if (error) {
-      toast.error("Erro ao entrar: " + error.message);
+      const message = (error.message || "").toLowerCase();
+
+      if (message.includes("email not confirmed")) {
+        setShowResendConfirmation(true);
+        toast.error("Confirme seu email para ativar sua conta.");
+      } else if (message.includes("invalid login credentials")) {
+        toast.error("E-mail ou senha inválidos.");
+      } else {
+        toast.error("Erro ao entrar: " + error.message);
+      }
+
       setLoading(false);
       return;
     }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUser = sessionData.session?.user;
+
+    if (!currentUser) {
+      toast.error("Não foi possível iniciar sua sessão.");
+      setLoading(false);
+      return;
+    }
+
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (roleError || !roleData?.role) {
+      await signOut();
+      toast.error("Sua conta ainda não foi provisionada. Tente novamente em instantes.");
+      setLoading(false);
+      return;
+    }
+
     toast.success("Login realizado com sucesso!");
+    redirectByRole(roleData.role);
     setLoading(false);
   };
 
@@ -111,6 +168,12 @@ const UnifiedLoginPage = () => {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
+
+          {showResendConfirmation && (
+            <Button variant="outline" className="w-full" onClick={handleResendConfirmation} disabled={resendLoading}>
+              {resendLoading ? "Reenviando..." : "Reenviar email de confirmação"}
+            </Button>
+          )}
         </motion.div>
       </motion.div>
     </div>
