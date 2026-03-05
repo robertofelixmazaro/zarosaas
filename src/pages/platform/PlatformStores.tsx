@@ -199,8 +199,11 @@ const PlatformStores = () => {
       });
       if (res.error) {
         toast.error("Erro ao excluir loja");
+      } else if (res.data?.fallback) {
+        toast.warning(res.data.message || "Loja desativada como alternativa");
+        fetchStores();
       } else {
-        toast.success(`"${deleteStore.name}" foi excluída permanentemente`);
+        toast.success("Loja removida com sucesso");
         fetchStores();
       }
     } catch {
