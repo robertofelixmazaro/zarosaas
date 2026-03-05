@@ -25,6 +25,7 @@ interface UserWithRole {
   tenant_id: string | null;
   role: string;
   role_id: string;
+  created_at: string | null;
 }
 
 const ROLE_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -62,7 +63,7 @@ const PlatformUsers = () => {
 
   const fetchUsers = async () => {
     const [profilesRes, rolesRes, tenantsRes] = await Promise.all([
-      supabase.from("profiles").select("id, auth_id, name, email, phone, tenant_id"),
+      supabase.from("profiles").select("id, auth_id, name, email, phone, tenant_id, created_at"),
       supabase.from("user_roles").select("id, user_id, role, tenant_id"),
       supabase.from("tenants").select("id, name"),
     ]);
@@ -79,14 +80,14 @@ const PlatformUsers = () => {
         merged.push({
           profile_id: p.id, auth_id: p.auth_id, name: p.name, email: p.email, phone: p.phone,
           tenant_name: p.tenant_id ? (tenantMap.get(p.tenant_id) || null) : null,
-          tenant_id: p.tenant_id, role: "sem role", role_id: "",
+          tenant_id: p.tenant_id, role: "sem role", role_id: "", created_at: p.created_at,
         });
       } else {
         for (const r of userRoles) {
           merged.push({
             profile_id: p.id, auth_id: p.auth_id, name: p.name, email: p.email, phone: p.phone,
             tenant_name: r.tenant_id ? (tenantMap.get(r.tenant_id) || null) : (p.tenant_id ? tenantMap.get(p.tenant_id) || null : null),
-            tenant_id: r.tenant_id || p.tenant_id, role: r.role, role_id: r.id,
+            tenant_id: r.tenant_id || p.tenant_id, role: r.role, role_id: r.id, created_at: p.created_at,
           });
         }
       }
@@ -116,9 +117,9 @@ const PlatformUsers = () => {
   }, [search, users, filterRole, filterTenant]);
 
   const exportCsv = () => {
-    const header = "Nome,Email,Telefone,Negócio,Role";
+    const header = "Nome,Email,Telefone,Negócio,Role,Criado em";
     const rows = filtered.map(u =>
-      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role]
+      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role, u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : ""]
         .map(v => `"${v.replace(/"/g, '""')}"`)
         .join(",")
     );
@@ -277,6 +278,7 @@ const PlatformUsers = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Telefone</TableHead>
                         <TableHead>Negócio</TableHead>
+                        <TableHead>Criado em</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Alterar Role</TableHead>
                         <TableHead>Ações</TableHead>
@@ -289,6 +291,9 @@ const PlatformUsers = () => {
                           <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
                           <TableCell>{u.phone || "—"}</TableCell>
                           <TableCell>{u.tenant_name || "—"}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : "—"}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={ROLE_COLORS[u.role] || "outline"}>{u.role}</Badge>
                           </TableCell>
