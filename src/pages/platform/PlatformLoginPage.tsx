@@ -31,8 +31,12 @@ const PlatformLoginPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && !roleLoading && user && userRole === "super_admin") {
-      navigate("/admin-platform", { replace: true });
+    if (!authLoading && !roleLoading && user) {
+      if (userRole === "super_admin") {
+        navigate("/admin-platform", { replace: true });
+      } else if (userRole === "admin" || userRole === "barber" || userRole === "client") {
+        navigate("/admin", { replace: true });
+      }
     }
   }, [authLoading, roleLoading, user, userRole, navigate]);
 
