@@ -41,6 +41,8 @@ const PlatformUsers = () => {
   const [filtered, setFiltered] = useState<UserWithRole[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
   // Edit modal state
   const [editOpen, setEditOpen] = useState(false);
