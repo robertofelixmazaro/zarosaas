@@ -9,5 +9,8 @@ verify_jwt = false
 [functions.send-reminder-emails]
 verify_jwt = false
 
+[functions.send-appointment-reminders]
+verify_jwt = false
+
 [functions.create-barber-user]
 verify_jwt = false
