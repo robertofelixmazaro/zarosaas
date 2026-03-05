@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck } from "lucide-react";
 import { addDays, addMonths, addYears, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
-import barberLogo from "@/assets/caetano-barber-logo.jpeg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fetchAllBarbers, DbBarber } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -27,13 +27,13 @@ interface SiteSettings {
 }
 
 const defaultSettings: SiteSettings = {
-  shop_name: "CAETANO BARBER",
-  phone: "(11) 99999-0000",
-  address: "Rua da Barbearia, 123",
-  instagram: "@caetanobarber",
-  hours_weekday: "Segunda a Sexta: 08:00 - 20:00",
-  hours_saturday: "Sábado: 09:00 - 15:00",
-  hours_sunday: "Domingo: Fechado",
+  shop_name: "",
+  phone: "",
+  address: "",
+  instagram: "",
+  hours_weekday: "",
+  hours_saturday: "",
+  hours_sunday: "",
   logo_url: "",
   delivery_fee: "0",
 };
@@ -50,7 +50,13 @@ interface BlockedDate {
 
 const AdminConfig = () => {
   const { user } = useAuth();
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const { tenantId, tenant } = useTenant();
+  const [settings, setSettings] = useState<SiteSettings>({
+    ...defaultSettings,
+    shop_name: tenant?.name || "",
+    phone: tenant?.phone || "",
+    address: tenant?.address || "",
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -75,9 +81,9 @@ const AdminConfig = () => {
 
   const loadData = async () => {
     const [settingsRes, blockedRes, barbers] = await Promise.all([
-      supabase.from("site_settings" as any).select("key, value"),
-      supabase.from("blocked_dates" as any).select("*").order("blocked_date"),
-      fetchAllBarbers(),
+      supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
+      supabase.from("blocked_dates" as any).select("*").eq("tenant_id", tenantId).order("blocked_date"),
+      fetchAllBarbers(tenantId || undefined),
     ]);
     if (settingsRes.data) {
       const map: Record<string, string> = {};
@@ -90,7 +96,7 @@ const AdminConfig = () => {
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,12 +108,12 @@ const AdminConfig = () => {
   };
 
   const uploadLogo = async (): Promise<string | null> => {
-    if (!logoFile) return null;
+    if (!logoFile || !tenantId) return null;
     const ext = logoFile.name.split(".").pop();
-    const path = `logo.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, logoFile, { upsert: true });
+    const path = `${tenantId}/logo.${ext}`;
+    const { error } = await supabase.storage.from("tenant-assets").upload(path, logoFile, { upsert: true });
     if (error) throw error;
-    return `${SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
+    return `${SUPABASE_URL}/storage/v1/object/public/tenant-assets/${path}`;
   };
 
   const handleSave = async () => {
@@ -119,16 +125,17 @@ const AdminConfig = () => {
       if (logoUrl) settingsToSave.logo_url = logoUrl;
 
       for (const [key, value] of Object.entries(settingsToSave)) {
-        if (!value && key === "logo_url") continue; // skip empty logo
+        if (!value && key === "logo_url") continue;
         const { data: existing } = await supabase
           .from("site_settings" as any)
           .select("id")
           .eq("key", key)
+          .eq("tenant_id", tenantId)
           .maybeSingle();
         if (existing) {
-          await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("key", key);
+          await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
         } else {
-          await supabase.from("site_settings" as any).insert({ key, value } as any);
+          await supabase.from("site_settings" as any).insert({ key, value, tenant_id: tenantId } as any);
         }
       }
       if (logoUrl) setSettings((prev) => ({ ...prev, logo_url: logoUrl }));
@@ -354,6 +361,7 @@ const AdminConfig = () => {
                       start_time: blockForm.all_day ? null : blockForm.start_time,
                       end_time: blockForm.all_day ? null : blockForm.end_time,
                       barber_id: blockForm.barber_id || null,
+                      tenant_id: tenantId,
                     } as any);
                     if (error) throw error;
                     toast.success("Bloqueio permanente criado!");
@@ -378,6 +386,7 @@ const AdminConfig = () => {
                       start_time: blockForm.all_day ? null : blockForm.start_time,
                       end_time: blockForm.all_day ? null : blockForm.end_time,
                       barber_id: blockForm.barber_id || null,
+                      tenant_id: tenantId,
                     }));
 
                     for (let i = 0; i < rows.length; i += 100) {
@@ -552,7 +561,7 @@ const AdminConfig = () => {
               includeMargin
               fgColor="#000000"
               bgColor="#ffffff"
-              imageSettings={{ src: barberLogo, height: 36, width: 36, excavate: true, x: undefined, y: undefined }}
+              imageSettings={logoPreview ? { src: logoPreview, height: 36, width: 36, excavate: true, x: undefined, y: undefined } : undefined}
             />
           </div>
           <div className="space-y-2">
@@ -580,7 +589,7 @@ const AdminConfig = () => {
             includeMargin
             fgColor="#000000"
             bgColor="#ffffff"
-            imageSettings={{ src: barberLogo, height: 200, width: 200, excavate: true, x: undefined, y: undefined }}
+            imageSettings={logoPreview ? { src: logoPreview, height: 200, width: 200, excavate: true, x: undefined, y: undefined } : undefined}
           />
         </div>
       </div>

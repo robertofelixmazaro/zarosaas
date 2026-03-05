@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { fetchAllServices, createService, updateService, deleteService, DbService } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,6 +22,7 @@ const serviceSchema = z.object({
 const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true };
 
 const AdminServicos = () => {
+  const { tenantId } = useTenant();
   const [services, setServices] = useState<DbService[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -34,12 +36,12 @@ const AdminServicos = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
-    const data = await fetchAllServices();
+    const data = await fetchAllServices(tenantId || undefined);
     setServices(data);
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -109,7 +111,7 @@ const AdminServicos = () => {
         toast.success("Serviço atualizado!");
       } else {
         // Create first, then upload image
-        const { data: created, error } = await supabase.from("services" as any).insert(parsed.data as any).select("id").single();
+        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, tenant_id: tenantId } as any).select("id").single();
         if (error) throw error;
         const newId = (created as any).id;
         if (imageFile) {

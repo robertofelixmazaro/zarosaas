@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAppointments, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
+import { useTenant } from "@/contexts/TenantContext";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -88,15 +89,17 @@ function exportPDF(
 }
 
 const AdminRelatorios = () => {
+  const { tenantId } = useTenant();
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
-    queryKey: ["appointments"],
-    queryFn: () => fetchAppointments(),
+    queryKey: ["appointments", tenantId],
+    queryFn: () => fetchAppointments(undefined, tenantId || undefined),
+    enabled: !!tenantId,
   });
-  const { data: barbers = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers"], queryFn: () => fetchBarbers() });
-  const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services"], queryFn: () => fetchServices() });
+  const { data: barbers = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
+  const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services", tenantId], queryFn: () => fetchServices(tenantId || undefined), enabled: !!tenantId });
 
   const filtered = useMemo(() => {
     if (!startDate && !endDate) return appointments;

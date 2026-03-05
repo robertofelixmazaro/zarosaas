@@ -3,6 +3,7 @@ import { Bell, Send, Check, Clock, RefreshCw, MessageSquare } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { format, addMinutes, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -20,6 +21,7 @@ interface ReminderAppointment {
 }
 
 const AdminLembretes = () => {
+  const { tenantId } = useTenant();
   const [appointments, setAppointments] = useState<ReminderAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending" | "sent" | "all">("pending");

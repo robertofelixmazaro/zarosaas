@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { fetchAllBarbers, fetchAllAvailability, updateBarber, deleteBarber, upsertAvailability, DbBarber, DbAvailability } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ const defaultAvail: AvailForm[] = Array.from({ length: 7 }, (_, i) => ({
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const AdminBarbeiros = () => {
+  const { tenantId } = useTenant();
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +54,11 @@ const AdminBarbeiros = () => {
   const [credSaving, setCredSaving] = useState(false);
 
   const loadData = async () => {
-    const [b, a] = await Promise.all([fetchAllBarbers(), fetchAllAvailability()]);
+    const [b, a] = await Promise.all([fetchAllBarbers(tenantId || undefined), fetchAllAvailability(tenantId || undefined)]);
     setBarbers(b); setAvailability(a); setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const openCreate = () => {
     setForm({ name: "", specialty: "" }); setEditingId(null); setErrors({});
@@ -109,18 +111,18 @@ const AdminBarbeiros = () => {
       if (editingId) {
         const photoUrl = await uploadPhoto(editingId);
         await updateBarber(editingId, { ...parsed.data, ...(photoUrl ? { photo_url: photoUrl } : {}) });
-        await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, ...a })));
+        await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         toast.success("Barbeiro atualizado!");
       } else {
         const { data: newBarber, error } = await supabase
-          .from("barbers" as any).insert(parsed.data as any).select("id").single();
+          .from("barbers" as any).insert({ ...parsed.data, tenant_id: tenantId } as any).select("id").single();
         if (error) throw error;
         const barberId = (newBarber as any).id;
         const photoUrl = await uploadPhoto(barberId);
         if (photoUrl) {
           await updateBarber(barberId, { photo_url: photoUrl });
         }
-        await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, ...a })));
+        await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         toast.success("Barbeiro criado!");
       }
       setDialogOpen(false);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -17,19 +18,23 @@ interface GalleryItem {
 }
 
 const AdminGaleria = () => {
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["gallery_items"],
+    queryKey: ["gallery_items", tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("gallery_items" as any)
         .select("*")
         .order("sort_order", { ascending: true });
+      if (tenantId) query = query.eq("tenant_id", tenantId);
+      const { data, error } = await query;
       if (error) throw error;
       return (data as any as GalleryItem[]) || [];
     },
+    enabled: !!tenantId,
   });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +72,7 @@ const AdminGaleria = () => {
             media_type: isVideo ? "video" : "image",
             title: file.name.replace(/\.[^/.]+$/, ""),
             sort_order: items.length,
+            tenant_id: tenantId,
           } as any);
 
         if (insertError) {
