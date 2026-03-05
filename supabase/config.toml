@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.release-client-access]
 verify_jwt = false
+
+[functions.create-store]
+verify_jwt = false
+
+[functions.delete-tenant]
+verify_jwt = false
