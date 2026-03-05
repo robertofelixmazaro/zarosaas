@@ -148,15 +148,14 @@ export async function fetchProducts(tenantId?: string): Promise<DbProduct[]> {
 
 export async function fetchBookedSlots(barberId: string, date: string): Promise<{ time: string; duration: number }[]> {
   const { data, error } = await supabase
-    .from("appointments" as any)
-    .select("appointment_time, services(duration_minutes)")
-    .eq("barber_id", barberId)
-    .eq("appointment_date", date)
-    .in("status", ["pendente", "confirmado"]);
+    .rpc("check_appointment_availability" as any, {
+      _barber_id: barberId,
+      _date: date,
+    });
   if (error) throw error;
   return ((data as any) || []).map((a: any) => ({
-    time: a.appointment_time?.slice(0, 5),
-    duration: a.services?.duration_minutes || 30,
+    time: (a.appointment_time as string)?.slice(0, 5),
+    duration: a.duration_minutes || 30,
   }));
 }
 

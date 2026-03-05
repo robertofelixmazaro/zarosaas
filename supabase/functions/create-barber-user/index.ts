@@ -72,7 +72,8 @@ Deno.serve(async (req) => {
     await adminClient.from("barbers").update({ user_id: newUser.user.id }).eq("id", barber_id);
 
     return new Response(JSON.stringify({ success: true, message: "Acesso criado com sucesso" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err: any) {
+    console.error("Internal error:", err);
+    return new Response(JSON.stringify({ error: "Erro interno do servidor." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
