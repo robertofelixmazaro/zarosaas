@@ -43,6 +43,8 @@ import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
 import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
+import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
+import ComprarPage from "./pages/ComprarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
