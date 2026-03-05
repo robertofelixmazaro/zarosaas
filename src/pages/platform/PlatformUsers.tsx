@@ -221,7 +221,7 @@ const PlatformUsers = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((u, i) => (
+                    {paginated.map((u, i) => (
                       <TableRow key={`${u.profile_id}-${u.role_id || i}`}>
                         <TableCell className="font-medium">{u.name}</TableCell>
                         <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
