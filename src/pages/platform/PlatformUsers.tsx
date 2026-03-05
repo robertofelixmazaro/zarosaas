@@ -278,6 +278,7 @@ const PlatformUsers = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Telefone</TableHead>
                         <TableHead>Negócio</TableHead>
+                        <TableHead>Criado em</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Alterar Role</TableHead>
                         <TableHead>Ações</TableHead>
