@@ -105,7 +105,11 @@ const PlatformUsers = () => {
       (u.tenant_name || "").toLowerCase().includes(q) ||
       u.role.toLowerCase().includes(q)
     ));
+    setPage(1);
   }, [search, users]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const changeRole = async (roleId: string, newRole: string) => {
     const { error } = await supabase
