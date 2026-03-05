@@ -41,6 +41,8 @@ const PlatformUsers = () => {
   const [filtered, setFiltered] = useState<UserWithRole[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filterRole, setFilterRole] = useState("all");
+  const [filterTenant, setFilterTenant] = useState("all");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
 
@@ -97,16 +99,21 @@ const PlatformUsers = () => {
 
   useEffect(() => { fetchUsers(); }, []);
 
+  const tenantNames = [...new Set(users.map(u => u.tenant_name).filter(Boolean))] as string[];
+
   useEffect(() => {
     const q = search.toLowerCase();
-    setFiltered(users.filter(u =>
-      u.name.toLowerCase().includes(q) ||
-      (u.email || "").toLowerCase().includes(q) ||
-      (u.tenant_name || "").toLowerCase().includes(q) ||
-      u.role.toLowerCase().includes(q)
-    ));
+    setFiltered(users.filter(u => {
+      const matchSearch = u.name.toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.tenant_name || "").toLowerCase().includes(q) ||
+        u.role.toLowerCase().includes(q);
+      const matchRole = filterRole === "all" || u.role === filterRole;
+      const matchTenant = filterTenant === "all" || u.tenant_name === filterTenant;
+      return matchSearch && matchRole && matchTenant;
+    }));
     setPage(1);
-  }, [search, users]);
+  }, [search, users, filterRole, filterTenant]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -204,11 +211,34 @@ const PlatformUsers = () => {
 
       <main className="p-6 max-w-7xl mx-auto">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle>Usuários da Plataforma ({filtered.length})</CardTitle>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar por nome, email, negócio..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <CardHeader className="flex flex-col gap-4">
+            <div className="flex flex-row items-center justify-between gap-4">
+              <CardTitle>Usuários da Plataforma ({filtered.length})</CardTitle>
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar por nome, email, negócio..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Select value={filterRole} onValueChange={setFilterRole}>
+                <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Filtrar por role" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as roles</SelectItem>
+                  <SelectItem value="super_admin">super_admin</SelectItem>
+                  <SelectItem value="admin">admin</SelectItem>
+                  <SelectItem value="affiliate">affiliate</SelectItem>
+                  <SelectItem value="barber">barber</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterTenant} onValueChange={setFilterTenant}>
+                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por loja" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as lojas</SelectItem>
+                  {tenantNames.map(name => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
