@@ -1,6 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@4.0.0";
 
+function escapeHtml(s: string): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -124,8 +130,8 @@ Deno.serve(async (req) => {
       }
 
       const timeStr = appt.appointment_time.slice(0, 5);
-      const barberName = (appt.barbers as any)?.name || "nosso barbeiro";
-      const serviceName = (appt.services as any)?.name || "seu serviço";
+      const barberName = escapeHtml((appt.barbers as any)?.name || "nosso barbeiro");
+      const serviceName = escapeHtml((appt.services as any)?.name || "seu serviço");
       const subject = "⏰ Lembrete: Seu horário é em breve!";
 
       try {
@@ -136,7 +142,7 @@ Deno.serve(async (req) => {
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h1 style="color: #333; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">⏰ Lembrete de Agendamento</h1>
-              <p>Olá <strong>${appt.client_name}</strong>,</p>
+              <p>Olá <strong>${escapeHtml(appt.client_name)}</strong>,</p>
               <p>Este é um lembrete de que seu horário é <strong>em breve</strong>!</p>
               <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${serviceName}</td></tr>

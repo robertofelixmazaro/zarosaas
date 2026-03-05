@@ -947,6 +947,16 @@ export type Database = {
           duration_minutes: number
         }[]
       }
+      get_public_tenant_by_slug: {
+        Args: { _slug: string }
+        Returns: {
+          active: boolean
+          id: string
+          logo_url: string
+          name: string
+          slug: string
+        }[]
+      }
       get_user_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {

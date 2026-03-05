@@ -38,6 +38,12 @@ async function sendReminderEmail(
   return res.json();
 }
 
+function escapeHtml(s: string): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function buildReminderHtml(data: {
   clientName: string;
   businessName: string;
@@ -112,13 +118,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: accept service_role_key, anon key, or x-cron-key header
+  // Auth: validate service role key
   const authHeader = req.headers.get("Authorization");
-  const token = authHeader?.replace("Bearer ", "") || "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  
-  // For cron jobs, we validate the token is not empty and log the invocation
-  console.log(`Invoked with token length: ${token.length}`);
+  if (!authHeader || authHeader !== `Bearer ${serviceKey}`) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 
   try {
     const supabase = createClient(
@@ -303,9 +311,9 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const businessName = (appt.tenants as any)?.name || "Nosso Estabelecimento";
-      const staffName = (appt.barbers as any)?.name || "Profissional";
-      const serviceName = (appt.services as any)?.name || "Serviço";
+      const businessName = escapeHtml((appt.tenants as any)?.name || "Nosso Estabelecimento");
+      const staffName = escapeHtml((appt.barbers as any)?.name || "Profissional");
+      const serviceName = escapeHtml((appt.services as any)?.name || "Serviço");
       const timeStr = appt.appointment_time.slice(0, 5);
       const dateStr = formatDateBR(appt.appointment_date);
 
@@ -314,7 +322,7 @@ Deno.serve(async (req) => {
         : `⏰ Lembrete: Seu agendamento é em breve!`;
 
       const html = buildReminderHtml({
-        clientName: appt.client_name,
+        clientName: escapeHtml(appt.client_name),
         businessName,
         serviceName,
         staffName,

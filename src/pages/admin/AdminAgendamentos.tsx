@@ -234,6 +234,7 @@ const AdminAgendamentos = () => {
       const { error } = await supabase.from("blocked_dates" as any).insert({
         blocked_date: blockDate || null, reason: blockReason || null, all_day: blockAllDay,
         start_time: blockAllDay ? null : blockStartTime, end_time: blockAllDay ? null : blockEndTime, barber_id: myBarberId,
+        tenant_id: tenantId,
       } as any);
       if (error) throw error;
       toast.success("Horário bloqueado!");
