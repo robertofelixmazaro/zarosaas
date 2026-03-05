@@ -166,24 +166,32 @@ const PlatformUsers = () => {
     if (!deleteUser) return;
     setDeleting(true);
 
-    // If user has a tenant, deactivate it
-    if (deleteUser.tenant_id) {
-      await supabase.from("tenants").update({ active: false }).eq("id", deleteUser.tenant_id);
+    try {
+      // If user has a tenant, deactivate it
+      if (deleteUser.tenant_id) {
+        const { error: tenantError } = await supabase.from("tenants").update({ active: false }).eq("id", deleteUser.tenant_id);
+        if (tenantError) throw tenantError;
+      }
+
+      // Delete user roles
+      if (deleteUser.auth_id) {
+        const { error: roleError } = await supabase.from("user_roles").delete().eq("user_id", deleteUser.auth_id);
+        if (roleError) throw roleError;
+      }
+
+      // Delete profile
+      const { error } = await supabase.from("profiles").delete().eq("id", deleteUser.profile_id);
+      if (error) throw error;
+
+      toast.success("Usuário removido com sucesso");
+      setDeleteOpen(false);
+      await fetchUsers();
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      toast.error("Erro ao excluir usuário: " + (err.message || "erro desconhecido"));
+    } finally {
+      setDeleting(false);
     }
-
-    // Delete user roles
-    if (deleteUser.auth_id) {
-      await supabase.from("user_roles").delete().eq("user_id", deleteUser.auth_id);
-    }
-
-    // Delete profile
-    const { error } = await supabase.from("profiles").delete().eq("id", deleteUser.profile_id);
-    if (error) { toast.error("Erro ao excluir usuário"); setDeleting(false); return; }
-
-    toast.success("Usuário removido com sucesso");
-    setDeleting(false);
-    setDeleteOpen(false);
-    fetchUsers();
   };
 
   return (
