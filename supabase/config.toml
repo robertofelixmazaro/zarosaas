@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.create-barber-user]
 verify_jwt = false
+
+[functions.setup-tenant]
+verify_jwt = false
