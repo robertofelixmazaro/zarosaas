@@ -1,25 +1,27 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const PlatformLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, user, userRole, loading: authLoading } = useAuth();
+  const { signIn, user, userRole, loading: authLoading, roleLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && user && userRole === "super_admin") {
+    if (!authLoading && !roleLoading && user && userRole === "super_admin") {
       navigate("/admin-platform", { replace: true });
     }
-  }, [authLoading, user, userRole, navigate]);
+  }, [authLoading, roleLoading, user, userRole, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,25 +34,19 @@ const PlatformLoginPage = () => {
       return;
     }
 
-    const { data: session } = await supabase.auth.getSession();
-    if (session?.session?.user) {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.session.user.id)
-        .single();
-
-      const role = (roleData as any)?.role;
-      if (role === "super_admin") {
-        toast.success("Bem-vindo, Super Admin!");
-        navigate("/admin-platform");
-      } else {
-        toast.error("Acesso negado", { description: "Você não tem permissão de super administrador." });
-        await supabase.auth.signOut();
-      }
-    }
+    // Wait for role to be fetched by AuthContext via onAuthStateChange
+    // The useEffect above will handle redirect once role is loaded
     setLoading(false);
   };
+
+  // Show loading while checking existing session
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center px-4 py-8">
@@ -101,6 +97,17 @@ const PlatformLoginPage = () => {
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">
+                Lembrar de mim
+              </Label>
             </div>
 
             <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>

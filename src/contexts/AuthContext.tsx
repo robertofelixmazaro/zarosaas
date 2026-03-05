@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  roleLoading: boolean;
   userRole: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata: Record<string, string>) => Promise<{ error: any }>;
@@ -19,37 +20,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   const fetchUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles" as any)
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-    if (data) setUserRole((data as any).role);
+    setRoleLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
+      if (error) {
+        console.error("Error fetching user role:", error);
+        setUserRole(null);
+      } else {
+        setUserRole(data?.role ?? null);
+      }
+    } catch (err) {
+      console.error("Error fetching user role:", err);
+      setUserRole(null);
+    } finally {
+      setRoleLoading(false);
+    }
   };
 
   useEffect(() => {
+    // First get existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
+        setRoleLoading(false);
+      }
+      setLoading(false);
+    });
+
+    // Then listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
+          // Use setTimeout to avoid deadlocks in onAuthStateChange
           setTimeout(() => fetchUserRole(session.user.id), 0);
         } else {
           setUserRole(null);
+          setRoleLoading(false);
         }
         setLoading(false);
       }
     );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchUserRole(session.user.id);
-      setLoading(false);
-    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -83,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userRole, signIn, signUp, signOut, refreshUserRole }}>
+    <AuthContext.Provider value={{ user, session, loading, roleLoading, userRole, signIn, signUp, signOut, refreshUserRole }}>
       {children}
     </AuthContext.Provider>
   );
