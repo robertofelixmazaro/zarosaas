@@ -119,7 +119,7 @@ const PlatformUsers = () => {
   const exportCsv = () => {
     const header = "Nome,Email,Telefone,Negócio,Role,Criado em";
     const rows = filtered.map(u =>
-      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role]
+      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role, u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : ""]
         .map(v => `"${v.replace(/"/g, '""')}"`)
         .join(",")
     );
