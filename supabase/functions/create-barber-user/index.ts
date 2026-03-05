@@ -88,10 +88,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Erro ao criar usuário." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Assign barber role with tenant_id
+    // Assign admin role with tenant_id
     await adminClient.from("user_roles").insert({
       user_id: newUser.user.id,
-      role: "barber",
+      role: "admin",
       tenant_id: callerProfile.tenant_id,
     });
 

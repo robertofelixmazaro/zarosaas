@@ -31,8 +31,6 @@ interface UserWithRole {
 const ROLE_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   super_admin: "destructive",
   admin: "default",
-  barber: "secondary",
-  client: "outline",
   affiliate: "outline",
 };
 
@@ -247,7 +245,6 @@ const PlatformUsers = () => {
                     <SelectItem value="super_admin">super_admin</SelectItem>
                     <SelectItem value="admin">admin</SelectItem>
                     <SelectItem value="affiliate">affiliate</SelectItem>
-                    <SelectItem value="barber">barber</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={filterTenant} onValueChange={setFilterTenant}>
@@ -302,7 +299,6 @@ const PlatformUsers = () => {
                               <Select value={u.role} onValueChange={val => changeRole(u.role_id, val)}>
                                 <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="barber">barber</SelectItem>
                                   <SelectItem value="admin">admin</SelectItem>
                                   <SelectItem value="super_admin">super_admin</SelectItem>
                                   <SelectItem value="affiliate">affiliate</SelectItem>
@@ -377,7 +373,6 @@ const PlatformUsers = () => {
                 <Select value={editRole} onValueChange={setEditRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="barber">barber</SelectItem>
                     <SelectItem value="admin">admin</SelectItem>
                     <SelectItem value="super_admin">super_admin</SelectItem>
                     <SelectItem value="affiliate">affiliate</SelectItem>

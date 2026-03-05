@@ -52,7 +52,7 @@ const LoginPage = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user && userRole) {
-      if (userRole === "admin" || userRole === "barber") {
+      if (userRole === "admin") {
         navigate(`${basePath}/admin`, { replace: true });
       } else {
         navigate(basePath || "/", { replace: true });
@@ -91,7 +91,7 @@ const LoginPage = () => {
             .eq("user_id", session.session.user.id)
             .single();
           const role = (roleData as any)?.role;
-          if (role === "admin" || role === "barber") {
+          if (role === "admin") {
             toast.success("Bem-vindo de volta!");
             navigate(`${basePath}/admin`);
           } else {

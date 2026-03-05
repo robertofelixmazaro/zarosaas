@@ -72,20 +72,20 @@ const TenantRoutes = () => (
       <Route path="login" element={<LoginPage />} />
       <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
       <Route path="qrcode" element={<QRCodePage />} />
-      <Route path="admin" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/agendamentos" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/servicos" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/barbeiros" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminBarbeiros /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/produtos" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminProdutos /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/relatorios" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminRelatorios /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/config" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminConfig /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/avaliacoes" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminAvaliacoes /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/pedidos" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminPedidos /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/lembretes" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminLembretes /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/galeria" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/landing" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/agendamentos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/servicos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/barbeiros" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBarbeiros /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/produtos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminProdutos /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/relatorios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminRelatorios /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/config" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminConfig /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/avaliacoes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAvaliacoes /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/pedidos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminPedidos /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/lembretes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminLembretes /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/galeria" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/landing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
     </Routes>
   </TenantProvider>
 );
@@ -104,7 +104,7 @@ const AppRoutes = () => (
     <Route path="/admin-platform/login" element={<Navigate to="/login" replace />} />
 
     {/* Admin (tenant admin) — /dashboard resolves tenant and redirects */}
-    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminRouter /></ProtectedRoute>} />
+    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRouter /></ProtectedRoute>} />
     <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
 
     {/* Super Admin */}
