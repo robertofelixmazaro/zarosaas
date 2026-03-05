@@ -27,7 +27,7 @@ const SaasLoginPage = () => {
       toast.error("Erro ao entrar: " + error.message);
     } else {
       toast.success("Login realizado com sucesso!");
-      navigate("/novo-negocio");
+      navigate("/admin");
     }
     setLoading(false);
   };

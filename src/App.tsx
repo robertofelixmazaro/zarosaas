@@ -7,11 +7,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { supabase } from "@/integrations/supabase/client";
 import LandingPage from "./pages/LandingPage";
 import SaasLoginPage from "./pages/SaasLoginPage";
 import SaasSignupPage from "./pages/SaasSignupPage";
-import TenantSignupPage from "./pages/TenantSignupPage";
 import Index from "./pages/Index";
 import AgendarPage from "./pages/AgendarPage";
 import LoginPage from "./pages/LoginPage";
@@ -28,6 +26,7 @@ import AdminAvaliacoes from "./pages/admin/AdminAvaliacoes";
 import AdminPedidos from "./pages/admin/AdminPedidos";
 import AdminLembretes from "./pages/admin/AdminLembretes";
 import AdminGaleria from "./pages/admin/AdminGaleria";
+import AdminRouter from "./pages/admin/AdminRouter";
 import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
 import QRCodePage from "./pages/QRCodePage";
 import PlatformDashboard from "./pages/platform/PlatformDashboard";
@@ -44,7 +43,7 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, userRole } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/entrar" replace />;
   if (userRole && userRole !== "admin" && userRole !== "barber") return <Navigate to="/" replace />;
   if (!userRole) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   return <>{children}</>;
@@ -81,45 +80,13 @@ const TenantRoutes = () => (
   </TenantProvider>
 );
 
-// Redirect legacy /admin to /t/:slug/admin
-const LegacyAdminRedirect = () => {
-  const { user, loading } = useAuth();
-  const [redirectSlug, setRedirectSlug] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    const findTenant = async () => {
-      const { data: profile } = await supabase
-        .from("profiles" as any)
-        .select("tenant_id")
-        .eq("auth_id", user.id)
-        .maybeSingle();
-      if (profile && (profile as any).tenant_id) {
-        const { data: tenant } = await supabase
-          .from("tenants" as any)
-          .select("slug")
-          .eq("id", (profile as any).tenant_id)
-          .maybeSingle();
-        if (tenant) setRedirectSlug((tenant as any).slug);
-      }
-    };
-    findTenant();
-  }, [user]);
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (!user) return <Navigate to="/" replace />;
-  if (redirectSlug) return <Navigate to={`/t/${redirectSlug}/admin`} replace />;
-  return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-};
-
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<LandingPage />} />
     <Route path="/entrar" element={<SaasLoginPage />} />
     <Route path="/cadastrar" element={<SaasSignupPage />} />
-    <Route path="/novo-negocio" element={<TenantSignupPage />} />
+    <Route path="/admin" element={<AdminRouter />} />
     <Route path="/t/:slug/*" element={<TenantRoutes />} />
-    <Route path="/admin/*" element={<LegacyAdminRedirect />} />
     <Route path="/admin-platform/login" element={<PlatformLoginPage />} />
     <Route path="/admin-platform" element={<SuperAdminRoute><PlatformDashboard /></SuperAdminRoute>} />
     <Route path="/admin-platform/tenants" element={<SuperAdminRoute><PlatformTenants /></SuperAdminRoute>} />
@@ -128,11 +95,11 @@ const AppRoutes = () => (
     <Route path="/admin-platform/configuracoes" element={<SuperAdminRoute><PlatformSettings /></SuperAdminRoute>} />
     <Route path="/admin-platform/usuarios" element={<SuperAdminRoute><PlatformUsers /></SuperAdminRoute>} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
-    <Route path="/login" element={<Navigate to="/" replace />} />
+    <Route path="/login" element={<Navigate to="/entrar" replace />} />
+    <Route path="/novo-negocio" element={<Navigate to="/admin" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
-
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
