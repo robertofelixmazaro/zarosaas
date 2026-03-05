@@ -8,14 +8,17 @@ export interface PlanLimits {
   maxServices: number;
   maxAppointments: number;
   maxProducts: number;
+  maxClients: number;
   features: string[];
   isTrial: boolean;
   trialEndsAt: string | null;
   trialExpired: boolean;
   subscriptionStatus: string;
+  subscriptionBlocked: boolean;
   currentStaff: number;
   currentServices: number;
   currentMonthAppointments: number;
+  currentClients: number;
 }
 
 const defaultLimits: PlanLimits = {
@@ -23,15 +26,18 @@ const defaultLimits: PlanLimits = {
   maxStaff: 1,
   maxServices: 3,
   maxAppointments: 50,
-  maxProducts: 0,
+  maxProducts: 5,
+  maxClients: 20,
   features: [],
   isTrial: true,
   trialEndsAt: null,
   trialExpired: false,
   subscriptionStatus: "trial",
+  subscriptionBlocked: false,
   currentStaff: 0,
   currentServices: 0,
   currentMonthAppointments: 0,
+  currentClients: 0,
 };
 
 export function usePlanLimits() {
@@ -54,7 +60,7 @@ export function usePlanLimits() {
       const sub = subRaw as any;
 
       // Count current usage
-      const [staffRes, servicesRes, apptRes] = await Promise.all([
+      const [staffRes, servicesRes, apptRes, clientsRes] = await Promise.all([
         supabase.from("barbers" as any).select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
         supabase.from("services" as any).select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
         (() => {
@@ -69,15 +75,16 @@ export function usePlanLimits() {
             .lte("appointment_date", lastDay)
             .in("status", ["pendente", "confirmado", "concluido"]);
         })(),
+        supabase.from("profiles" as any).select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
       ]);
 
       if (!sub || !sub.plans) {
-        // No subscription yet — use default trial limits
         setLimits({
           ...defaultLimits,
           currentStaff: staffRes.count || 0,
           currentServices: servicesRes.count || 0,
           currentMonthAppointments: apptRes.count || 0,
+          currentClients: clientsRes.count || 0,
         });
         setLoading(false);
         return;
@@ -87,6 +94,8 @@ export function usePlanLimits() {
       const isTrial = sub.status === "trial";
       const trialEndsAt = sub.trial_ends_at;
       const trialExpired = isTrial && trialEndsAt ? new Date(trialEndsAt) < new Date() : false;
+      const isExpiredOrCancelled = sub.status === "expired" || sub.status === "cancelled";
+      const subscriptionBlocked = trialExpired || isExpiredOrCancelled;
 
       setLimits({
         planName: plan.name,
@@ -94,14 +103,17 @@ export function usePlanLimits() {
         maxServices: plan.max_services || 999,
         maxAppointments: plan.max_appointments_month || 99999,
         maxProducts: plan.max_products || 0,
+        maxClients: plan.max_clients || 99999,
         features: plan.features || [],
         isTrial,
         trialEndsAt,
         trialExpired,
         subscriptionStatus: trialExpired ? "expired" : sub.status,
+        subscriptionBlocked,
         currentStaff: staffRes.count || 0,
         currentServices: servicesRes.count || 0,
         currentMonthAppointments: apptRes.count || 0,
+        currentClients: clientsRes.count || 0,
       });
       setLoading(false);
     };
@@ -109,10 +121,11 @@ export function usePlanLimits() {
     load();
   }, [tenantId]);
 
-  const canAddStaff = () => limits.currentStaff < limits.maxStaff && !limits.trialExpired;
-  const canAddService = () => limits.currentServices < limits.maxServices && !limits.trialExpired;
-  const canCreateAppointment = () => limits.currentMonthAppointments < limits.maxAppointments && !limits.trialExpired;
+  const canAddStaff = () => limits.currentStaff < limits.maxStaff && !limits.subscriptionBlocked;
+  const canAddService = () => limits.currentServices < limits.maxServices && !limits.subscriptionBlocked;
+  const canCreateAppointment = () => limits.currentMonthAppointments < limits.maxAppointments && !limits.subscriptionBlocked;
+  const canAddClient = () => limits.currentClients < limits.maxClients && !limits.subscriptionBlocked;
   const hasFeature = (feature: string) => limits.features.includes(feature);
 
-  return { limits, loading, canAddStaff, canAddService, canCreateAppointment, hasFeature };
+  return { limits, loading, canAddStaff, canAddService, canCreateAppointment, canAddClient, hasFeature };
 }

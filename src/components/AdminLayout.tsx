@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard } from "lucide-react";
+import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -11,6 +11,7 @@ import { playNotificationSound, playOrderSound } from "@/lib/notificationSound";
 import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 const allNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "barber", "client"] },
@@ -29,11 +30,46 @@ const allNavItems = [
   { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin", "client"] },
 ];
 
+const SubscriptionBlockedOverlay = ({ basePath }: { basePath: string }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="max-w-md w-full rounded-xl border bg-card p-8 shadow-2xl text-center space-y-6">
+        <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="h-8 w-8 text-destructive" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Assinatura Expirada</h2>
+          <p className="text-muted-foreground">
+            Sua assinatura expirou ou foi cancelada. Renove para continuar usando o sistema.
+          </p>
+        </div>
+        <div className="space-y-3">
+          <Button
+            className="w-full h-12 text-base"
+            onClick={() => navigate(`${basePath}/admin/billing`)}
+          >
+            Renovar Assinatura
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate("/comprar")}
+          >
+            Ver Planos Disponíveis
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, userRole } = useAuth();
   const { tenantSlug, tenant } = useTenant();
+  const { limits, loading: limitsLoading } = usePlanLimits();
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const role = userRole || "client";
   const navItems = allNavItems.filter((item) => item.roles.includes(role)).map(item => ({
@@ -43,6 +79,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
+
+  // Check if the current page is billing (allow access even when blocked)
+  const isBillingPage = location.pathname.includes("/admin/billing");
+  const showBlockedOverlay = !limitsLoading && limits.subscriptionBlocked && !isBillingPage;
 
   useEffect(() => {
     const appointmentChannel = supabase
@@ -96,6 +136,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background flex">
+      {showBlockedOverlay && <SubscriptionBlockedOverlay basePath={basePath} />}
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
