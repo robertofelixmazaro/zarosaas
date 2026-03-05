@@ -19,11 +19,17 @@ interface SiteSettings {
   phone: string;
   address: string;
   instagram: string;
+  whatsapp: string;
+  description: string;
   hours_weekday: string;
   hours_saturday: string;
   hours_sunday: string;
   logo_url: string;
+  cover_image_url: string;
   delivery_fee: string;
+  primary_color: string;
+  secondary_color: string;
+  button_color: string;
 }
 
 const defaultSettings: SiteSettings = {
@@ -31,11 +37,17 @@ const defaultSettings: SiteSettings = {
   phone: "",
   address: "",
   instagram: "",
+  whatsapp: "",
+  description: "",
   hours_weekday: "",
   hours_saturday: "",
   hours_sunday: "",
   logo_url: "",
+  cover_image_url: "",
   delivery_fee: "0",
+  primary_color: "",
+  secondary_color: "",
+  button_color: "",
 };
 
 interface BlockedDate {
@@ -61,7 +73,10 @@ const AdminConfig = () => {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Account settings
   const [newEmail, setNewEmail] = useState("");
@@ -90,6 +105,7 @@ const AdminConfig = () => {
       (settingsRes.data as any[]).forEach((r) => { map[r.key] = r.value; });
       setSettings((prev) => ({ ...prev, ...map } as SiteSettings));
       if (map.logo_url) setLogoPreview(map.logo_url);
+      if (map.cover_image_url) setCoverPreview(map.cover_image_url);
     }
     if (blockedRes.data) setBlockedDates(blockedRes.data as any);
     setBarbersList(barbers);
@@ -107,6 +123,15 @@ const AdminConfig = () => {
     setLogoPreview(URL.createObjectURL(file));
   };
 
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("Imagem deve ter no máximo 10MB"); return; }
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  };
+
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoFile || !tenantId) return null;
     const ext = logoFile.name.split(".").pop();
@@ -116,16 +141,26 @@ const AdminConfig = () => {
     return `${SUPABASE_URL}/storage/v1/object/public/tenant-assets/${path}`;
   };
 
+  const uploadCover = async (): Promise<string | null> => {
+    if (!coverFile || !tenantId) return null;
+    const ext = coverFile.name.split(".").pop();
+    const path = `${tenantId}/cover.${ext}`;
+    const { error } = await supabase.storage.from("tenant-assets").upload(path, coverFile, { upsert: true });
+    if (error) throw error;
+    return `${SUPABASE_URL}/storage/v1/object/public/tenant-assets/${path}`;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Upload logo if changed
       const logoUrl = await uploadLogo();
+      const coverUrl = await uploadCover();
       const settingsToSave = { ...settings };
       if (logoUrl) settingsToSave.logo_url = logoUrl;
+      if (coverUrl) settingsToSave.cover_image_url = coverUrl;
 
       for (const [key, value] of Object.entries(settingsToSave)) {
-        if (!value && key === "logo_url") continue;
+        if (!value && (key === "logo_url" || key === "cover_image_url")) continue;
         const { data: existing } = await supabase
           .from("site_settings" as any)
           .select("id")
@@ -208,7 +243,134 @@ const AdminConfig = () => {
             <label className="text-sm font-medium mb-1 block">Instagram</label>
             <Input value={settings.instagram} onChange={(e) => setSettings({ ...settings, instagram: e.target.value })} />
           </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">WhatsApp</label>
+            <Input value={settings.whatsapp} onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })} placeholder="(11) 99999-0000" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Descrição do negócio</label>
+            <textarea
+              value={settings.description}
+              onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+              placeholder="Descreva seu negócio para seus clientes..."
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[80px]"
+            />
+          </div>
         </div>
+      </div>
+
+      {/* Cover image */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Image className="h-5 w-5" />
+          <h3 className="font-semibold">Imagem de Capa</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">Imagem exibida no topo da landing page do seu negócio</p>
+        <div className="space-y-3">
+          {coverPreview ? (
+            <div className="relative w-full h-40 rounded-lg overflow-hidden border">
+              <img src={coverPreview} alt="Capa" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => { setCoverFile(null); setCoverPreview(null); setSettings((s) => ({ ...s, cover_image_url: "" })); }}
+                className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => coverInputRef.current?.click()}
+              className="w-full h-40 rounded-lg bg-muted/30 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <Upload className="h-8 w-8 text-muted-foreground/40" />
+              <span className="text-sm text-muted-foreground">Clique para enviar imagem de capa</span>
+            </div>
+          )}
+          <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()}>
+            {coverPreview ? "Trocar capa" : "Enviar capa"}
+          </Button>
+          <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverSelect} />
+        </div>
+      </div>
+
+      {/* Branding / Colors */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Settings className="h-5 w-5" />
+          <h3 className="font-semibold">Cores e Identidade Visual</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Personalize as cores da sua landing page. Deixe em branco para usar o tema padrão.
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor primária</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.primary_color || "#000000"}
+                onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                className="w-10 h-10 rounded border cursor-pointer"
+              />
+              <Input
+                value={settings.primary_color}
+                onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                placeholder="#000000"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor secundária</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.secondary_color || "#666666"}
+                onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
+                className="w-10 h-10 rounded border cursor-pointer"
+              />
+              <Input
+                value={settings.secondary_color}
+                onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
+                placeholder="#666666"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor dos botões</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.button_color || "#000000"}
+                onChange={(e) => setSettings({ ...settings, button_color: e.target.value })}
+                className="w-10 h-10 rounded border cursor-pointer"
+              />
+              <Input
+                value={settings.button_color}
+                onChange={(e) => setSettings({ ...settings, button_color: e.target.value })}
+                placeholder="#000000"
+                className="flex-1"
+              />
+            </div>
+          </div>
+        </div>
+        {(settings.primary_color || settings.secondary_color || settings.button_color) && (
+          <div className="mt-4 p-3 rounded-lg border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full border" style={{ backgroundColor: settings.primary_color || '#000' }} title="Primária" />
+              <div className="w-8 h-8 rounded-full border" style={{ backgroundColor: settings.secondary_color || '#666' }} title="Secundária" />
+              <button
+                className="px-4 py-1.5 rounded-md text-sm font-medium text-white"
+                style={{ backgroundColor: settings.button_color || '#000' }}
+              >
+                Botão exemplo
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Horário de funcionamento */}
