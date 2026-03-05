@@ -38,6 +38,7 @@ import PlatformPlans from "./pages/platform/PlatformPlans";
 import PlatformReports from "./pages/platform/PlatformReports";
 import PlatformSettings from "./pages/platform/PlatformSettings";
 import PlatformUsers from "./pages/platform/PlatformUsers";
+import PlatformUserDetail from "./pages/platform/PlatformUserDetail";
 import PlatformPayments from "./pages/platform/PlatformPayments";
 import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
