@@ -25,6 +25,7 @@ interface UserWithRole {
   tenant_id: string | null;
   role: string;
   role_id: string;
+  created_at: string | null;
 }
 
 const ROLE_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
