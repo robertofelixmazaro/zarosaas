@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -115,6 +115,24 @@ const PlatformUsers = () => {
     setPage(1);
   }, [search, users, filterRole, filterTenant]);
 
+  const exportCsv = () => {
+    const header = "Nome,Email,Telefone,Negócio,Role";
+    const rows = filtered.map(u =>
+      [u.name, u.email || "", u.phone || "", u.tenant_name || "", u.role]
+        .map(v => `"${v.replace(/"/g, '""')}"`)
+        .join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `usuarios-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV exportado com sucesso");
+  };
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -219,26 +237,31 @@ const PlatformUsers = () => {
                 <Input placeholder="Buscar por nome, email, negócio..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Select value={filterRole} onValueChange={setFilterRole}>
-                <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Filtrar por role" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as roles</SelectItem>
-                  <SelectItem value="super_admin">super_admin</SelectItem>
-                  <SelectItem value="admin">admin</SelectItem>
-                  <SelectItem value="affiliate">affiliate</SelectItem>
-                  <SelectItem value="barber">barber</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterTenant} onValueChange={setFilterTenant}>
-                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por loja" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as lojas</SelectItem>
-                  {tenantNames.map(name => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Select value={filterRole} onValueChange={setFilterRole}>
+                  <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Filtrar por role" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as roles</SelectItem>
+                    <SelectItem value="super_admin">super_admin</SelectItem>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="affiliate">affiliate</SelectItem>
+                    <SelectItem value="barber">barber</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterTenant} onValueChange={setFilterTenant}>
+                  <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por loja" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as lojas</SelectItem>
+                    {tenantNames.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button variant="outline" size="sm" onClick={exportCsv}>
+                <Download className="h-4 w-4 mr-1" /> Exportar CSV
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
