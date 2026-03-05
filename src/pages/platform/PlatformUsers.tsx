@@ -80,7 +80,7 @@ const PlatformUsers = () => {
         merged.push({
           profile_id: p.id, auth_id: p.auth_id, name: p.name, email: p.email, phone: p.phone,
           tenant_name: p.tenant_id ? (tenantMap.get(p.tenant_id) || null) : null,
-          tenant_id: p.tenant_id, role: "sem role", role_id: "",
+          tenant_id: p.tenant_id, role: "sem role", role_id: "", created_at: p.created_at,
         });
       } else {
         for (const r of userRoles) {
