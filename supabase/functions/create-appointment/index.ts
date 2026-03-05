@@ -37,6 +37,43 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SECURITY: tenant_id is required
+    if (!tenant_id) {
+      return new Response(
+        JSON.stringify({ error: "Tenant não identificado." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Verify barber and service belong to the specified tenant
+    const { data: barber } = await supabase
+      .from("barbers")
+      .select("id, tenant_id")
+      .eq("id", barber_id)
+      .eq("tenant_id", tenant_id)
+      .single();
+
+    if (!barber) {
+      return new Response(
+        JSON.stringify({ error: "Profissional não encontrado neste negócio." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: serviceData } = await supabase
+      .from("services")
+      .select("duration_minutes, price")
+      .eq("id", service_id)
+      .eq("tenant_id", tenant_id)
+      .single();
+
+    if (!serviceData) {
+      return new Response(
+        JSON.stringify({ error: "Serviço não encontrado neste negócio." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Server-side time validation (São Paulo timezone)
     const now = new Date();
     const spNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -58,11 +95,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check for existing active appointment at same slot (advisory lock via SELECT FOR UPDATE pattern)
+    // Check for existing active appointment at same slot
     const { data: existing } = await supabase
       .from("appointments")
       .select("id")
       .eq("barber_id", barber_id)
+      .eq("tenant_id", tenant_id)
       .eq("appointment_date", appointment_date)
       .eq("appointment_time", appointment_time)
       .in("status", ["pendente", "confirmado"])
@@ -75,28 +113,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch service data (duration and authoritative price) from the database
-    const { data: serviceData } = await supabase
-      .from("services")
-      .select("duration_minutes, price")
-      .eq("id", service_id)
-      .single();
-
-    if (!serviceData) {
-      return new Response(
-        JSON.stringify({ error: "Serviço não encontrado." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const duration = serviceData.duration_minutes || 30;
     const validatedPrice = serviceData.price;
 
-    // Check if new appointment would overlap with existing ones
+    // Check overlap
     const { data: dayAppointments } = await supabase
       .from("appointments")
       .select("appointment_time, services(duration_minutes)")
       .eq("barber_id", barber_id)
+      .eq("tenant_id", tenant_id)
       .eq("appointment_date", appointment_date)
       .in("status", ["pendente", "confirmado"]);
 
@@ -117,7 +142,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert with the unique constraint as final safety net
+    // Insert with tenant_id always set
     const insertData: any = {
       id: id || crypto.randomUUID(),
       client_name,
@@ -127,15 +152,14 @@ Deno.serve(async (req) => {
       appointment_date,
       appointment_time,
       price: validatedPrice,
+      tenant_id,
     };
-    if (tenant_id) insertData.tenant_id = tenant_id;
 
     const { error: insertError } = await supabase
       .from("appointments")
       .insert(insertData);
 
     if (insertError) {
-      // Unique constraint violation
       if (insertError.code === "23505") {
         return new Response(
           JSON.stringify({ error: "Este horário acabou de ser reservado. Por favor, escolha outro." }),
@@ -161,7 +185,6 @@ Deno.serve(async (req) => {
       });
     } catch (notifyErr) {
       console.error("Notify webhook trigger failed:", notifyErr);
-      // Don't fail the appointment creation if notification fails
     }
 
     return new Response(

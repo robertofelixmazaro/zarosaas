@@ -124,10 +124,20 @@ function ReviewCard({ appointment, userId, onSuccess }: { appointment: any; user
 
   const mutation = useMutation({
     mutationFn: async () => {
+      // Fetch appointment details including tenant_id and barber_id
+      const { data: apptData } = await supabase
+        .from("appointments")
+        .select("barber_id, tenant_id")
+        .eq("id", appointment.id)
+        .single();
+      
+      if (!apptData) throw new Error("Agendamento não encontrado");
+
       const { error } = await supabase.from("reviews" as any).insert({
         appointment_id: appointment.id,
         client_user_id: userId,
-        barber_id: appointment.barber_id || (await supabase.from("appointments" as any).select("barber_id").eq("id", appointment.id).single().then(r => (r.data as any)?.barber_id)),
+        barber_id: appointment.barber_id || apptData.barber_id,
+        tenant_id: apptData.tenant_id,
         rating,
         comment: comment.trim() || null,
       } as any);
