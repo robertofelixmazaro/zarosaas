@@ -46,8 +46,8 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Super admins don't need a tenant — skip resolution
-      if (userRole === "super_admin" && !slug) {
+      // Super admins don't need a tenant — skip resolution entirely
+      if (userRole === "super_admin") {
         setTenant(null);
         setLoading(false);
         return;
@@ -89,7 +89,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             .maybeSingle();
           if (data) setTenant(data as any);
         }
+        // If no tenant_id found, tenant stays null — no error, just no tenant
       }
+      // Always finish loading regardless of outcome
       setLoading(false);
     };
     loadTenant();
