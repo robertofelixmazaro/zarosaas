@@ -287,7 +287,6 @@ const PlatformUsers = () => {
                 <Select value={editRole} onValueChange={setEditRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="client">client</SelectItem>
                     <SelectItem value="barber">barber</SelectItem>
                     <SelectItem value="admin">admin</SelectItem>
                     <SelectItem value="super_admin">super_admin</SelectItem>
