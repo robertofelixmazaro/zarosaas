@@ -64,6 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
+          // Set roleLoading immediately to prevent premature access checks
+          setRoleLoading(true);
           // Use setTimeout to avoid deadlocks in onAuthStateChange
           setTimeout(() => fetchUserRole(session.user.id), 0);
         } else {

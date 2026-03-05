@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PlatformLoginPage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,18 @@ const PlatformLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [platformLogoUrl, setPlatformLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "platform_logo_url")
+      .single()
+      .then(({ data }) => {
+        if (data?.value) setPlatformLogoUrl(data.value);
+      });
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !roleLoading && user && userRole === "super_admin") {
@@ -33,13 +46,10 @@ const PlatformLoginPage = () => {
       setLoading(false);
       return;
     }
-
-    // Wait for role to be fetched by AuthContext via onAuthStateChange
-    // The useEffect above will handle redirect once role is loaded
+    // Redirect handled by useEffect above once role loads
     setLoading(false);
   };
 
-  // Show loading while checking existing session
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -52,9 +62,13 @@ const PlatformLoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-3 justify-center mb-8">
-          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-lg border border-primary/20">
-            <Shield className="h-10 w-10 text-primary" />
-          </div>
+          {platformLogoUrl ? (
+            <img src={platformLogoUrl} alt="Logo da Plataforma" className="h-20 w-20 rounded-full object-cover shadow-lg border border-primary/20" />
+          ) : (
+            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-lg border border-primary/20">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+          )}
           <span className="text-2xl font-bold tracking-tight">Zaro Agendamentos</span>
           <span className="text-xs text-muted-foreground uppercase tracking-widest">Painel da Plataforma</span>
         </div>
