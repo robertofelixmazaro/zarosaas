@@ -14,38 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_commissions: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          created_at: string | null
+          id: string
+          sale_id: string
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount?: number
+          created_at?: string | null
+          id?: string
+          sale_id: string
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          created_at?: string | null
+          id?: string
+          sale_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_sales: {
         Row: {
           access_released: boolean
           affiliate_id: string
+          amount: number
           client_email: string
           client_name: string | null
+          commission_amount: number
           created_at: string | null
           created_user_id: string | null
           id: string
           payment_status: string
+          plan_id: string | null
           store_name: string | null
         }
         Insert: {
           access_released?: boolean
           affiliate_id: string
+          amount?: number
           client_email: string
           client_name?: string | null
+          commission_amount?: number
           created_at?: string | null
           created_user_id?: string | null
           id?: string
           payment_status?: string
+          plan_id?: string | null
           store_name?: string | null
         }
         Update: {
           access_released?: boolean
           affiliate_id?: string
+          amount?: number
           client_email?: string
           client_name?: string | null
+          commission_amount?: number
           created_at?: string | null
           created_user_id?: string | null
           id?: string
           payment_status?: string
+          plan_id?: string | null
           store_name?: string | null
         }
         Relationships: [
@@ -54,6 +105,13 @@ export type Database = {
             columns: ["affiliate_id"]
             isOneToOne: false
             referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_sales_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
