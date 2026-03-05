@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Trash2, Upload, GripVertical, Image, Video, Plus } from "lucide-react";
+import { Trash2, Image, Video, Plus } from "lucide-react";
 
 interface GalleryItem {
   id: string;
   title: string | null;
+  description: string | null;
   media_url: string;
   media_type: string;
   sort_order: number;
@@ -52,7 +54,7 @@ const AdminGaleria = () => {
         }
 
         const ext = file.name.split(".").pop();
-        const fileName = `${crypto.randomUUID()}.${ext}`;
+        const fileName = `${tenantId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("gallery-media")
           .upload(fileName, file);
@@ -71,6 +73,7 @@ const AdminGaleria = () => {
             media_url: urlData.publicUrl,
             media_type: isVideo ? "video" : "image",
             title: file.name.replace(/\.[^/.]+$/, ""),
+            description: null,
             sort_order: items.length,
             tenant_id: tenantId,
           } as any);
@@ -94,10 +97,9 @@ const AdminGaleria = () => {
   const handleDelete = async (item: GalleryItem) => {
     if (!confirm("Deseja remover este item da galeria?")) return;
     try {
-      // Extract file name from URL
-      const urlParts = item.media_url.split("/");
-      const fileName = urlParts[urlParts.length - 1];
-      await supabase.storage.from("gallery-media").remove([fileName]);
+      const urlParts = item.media_url.split("/gallery-media/");
+      const filePath = urlParts.length > 1 ? urlParts[1] : item.media_url.split("/").pop() || "";
+      await supabase.storage.from("gallery-media").remove([filePath]);
       await supabase.from("gallery_items" as any).delete().eq("id", item.id);
       toast.success("Item removido!");
       queryClient.invalidateQueries({ queryKey: ["gallery_items"] });
@@ -106,8 +108,8 @@ const AdminGaleria = () => {
     }
   };
 
-  const handleTitleChange = async (id: string, title: string) => {
-    await supabase.from("gallery_items" as any).update({ title } as any).eq("id", id);
+  const handleFieldUpdate = async (id: string, field: string, value: string) => {
+    await supabase.from("gallery_items" as any).update({ [field]: value } as any).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["gallery_items"] });
   };
 
@@ -186,12 +188,19 @@ const AdminGaleria = () => {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="p-3">
+              <div className="p-3 space-y-2">
                 <Input
                   defaultValue={item.title || ""}
                   placeholder="Título (opcional)"
                   className="text-sm"
-                  onBlur={(e) => handleTitleChange(item.id, e.target.value)}
+                  onBlur={(e) => handleFieldUpdate(item.id, "title", e.target.value)}
+                />
+                <Textarea
+                  defaultValue={item.description || ""}
+                  placeholder="Descrição (opcional)"
+                  className="text-sm min-h-[60px]"
+                  rows={2}
+                  onBlur={(e) => handleFieldUpdate(item.id, "description", e.target.value)}
                 />
               </div>
             </div>

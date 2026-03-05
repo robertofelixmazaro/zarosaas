@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image } from "lucide-react";
+import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -126,6 +126,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           })}
         </nav>
         <div className="p-3 border-t space-y-1">
+          {tenantSlug && (
+            <a href={`/t/${tenantSlug}`} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="w-full justify-start gap-2 text-muted-foreground" size="sm">
+                <ExternalLink className="h-4 w-4" /> Ver Landing Page
+              </Button>
+            </a>
+          )}
           {canInstall && !isInstalled && (
             <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground" size="sm" onClick={async () => {
               const ok = await install();
