@@ -228,7 +228,6 @@ const PlatformUsers = () => {
                             <Select value={u.role} onValueChange={val => changeRole(u.role_id, val)}>
                               <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="client">client</SelectItem>
                                 <SelectItem value="barber">barber</SelectItem>
                                 <SelectItem value="admin">admin</SelectItem>
                                 <SelectItem value="super_admin">super_admin</SelectItem>
