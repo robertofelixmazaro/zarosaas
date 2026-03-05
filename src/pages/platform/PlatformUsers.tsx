@@ -207,77 +207,79 @@ const PlatformUsers = () => {
             {loading ? (
               <p className="text-muted-foreground">Carregando...</p>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Negócio</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Alterar Role</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginated.map((u, i) => (
-                      <TableRow key={`${u.profile_id}-${u.role_id || i}`}>
-                        <TableCell className="font-medium">{u.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
-                        <TableCell>{u.phone || "—"}</TableCell>
-                        <TableCell>{u.tenant_name || "—"}</TableCell>
-                        <TableCell>
-                          <Badge variant={ROLE_COLORS[u.role] || "outline"}>{u.role}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {u.role_id ? (
-                            <Select value={u.role} onValueChange={val => changeRole(u.role_id, val)}>
-                              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="barber">barber</SelectItem>
-                                <SelectItem value="admin">admin</SelectItem>
-                                <SelectItem value="super_admin">super_admin</SelectItem>
-                                <SelectItem value="affiliate">affiliate</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" title="Visualizar" onClick={() => navigate(`/super-admin/users/${u.profile_id}`)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar" onClick={() => openEdit(u)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Excluir" onClick={() => openDelete(u)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Negócio</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Alterar Role</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                  <span className="text-sm text-muted-foreground">
-                    Página {page} de {totalPages} — {filtered.length} usuário(s)
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-                    </Button>
-                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                      Próxima <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
+                    </TableHeader>
+                    <TableBody>
+                      {paginated.map((u, i) => (
+                        <TableRow key={`${u.profile_id}-${u.role_id || i}`}>
+                          <TableCell className="font-medium">{u.name}</TableCell>
+                          <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
+                          <TableCell>{u.phone || "—"}</TableCell>
+                          <TableCell>{u.tenant_name || "—"}</TableCell>
+                          <TableCell>
+                            <Badge variant={ROLE_COLORS[u.role] || "outline"}>{u.role}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {u.role_id ? (
+                              <Select value={u.role} onValueChange={val => changeRole(u.role_id, val)}>
+                                <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="barber">barber</SelectItem>
+                                  <SelectItem value="admin">admin</SelectItem>
+                                  <SelectItem value="super_admin">super_admin</SelectItem>
+                                  <SelectItem value="affiliate">affiliate</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Visualizar" onClick={() => navigate(`/super-admin/users/${u.profile_id}`)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar" onClick={() => openEdit(u)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Excluir" onClick={() => openDelete(u)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4">
+                    <span className="text-sm text-muted-foreground">
+                      Página {page} de {totalPages} — {filtered.length} usuário(s)
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                        <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                      </Button>
+                      <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                        Próxima <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
