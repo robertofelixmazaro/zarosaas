@@ -31,8 +31,6 @@ interface UserWithRole {
 const ROLE_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   super_admin: "destructive",
   admin: "default",
-  barber: "secondary",
-  client: "outline",
   affiliate: "outline",
 };
 

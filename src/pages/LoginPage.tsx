@@ -91,7 +91,7 @@ const LoginPage = () => {
             .eq("user_id", session.session.user.id)
             .single();
           const role = (roleData as any)?.role;
-          if (role === "admin" || role === "barber") {
+          if (role === "admin") {
             toast.success("Bem-vindo de volta!");
             navigate(`${basePath}/admin`);
           } else {

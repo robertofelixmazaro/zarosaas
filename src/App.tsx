@@ -104,7 +104,7 @@ const AppRoutes = () => (
     <Route path="/admin-platform/login" element={<Navigate to="/login" replace />} />
 
     {/* Admin (tenant admin) — /dashboard resolves tenant and redirects */}
-    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "barber"]}><AdminRouter /></ProtectedRoute>} />
+    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRouter /></ProtectedRoute>} />
     <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
 
     {/* Super Admin */}
