@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.setup-tenant]
 verify_jwt = false
+
+[functions.release-client-access]
+verify_jwt = false

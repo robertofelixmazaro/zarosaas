@@ -103,7 +103,7 @@ const SaasSignupPage = () => {
     const { error: loginErr } = await signIn(email, password);
     if (loginErr) {
       toast.info("Conta criada! Faça login para continuar.");
-      navigate("/entrar");
+      navigate("/login");
     } else {
       const { data: session } = await supabase.auth.getSession();
       if (session?.session?.user?.id) {
@@ -236,7 +236,7 @@ const SaasSignupPage = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             Já tem conta?{" "}
-            <Link to="/entrar" className="text-primary font-medium hover:underline">
+            <Link to="/login" className="text-primary font-medium hover:underline">
               Faça login
             </Link>
           </p>

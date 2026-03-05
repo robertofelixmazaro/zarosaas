@@ -35,7 +35,7 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/entrar">
+            <Link to="/login">
               <Button variant="ghost" size="sm">
                 Entrar
               </Button>

@@ -13,12 +13,17 @@ const AdminRouter = () => {
   const [hasTenant, setHasTenant] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Wait for auth AND role to fully load
     if (loading || roleLoading || !user) return;
 
     const check = async () => {
-      // Super admins go to platform dashboard
+      // Super admins go to their dashboard
       if (userRole === "super_admin") {
+        setChecking(false);
+        return;
+      }
+
+      // Affiliates go to their dashboard
+      if (userRole === "affiliate") {
         setChecking(false);
         return;
       }
@@ -54,12 +59,9 @@ const AdminRouter = () => {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   }
 
-  if (!user) return <Navigate to="/entrar" replace />;
-
-  // Super admin → platform
-  if (userRole === "super_admin") {
-    return <Navigate to="/admin-platform" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
+  if (userRole === "super_admin") return <Navigate to="/super-admin/dashboard" replace />;
+  if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
 
   // User has tenant → redirect to tenant admin
   if (hasTenant && tenantSlug) {
