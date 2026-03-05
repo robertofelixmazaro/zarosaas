@@ -263,6 +263,21 @@ const PlatformUsers = () => {
                   </TableBody>
                 </Table>
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4">
+                  <span className="text-sm text-muted-foreground">
+                    Página {page} de {totalPages} — {filtered.length} usuário(s)
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                      Próxima <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             )}
           </CardContent>
         </Card>
