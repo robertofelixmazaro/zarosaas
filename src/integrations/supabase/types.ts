@@ -604,6 +604,7 @@ export type Database = {
           id: string
           max_appointments_month: number | null
           max_barbers: number | null
+          max_clients: number | null
           max_products: number | null
           max_services: number | null
           name: string
@@ -617,6 +618,7 @@ export type Database = {
           id?: string
           max_appointments_month?: number | null
           max_barbers?: number | null
+          max_clients?: number | null
           max_products?: number | null
           max_services?: number | null
           name: string
@@ -630,6 +632,7 @@ export type Database = {
           id?: string
           max_appointments_month?: number | null
           max_barbers?: number | null
+          max_clients?: number | null
           max_products?: number | null
           max_services?: number | null
           name?: string

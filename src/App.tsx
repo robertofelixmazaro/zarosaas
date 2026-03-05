@@ -38,6 +38,7 @@ import PlatformPlans from "./pages/platform/PlatformPlans";
 import PlatformReports from "./pages/platform/PlatformReports";
 import PlatformSettings from "./pages/platform/PlatformSettings";
 import PlatformUsers from "./pages/platform/PlatformUsers";
+import PlatformUserDetail from "./pages/platform/PlatformUserDetail";
 import PlatformPayments from "./pages/platform/PlatformPayments";
 import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
@@ -114,6 +115,7 @@ const AppRoutes = () => (
     <Route path="/super-admin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformReports /></ProtectedRoute>} />
     <Route path="/super-admin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
     <Route path="/super-admin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUsers /></ProtectedRoute>} />
+    <Route path="/super-admin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
     <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
     <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
     {/* Legacy super admin redirects */}
