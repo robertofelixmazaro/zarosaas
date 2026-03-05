@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_sales: {
+        Row: {
+          access_released: boolean
+          affiliate_id: string
+          client_email: string
+          client_name: string | null
+          created_at: string | null
+          created_user_id: string | null
+          id: string
+          payment_status: string
+          store_name: string | null
+        }
+        Insert: {
+          access_released?: boolean
+          affiliate_id: string
+          client_email: string
+          client_name?: string | null
+          created_at?: string | null
+          created_user_id?: string | null
+          id?: string
+          payment_status?: string
+          store_name?: string | null
+        }
+        Update: {
+          access_released?: boolean
+          affiliate_id?: string
+          client_email?: string
+          client_name?: string | null
+          created_at?: string | null
+          created_user_id?: string | null
+          id?: string
+          payment_status?: string
+          store_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sales_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          commission_percent: number
+          created_at: string | null
+          id: string
+          ref_code: string
+          user_id: string
+        }
+        Insert: {
+          commission_percent?: number
+          created_at?: string | null
+          id?: string
+          ref_code: string
+          user_id: string
+        }
+        Update: {
+          commission_percent?: number
+          created_at?: string | null
+          id?: string
+          ref_code?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -970,7 +1038,7 @@ export type Database = {
       is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "barber" | "client" | "super_admin"
+      app_role: "admin" | "barber" | "client" | "super_admin" | "affiliate"
       appointment_status:
         | "pendente"
         | "confirmado"
@@ -1104,7 +1172,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "barber", "client", "super_admin"],
+      app_role: ["admin", "barber", "client", "super_admin", "affiliate"],
       appointment_status: [
         "pendente",
         "confirmado",
