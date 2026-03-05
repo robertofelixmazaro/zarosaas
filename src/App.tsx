@@ -43,6 +43,8 @@ import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
 import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
+import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
+import ComprarPage from "./pages/ComprarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,6 +96,7 @@ const AppRoutes = () => (
     <Route path="/login" element={<UnifiedLoginPage />} />
     <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/comprar" element={<ComprarPage />} />
 
     {/* Legacy redirects */}
     <Route path="/entrar" element={<Navigate to="/login" replace />} />
@@ -112,6 +115,7 @@ const AppRoutes = () => (
     <Route path="/super-admin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
     <Route path="/super-admin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUsers /></ProtectedRoute>} />
     <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
+    <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
     {/* Legacy super admin redirects */}
     <Route path="/admin-platform" element={<Navigate to="/super-admin/dashboard" replace />} />
     <Route path="/admin-platform/*" element={<Navigate to="/super-admin/dashboard" replace />} />
