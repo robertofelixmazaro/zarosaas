@@ -87,7 +87,7 @@ const PlatformUsers = () => {
           merged.push({
             profile_id: p.id, auth_id: p.auth_id, name: p.name, email: p.email, phone: p.phone,
             tenant_name: r.tenant_id ? (tenantMap.get(r.tenant_id) || null) : (p.tenant_id ? tenantMap.get(p.tenant_id) || null : null),
-            tenant_id: r.tenant_id || p.tenant_id, role: r.role, role_id: r.id,
+            tenant_id: r.tenant_id || p.tenant_id, role: r.role, role_id: r.id, created_at: p.created_at,
           });
         }
       }
