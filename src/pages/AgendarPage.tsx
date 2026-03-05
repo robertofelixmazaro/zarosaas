@@ -157,35 +157,10 @@ const AgendarPage = () => {
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
   };
-  const sendWebhook = async (appointmentId: string) => {
-    try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      await fetch(`https://${projectId}.supabase.co/functions/v1/notify-webhook`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${anonKey}`,
-        },
-        body: JSON.stringify({
-          nome_cliente: nome,
-          email_cliente: email,
-          telefone_cliente: whatsapp,
-          servico: selectedService!.name,
-          data_agendamento: format(selectedDate!, "yyyy-MM-dd"),
-          hora_agendamento: selectedTime,
-          id_agendamento: appointmentId,
-        }),
-      });
-    } catch (err) {
-      console.error("Erro ao enviar webhook:", err);
-    }
-  };
-
   const handleConfirm = async () => {
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) return;
     try {
-      const appointmentId = await createAppointment({
+      await createAppointment({
         client_name: nome,
         client_phone: whatsapp,
         barber_id: selectedBarber.id,
@@ -193,11 +168,11 @@ const AgendarPage = () => {
         appointment_date: format(selectedDate, "yyyy-MM-dd"),
         appointment_time: selectedTime,
         tenant_id: tenantId || undefined,
+        email_cliente: email,
       });
       toast.success("Agendamento confirmado com sucesso!", {
         description: "Você receberá um e-mail de confirmação.",
       });
-      sendWebhook(appointmentId);
       setStep("confirmacao");
     } catch (err: any) {
       toast.error("Erro ao agendar", { description: err.message });
