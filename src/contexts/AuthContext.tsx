@@ -46,27 +46,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // First get existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      } else {
-        setRoleLoading(false);
-      }
-      setLoading(false);
-    });
-
-    // Then listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Set roleLoading immediately to prevent premature access checks
           setRoleLoading(true);
-          // Use setTimeout to avoid deadlocks in onAuthStateChange
           setTimeout(() => fetchUserRole(session.user.id), 0);
         } else {
           setUserRole(null);
@@ -75,6 +60,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }
     );
+
+    const initializeSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchUserRole(session.user.id);
+      } else {
+        setRoleLoading(false);
+      }
+      setLoading(false);
+    };
+
+    initializeSession();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -88,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: metadata },
+      options: { data: metadata, emailRedirectTo: window.location.origin },
     });
     return { error };
   };
