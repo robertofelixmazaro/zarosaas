@@ -36,7 +36,7 @@ const SaasLoginPage = () => {
     setGoogleLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/admin`,
       });
       if (error) {
         toast.error("Erro ao entrar com Google: " + (error as Error).message);

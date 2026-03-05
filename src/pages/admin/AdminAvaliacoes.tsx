@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,16 +8,20 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const AdminAvaliacoes = () => {
+  const { tenantId } = useTenant();
   const { data: reviews = [], isLoading, refetch } = useQuery({
-    queryKey: ["admin-reviews"],
+    queryKey: ["admin-reviews", tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("reviews" as any)
         .select("*, appointments(client_name, appointment_date, barbers(name), services(name)), barbers(name)")
         .order("created_at", { ascending: false });
+      if (tenantId) query = query.eq("tenant_id", tenantId);
+      const { data, error } = await query;
       if (error) throw error;
       return (data as any[]) || [];
     },
+    enabled: !!tenantId,
   });
 
   const avgRating = reviews.length

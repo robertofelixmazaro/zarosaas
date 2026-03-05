@@ -44,8 +44,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, userRole } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/entrar" replace />;
-  if (userRole && userRole !== "admin" && userRole !== "barber") return <Navigate to="/" replace />;
+  // Allow admin, barber, and client (tenant owners before role upgrade) 
   if (!userRole) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (userRole !== "admin" && userRole !== "barber" && userRole !== "client") return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 

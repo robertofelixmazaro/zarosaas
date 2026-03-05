@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchAppointments, fetchBarbers, fetchBarberByUserId, DbAppointment, DbBarber } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { Calendar, DollarSign, Users, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -14,6 +15,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
+  const { tenantId } = useTenant();
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
@@ -21,6 +23,7 @@ const AdminDashboard = () => {
   const isAdmin = userRole === "admin";
 
   useEffect(() => {
+    if (!tenantId) return;
     const load = async () => {
       let barberId: string | undefined;
       if (!isAdmin && user) {
@@ -29,15 +32,15 @@ const AdminDashboard = () => {
         barberId = barber?.id;
       }
       const [a, b] = await Promise.all([
-        fetchAppointments(barberId),
-        fetchBarbers(),
+        fetchAppointments(barberId, tenantId),
+        fetchBarbers(tenantId),
       ]);
       setAppointments(a);
       setBarbers(b);
       setLoading(false);
     };
     load();
-  }, [user, isAdmin]);
+  }, [user, isAdmin, tenantId]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const todayAppts = appointments.filter((a) => a.appointment_date === today);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchAppointments, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, generateTimeSlots, updateAppointmentStatus, deleteAppointment, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ const statusFilters = ["todos", "pendente", "confirmado", "concluido", "cancelad
 
 const AdminAgendamentos = () => {
   const { user, userRole } = useAuth();
+  const { tenantId } = useTenant();
   const isAdmin = userRole === "admin";
   const [myBarberId, setMyBarberId] = useState<string | undefined>();
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
@@ -58,10 +60,10 @@ const AdminAgendamentos = () => {
   const [myBlockedDates, setMyBlockedDates] = useState<DbBlockedDate[]>([]);
 
   const loadData = async (barberId?: string) => {
-    const data = await fetchAppointments(barberId);
+    const data = await fetchAppointments(barberId, tenantId || undefined);
     setAppointments(data);
     if (barberId) {
-      const allBlocked = await fetchBlockedDates();
+      const allBlocked = await fetchBlockedDates(tenantId || undefined);
       setMyBlockedDates(allBlocked.filter((bd) => bd.barber_id === barberId));
     }
     setLoading(false);
@@ -80,10 +82,10 @@ const AdminAgendamentos = () => {
       loadData();
     };
     init();
-  }, [user, isAdmin]);
+  }, [user, isAdmin, tenantId]);
 
   const openDialog = async () => {
-    const [s, b, bd] = await Promise.all([fetchServices(), fetchBarbers(), fetchBlockedDates()]);
+    const [s, b, bd] = await Promise.all([fetchServices(tenantId || undefined), fetchBarbers(tenantId || undefined), fetchBlockedDates(tenantId || undefined)]);
     setServices(s);
     setBarbers(b);
     setBlockedDates(bd);
@@ -142,6 +144,7 @@ const AdminAgendamentos = () => {
         appointment_date: format(selectedDate, "yyyy-MM-dd"),
         appointment_time: selectedTime,
         price: selectedService.price,
+        tenant_id: tenantId || undefined,
       });
       toast.success("Agendamento criado com sucesso!");
       setDialogOpen(false);
@@ -176,7 +179,7 @@ const AdminAgendamentos = () => {
     }
 
     // Mensagem para o administrador
-    fetchAdminPhone().then((phone) => {
+    fetchAdminPhone(tenantId || undefined).then((phone) => {
       if (phone) {
         const adminMsg = encodeURIComponent(
           `📋 *Agendamento Confirmado*\n\n` +

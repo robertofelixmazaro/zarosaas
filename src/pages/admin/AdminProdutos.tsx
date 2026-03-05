@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { fetchProducts, createProduct, updateProduct, deleteProduct, DbProduct } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,6 +20,7 @@ const productSchema = z.object({
 const emptyForm = { name: "", description: "", price: 0, stock: 0, active: true };
 
 const AdminProdutos = () => {
+  const { tenantId } = useTenant();
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -32,11 +34,11 @@ const AdminProdutos = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
-    const data = await fetchProducts();
+    const data = await fetchProducts(tenantId || undefined);
     setProducts(data); setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { if (tenantId) loadData(); }, [tenantId]);
 
   const openCreate = () => {
     setForm(emptyForm); setEditingId(null); setErrors({});
@@ -102,7 +104,7 @@ const AdminProdutos = () => {
         // Create product first to get ID, then upload image
         const { data: newProduct, error } = await supabase
           .from("products" as any)
-          .insert(parsed.data as any)
+          .insert({ ...parsed.data, tenant_id: tenantId } as any)
           .select("id")
           .single();
         if (error) throw error;

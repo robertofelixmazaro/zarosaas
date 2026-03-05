@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 const statusFilters = ["todos", "pendente", "confirmado", "entregue", "cancelado"];
 
 const AdminPedidos = () => {
+  const { tenantId } = useTenant();
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
@@ -44,10 +46,12 @@ const AdminPedidos = () => {
   const [detailOpen, setDetailOpen] = useState(false);
 
   const loadOrders = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("orders" as any)
       .select("*")
       .order("created_at", { ascending: false });
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    const { data, error } = await query;
     if (error) {
       toast.error("Erro ao carregar pedidos");
       return;
@@ -56,7 +60,7 @@ const AdminPedidos = () => {
     setLoading(false);
   };
 
-  useEffect(() => { loadOrders(); }, []);
+  useEffect(() => { if (tenantId) loadOrders(); }, [tenantId]);
 
   const viewOrder = async (order: Order) => {
     setSelectedOrder(order);
