@@ -39,6 +39,7 @@ import PlatformReports from "./pages/platform/PlatformReports";
 import PlatformSettings from "./pages/platform/PlatformSettings";
 import PlatformUsers from "./pages/platform/PlatformUsers";
 import PlatformPayments from "./pages/platform/PlatformPayments";
+import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
 import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
@@ -105,6 +106,7 @@ const AppRoutes = () => (
     {/* Super Admin */}
     <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformDashboard /></ProtectedRoute>} />
     <Route path="/super-admin/tenants" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformTenants /></ProtectedRoute>} />
+    <Route path="/super-admin/stores" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformStores /></ProtectedRoute>} />
     <Route path="/super-admin/planos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPlans /></ProtectedRoute>} />
     <Route path="/super-admin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformReports /></ProtectedRoute>} />
     <Route path="/super-admin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
