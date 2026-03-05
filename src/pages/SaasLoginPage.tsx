@@ -18,22 +18,16 @@ const SaasLoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [loginAttempted, setLoginAttempted] = useState(false);
-
-  // Role-based redirect after login
+  // Redirect if already logged in or after login
   useEffect(() => {
-    if (!loginAttempted || authLoading || roleLoading || !user) return;
+    if (authLoading || roleLoading || !user) return;
     
     if (userRole === "super_admin") {
       navigate("/admin-platform", { replace: true });
-    } else if (userRole === "admin") {
-      navigate("/admin", { replace: true });
-    } else if (userRole === "barber") {
-      navigate("/admin", { replace: true });
     } else {
       navigate("/admin", { replace: true });
     }
-  }, [loginAttempted, authLoading, roleLoading, user, userRole, navigate]);
+  }, [authLoading, roleLoading, user, userRole, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +39,6 @@ const SaasLoginPage = () => {
       return;
     }
     toast.success("Login realizado com sucesso!");
-    setLoginAttempted(true);
     setLoading(false);
   };
 
