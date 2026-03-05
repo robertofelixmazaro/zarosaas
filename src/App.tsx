@@ -43,18 +43,16 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, userRole } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  const { user, loading, roleLoading, userRole } = useAuth();
+  if (loading || roleLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/entrar" replace />;
-  // Allow admin, barber, and client (tenant owners before role upgrade) 
-  if (!userRole) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (userRole !== "admin" && userRole !== "barber" && userRole !== "client") return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
 const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, userRole } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  const { user, loading, roleLoading, userRole } = useAuth();
+  if (loading || roleLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/admin-platform/login" replace />;
   if (userRole !== "super_admin") return <Navigate to="/admin-platform/login" replace />;
   return <>{children}</>;
