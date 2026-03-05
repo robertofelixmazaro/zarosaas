@@ -33,15 +33,25 @@ const TenantContext = createContext<TenantContextType>({
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useAuth();
+  const { user, userRole, roleLoading } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for role to load before deciding
+    if (roleLoading) return;
+
     const loadTenant = async () => {
       setLoading(true);
       setError(null);
+
+      // Super admins don't need a tenant — skip resolution
+      if (userRole === "super_admin" && !slug) {
+        setTenant(null);
+        setLoading(false);
+        return;
+      }
 
       if (slug) {
         // Public route: resolve by slug using safe RPC (no phone/address exposed)
@@ -83,7 +93,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     };
     loadTenant();
-  }, [slug, user]);
+  }, [slug, user, userRole, roleLoading]);
 
   return (
     <TenantContext.Provider
