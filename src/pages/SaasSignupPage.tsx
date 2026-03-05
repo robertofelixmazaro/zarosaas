@@ -114,7 +114,7 @@ const SaasSignupPage = () => {
         );
       }
       toast.success("Conta criada com sucesso! 🚀");
-      navigate("/novo-negocio");
+      navigate("/admin");
     }
     setLoading(false);
   };
