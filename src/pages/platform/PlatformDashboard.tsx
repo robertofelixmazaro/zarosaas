@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3,
-  Settings, UserCog, DollarSign, Filter, Clock
+  Settings, UserCog, DollarSign, Filter, Clock, Handshake
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
