@@ -966,6 +966,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          niche: string | null
           owner_user_id: string | null
           phone: string | null
           plan_id: string | null
@@ -978,6 +979,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          niche?: string | null
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
@@ -990,6 +992,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          niche?: string | null
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
@@ -1083,6 +1086,7 @@ export type Database = {
           id: string
           logo_url: string
           name: string
+          niche: string
           slug: string
         }[]
       }

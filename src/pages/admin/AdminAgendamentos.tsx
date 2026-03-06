@@ -148,11 +148,11 @@ const AdminAgendamentos = () => {
 
   useEffect(() => {
     if (selectedBarberId) {
-      fetchBarberAvailability(selectedBarberId).then(setAvailability);
+      fetchBarberAvailability(selectedBarberId, tenantId || undefined).then(setAvailability);
       setSelectedDate(undefined);
       setSelectedTime("");
     }
-  }, [selectedBarberId]);
+  }, [selectedBarberId, tenantId]);
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
 
