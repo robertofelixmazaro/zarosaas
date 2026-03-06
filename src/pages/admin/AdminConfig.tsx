@@ -261,6 +261,39 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* WhatsApp Message Template */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="h-5 w-5" />
+          <h3 className="font-semibold">Mensagem Padrão do WhatsApp</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          Configure a mensagem que será enviada ao clicar no botão WhatsApp nos detalhes do agendamento.
+        </p>
+        <textarea
+          value={settings.whatsapp_default_message}
+          onChange={(e) => setSettings({ ...settings, whatsapp_default_message: e.target.value })}
+          placeholder="Olá {{cliente}}, seu agendamento de {{servico}} está marcado para {{data}} às {{hora}}."
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[100px]"
+        />
+        <div className="mt-3 p-3 rounded-lg border bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Variáveis disponíveis:</p>
+          <div className="flex flex-wrap gap-2">
+            {["{{cliente}}", "{{servico}}", "{{data}}", "{{hora}}", "{{empresa}}"].map((v) => (
+              <code key={v} className="text-xs bg-muted px-2 py-1 rounded font-mono">{v}</code>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            <strong>Pré-visualização:</strong>{" "}
+            {settings.whatsapp_default_message
+              .replace(/\{\{cliente\}\}/g, "João Silva")
+              .replace(/\{\{servico\}\}/g, "Corte Masculino")
+              .replace(/\{\{data\}\}/g, "15/03/2026")
+              .replace(/\{\{hora\}\}/g, "14:00")
+              .replace(/\{\{empresa\}\}/g, settings.shop_name || "Minha Empresa")}
+          </p>
+        </div>
+      </div>
       {/* Cover image */}
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
