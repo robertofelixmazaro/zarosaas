@@ -97,13 +97,15 @@ export async function fetchBarbers(tenantId?: string): Promise<DbBarber[]> {
   return (data as any) || [];
 }
 
-export async function fetchBarberAvailability(barberId: string): Promise<DbAvailability[]> {
-  const { data, error } = await supabase
+export async function fetchBarberAvailability(barberId: string, tenantId?: string): Promise<DbAvailability[]> {
+  let query = supabase
     .from("barber_availability")
     .select("*")
     .eq("barber_id", barberId)
     .eq("active", true)
     .order("day_of_week");
+  if (tenantId) query = query.eq("tenant_id", tenantId);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
