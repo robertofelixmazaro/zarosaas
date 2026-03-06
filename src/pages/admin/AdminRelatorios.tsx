@@ -178,7 +178,7 @@ const AdminRelatorios = () => {
               <DropdownMenuItem onClick={() => exportCSV(filtered, barberMap)}>
                 Exportar CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportPDF(filtered, barberMap, totalGeral, totalConcluidos)}>
+              <DropdownMenuItem onClick={() => exportPDF(filtered, barberMap, totalGeral, totalConcluidos, tenant?.name)}>
                 Exportar PDF (Imprimir)
               </DropdownMenuItem>
             </DropdownMenuContent>
