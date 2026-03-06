@@ -105,6 +105,8 @@ const AppRoutes = () => (
     <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/comprar" element={<ComprarPage />} />
+    <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
+    <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
 
     {/* Legacy redirects */}
     <Route path="/entrar" element={<Navigate to="/login" replace />} />
