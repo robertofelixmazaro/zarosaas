@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAppointmentsAdmin, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
+import { getNicheLabels } from "@/lib/nicheLabels";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -38,7 +39,7 @@ function downloadFile(content: string, filename: string, mime: string) {
 }
 
 function exportCSV(filtered: DbAppointment[], barberMap: Record<string, string>) {
-  const header = "Data,Horário,Cliente,Telefone,Barbeiro,Serviço,Valor,Status";
+  const header = "Data,Horário,Cliente,Telefone,Profissional,Serviço,Valor,Status";
   const rows = filtered.map((a) =>
     [
       a.appointment_date,
@@ -78,7 +79,7 @@ function exportPDF(
 <div class="card"><div class="label">Ticket Médio</div><div class="val">${filtered.length ? fmtBRL(totalGeral / filtered.length) : "R$ 0,00"}</div></div>
 <div class="card"><div class="label">Conclusão</div><div class="val">${filtered.length ? Math.round((totalConcluidos / filtered.length) * 100) : 0}%</div></div>
 </div>
-<table><thead><tr><th>Data</th><th>Horário</th><th>Cliente</th><th>Barbeiro</th><th>Serviço</th><th>Valor</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>
+<table><thead><tr><th>Data</th><th>Horário</th><th>Cliente</th><th>Profissional</th><th>Serviço</th><th>Valor</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>
 </body></html>`;
 
   const w = window.open("", "_blank");
@@ -210,7 +211,7 @@ const AdminRelatorios = () => {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Faturamento por Barbeiro</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Faturamento por Profissional</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={barberData}>
@@ -238,7 +239,7 @@ const AdminRelatorios = () => {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Agendamentos por Barbeiro</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Agendamentos por Profissional</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={barberData.map((b) => ({ name: b.name, value: filtered.filter((a) => (a.barbers?.name || barberMap[a.barber_id]) === b.name).length }))}>

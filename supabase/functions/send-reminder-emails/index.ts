@@ -130,13 +130,13 @@ Deno.serve(async (req) => {
       }
 
       const timeStr = appt.appointment_time.slice(0, 5);
-      const barberName = escapeHtml((appt.barbers as any)?.name || "nosso barbeiro");
+      const barberName = escapeHtml((appt.barbers as any)?.name || "nosso profissional");
       const serviceName = escapeHtml((appt.services as any)?.name || "seu serviço");
       const subject = "⏰ Lembrete: Seu horário é em breve!";
 
       try {
         await resend.emails.send({
-          from: "Corte Certo <onboarding@resend.dev>",
+          from: "Zaro Agendamentos <onboarding@resend.dev>",
           to: [clientEmail],
           subject,
           html: `
@@ -147,10 +147,10 @@ Deno.serve(async (req) => {
               <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${serviceName}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${timeStr}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Barbeiro</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${barberName}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Profissional</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${barberName}</td></tr>
               </table>
               <p>Estamos te esperando! 😄</p>
-              <p style="color: #999; font-size: 12px; margin-top: 30px;">Corte Certo - Barbearia</p>
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
             </div>
           `,
         });
