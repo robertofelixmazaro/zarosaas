@@ -159,7 +159,7 @@ const AdminBarbeiros = () => {
         await updateBarber(editingId, { ...parsed.data, ...(photoUrl ? { photo_url: photoUrl } : {}) });
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         await saveLunch(editingId);
-        toast.success("Barbeiro atualizado!");
+        toast.success(`${nicheLabels.staffSingular} atualizado!`);
       } else {
         const { data: newBarber, error } = await supabase
           .from("barbers" as any).insert({ ...parsed.data, tenant_id: tenantId } as any).select("id").single();
