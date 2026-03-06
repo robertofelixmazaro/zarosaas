@@ -116,6 +116,18 @@ const AdminConfig = () => {
     }
     if (blockedRes.data) setBlockedDates(blockedRes.data as any);
     setBarbersList(barbers);
+
+    // Load MP credentials from tenant
+    const { data: tenantData } = await supabase
+      .from("tenants" as any)
+      .select("mercadopago_access_token, mercadopago_public_key")
+      .eq("id", tenantId)
+      .maybeSingle();
+    if (tenantData) {
+      setMpAccessToken((tenantData as any).mercadopago_access_token || "");
+      setMpPublicKey((tenantData as any).mercadopago_public_key || "");
+    }
+
     setLoading(false);
   };
 
