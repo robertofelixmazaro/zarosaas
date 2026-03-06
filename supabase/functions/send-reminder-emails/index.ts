@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
               <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${serviceName}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${timeStr}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Barbeiro</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${barberName}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Profissional</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${barberName}</td></tr>
               </table>
               <p>Estamos te esperando! 😄</p>
               <p style="color: #999; font-size: 12px; margin-top: 30px;">Corte Certo - Barbearia</p>
