@@ -14,6 +14,7 @@ import ProductCart, { CartItem } from "@/components/ProductCart";
 import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import { useDynamicManifest } from "@/hooks/useDynamicManifest";
 
 const Index = () => {
   const queryClient = useQueryClient();
