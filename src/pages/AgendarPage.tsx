@@ -103,7 +103,7 @@ const AgendarPage = () => {
 
   const steps: { key: Step; label: string }[] = [
     { key: "servico", label: "Serviço" },
-    { key: "barbeiro", label: "Barbeiro" },
+    { key: "barbeiro", label: nicheLabels.staffSingular },
     { key: "data", label: "Data" },
     { key: "horario", label: "Horário" },
     { key: "dados", label: "Dados" },
