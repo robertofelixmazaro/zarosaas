@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!barber) {
-      return new Response(JSON.stringify({ error: "Barbeiro não encontrado" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Profissional não encontrado" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // SECURITY: Verify barber belongs to caller's tenant
