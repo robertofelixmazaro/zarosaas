@@ -71,9 +71,9 @@ const AdminDashboard = () => {
   const totalMes = appointments.reduce((acc, a) => acc + Number(a.price), 0);
 
   // No-show metrics
-  const noShowAppts = appointments.filter((a) => a.status === "no_show");
+  const noShowAppts = appointments.filter((a) => (a.status as string) === "no_show");
   const completedAppts = appointments.filter((a) => a.status === "concluido");
-  const totalScheduled = appointments.filter((a) => !["cancelado"].includes(a.status)).length;
+  const totalScheduled = appointments.filter((a) => (a.status as string) !== "cancelado").length;
   const attendanceRate = totalScheduled > 0 ? Math.round(((totalScheduled - noShowAppts.length) / totalScheduled) * 100) : 100;
   const depositAppts = appointments.filter((a) => (a as any).deposit_required && (a as any).deposit_paid);
   const noShowRecovered = noShowAppts.reduce((acc, a) => {
