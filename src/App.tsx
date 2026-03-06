@@ -127,6 +127,7 @@ const AppRoutes = () => (
     <Route path="/super-admin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
     <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
     <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
+    <Route path="/super-admin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformWhatsApp /></ProtectedRoute>} />
     {/* Legacy super admin redirects */}
     <Route path="/admin-platform" element={<Navigate to="/super-admin/dashboard" replace />} />
     <Route path="/admin-platform/*" element={<Navigate to="/super-admin/dashboard" replace />} />
