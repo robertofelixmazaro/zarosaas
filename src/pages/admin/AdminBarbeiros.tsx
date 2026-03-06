@@ -184,7 +184,7 @@ const AdminBarbeiros = () => {
   const handleToggleActive = async (b: DbBarber) => {
     try {
       await updateBarber(b.id, { active: !b.active });
-      toast.success(b.active ? "Barbeiro desativado" : "Barbeiro ativado");
+      toast.success(b.active ? `${nicheLabels.staffSingular} desativado` : `${nicheLabels.staffSingular} ativado`);
       loadData();
     } catch (err: any) {
       toast.error("Erro", { description: err.message });
