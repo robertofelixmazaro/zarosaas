@@ -195,8 +195,10 @@ const AgendarPage = () => {
         <div className="container mx-auto flex items-center h-16 px-4 gap-4">
           <Link to={basePath || "/"}><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
-            <Scissors className="h-5 w-5" />
-            <span className="font-bold tracking-tight">CAETANO BARBER</span>
+            {tenant?.logo_url ? (
+              <img src={tenant.logo_url} alt={tenant.name} className="h-8 w-8 rounded-full object-cover" />
+            ) : null}
+            <span className="font-bold tracking-tight">{tenant?.name || "Agendamento"}</span>
           </div>
         </div>
       </header>
