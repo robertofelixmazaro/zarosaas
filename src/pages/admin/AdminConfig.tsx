@@ -52,15 +52,6 @@ const defaultSettings: SiteSettings = {
   whatsapp_default_message: "Olá {{cliente}}, estou entrando em contato sobre seu agendamento de {{servico}} marcado para {{data}} às {{hora}}. — {{empresa}}",
 };
 
-interface BlockedDate {
-  id: string;
-  blocked_date: string;
-  reason: string | null;
-  all_day: boolean;
-  start_time: string | null;
-  end_time: string | null;
-  barber_id: string | null;
-}
 
 const AdminConfig = () => {
   const { user } = useAuth();
