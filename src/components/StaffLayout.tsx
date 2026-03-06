@@ -17,6 +17,7 @@ const StaffLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { tenant } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [staffName, setStaffName] = useState("");
 
