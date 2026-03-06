@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zaro-agendamentos-v1';
+const CACHE_NAME = 'zaro-agendamentos-v2';
 const STATIC_ASSETS = [
   '/',
   '/icon-192.png',
@@ -33,11 +33,29 @@ self.addEventListener('fetch', (event) => {
   // Network-first for API/supabase calls
   if (url.hostname.includes('supabase')) return;
 
+  // Cache-first for static assets (JS/CSS chunks with hashes)
+  if (url.pathname.match(/\.(js|css|woff2?|png|jpg|svg|ico)$/) && url.pathname.includes('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Network-first for HTML/navigation
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return response;
       })
       .catch(() => caches.match(event.request).then((r) => r || caches.match('/')))
@@ -47,7 +65,7 @@ self.addEventListener('fetch', (event) => {
 // Push notification handler
 self.addEventListener('push', (event) => {
   let data = { title: 'Novo agendamento!', body: 'Você tem um novo agendamento.' };
-  
+
   try {
     if (event.data) {
       data = event.data.json();
