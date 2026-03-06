@@ -61,8 +61,9 @@ const LoginPage = () => {
   }, [authLoading, user, userRole, navigate]);
 
   useEffect(() => {
+    if (!tenantId) return;
     const loadSettings = async () => {
-      const { data } = await supabase.from("site_settings").select("key, value").in("key", ["logo_url", "shop_name"]);
+      const { data } = await supabase.from("site_settings").select("key, value").eq("tenant_id", tenantId).in("key", ["logo_url", "shop_name"]);
       if (data) {
         data.forEach((r: any) => {
           if (r.key === "logo_url" && r.value) setLogoUrl(r.value);
@@ -71,7 +72,7 @@ const LoginPage = () => {
       }
     };
     loadSettings();
-  }, []);
+  }, [tenantId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
