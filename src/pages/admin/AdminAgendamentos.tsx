@@ -171,8 +171,17 @@ const AdminAgendamentos = () => {
       fetchBarberAvailability(selectedBarberId, tenantId || undefined).then(setAvailability);
       setSelectedDate(undefined);
       setSelectedTime("");
+      setDialogBookedSlots([]);
     }
   }, [selectedBarberId, tenantId]);
+
+  // Fetch booked slots when date changes in create dialog
+  useEffect(() => {
+    if (selectedBarberId && selectedDate) {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      fetchBookedSlots(selectedBarberId, dateStr).then(setDialogBookedSlots).catch(() => setDialogBookedSlots([]));
+    }
+  }, [selectedBarberId, selectedDate]);
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
 
