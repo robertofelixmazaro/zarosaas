@@ -72,7 +72,8 @@ const AdminBarbeiros = () => {
       return;
     }
     setForm({ name: "", specialty: "" }); setEditingId(null); setErrors({});
-    setAvailForm(defaultAvail); setPhotoFile(null); setPhotoPreview(null);
+    setAvailForm(defaultAvail); setLunchForm(defaultLunch);
+    setPhotoFile(null); setPhotoPreview(null);
     setDialogOpen(true);
   };
 
