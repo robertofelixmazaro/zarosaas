@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calendar, Users, LogOut, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-import zaroLogo from "@/assets/zaro-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/staff-dashboard" },
@@ -17,6 +17,7 @@ const StaffLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { tenant } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [staffName, setStaffName] = useState("");
 
@@ -47,8 +48,10 @@ const StaffLayout = ({ children }: { children: React.ReactNode }) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
-          <img src={zaroLogo} alt="Logo" className="h-6 w-6" />
-          <span className="font-bold tracking-tight">EQUIPE</span>
+          {tenant?.logo_url ? (
+            <img src={tenant.logo_url} alt={tenant.name} className="h-7 w-7 rounded-full object-cover" />
+          ) : null}
+          <span className="font-bold tracking-tight">{tenant?.name || "EQUIPE"}</span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
           {navItems.map((item) => {

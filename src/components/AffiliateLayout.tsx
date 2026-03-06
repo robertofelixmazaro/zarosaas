@@ -4,7 +4,6 @@ import { LayoutDashboard, ShoppingCart, LogOut, Menu, X, Link2 } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
-import zaroLogo from "@/assets/zaro-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/affiliate/dashboard" },
@@ -33,7 +32,7 @@ const AffiliateLayout = ({ children }: { children: React.ReactNode }) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
-          <img src={zaroLogo} alt="Logo" className="h-6 w-6" />
+          <Link2 className="h-5 w-5 text-primary" />
           <span className="font-bold tracking-tight">AFILIADO</span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
