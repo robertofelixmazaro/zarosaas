@@ -59,7 +59,7 @@ const AdminServicos = () => {
   };
 
   const openEdit = (s: DbService) => {
-    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active });
+    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active, is_full_day: s.is_full_day || false });
     setEditingId(s.id);
     setErrors({});
     setImageFile(null);
