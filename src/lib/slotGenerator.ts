@@ -73,7 +73,8 @@ export function generateRawSlots(
 
   const startMin = timeToMin(dayConfig.start);
   const endMin = timeToMin(dayConfig.end);
-  const lunch = businessHours.lunch;
+  // Use barber-specific lunch if provided, otherwise store lunch
+  const lunch = barberLunch && barberLunch.enabled ? barberLunch : businessHours.lunch;
   const lunchStartMin = lunch.enabled ? timeToMin(lunch.start) : -1;
   const lunchEndMin = lunch.enabled ? timeToMin(lunch.end) : -1;
 
