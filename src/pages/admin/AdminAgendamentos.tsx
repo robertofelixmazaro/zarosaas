@@ -187,6 +187,8 @@ const AdminAgendamentos = () => {
 
   const getAvailableSlots = () => {
     if (!selectedBarberId || !selectedDate || !selectedService) return [];
+    if (selectedService.is_full_day) return ["08:00"];
+    
     const dayOfWeek = selectedDate.getDay();
     const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
 
@@ -198,7 +200,7 @@ const AdminAgendamentos = () => {
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, [], blockedDates, selectedBarberId);
+    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, dialogBookedSlots, blockedDates, selectedBarberId);
   };
 
   const handleCreate = async () => {
