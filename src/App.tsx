@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { detectTenantSlug } from "@/lib/tenantResolver";
 import NotFound from "./pages/NotFound";
 
 // Lazy load all pages
@@ -109,61 +110,113 @@ const TenantRoutes = () => (
   </TenantProvider>
 );
 
-const AppRoutes = () => (
-  <Suspense fallback={<PageLoader />}>
-    <Routes>
-      {/* Public */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<UnifiedLoginPage />} />
-      <Route path="/cadastrar" element={<SaasSignupPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/comprar" element={<ComprarPage />} />
-      <Route path="/ref/:code" element={<ReferralRedirectPage />} />
-      <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
-      <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
+// Detect subdomain tenant once
+const subdomainDetection = detectTenantSlug();
+const isSubdomainAccess = subdomainDetection.slug !== null;
 
-      {/* Legacy redirects */}
-      <Route path="/entrar" element={<Navigate to="/login" replace />} />
-      <Route path="/admin-platform/login" element={<Navigate to="/login" replace />} />
+/**
+ * When accessed via subdomain (e.g. vcclimatizacao.usaruistemas.com.br),
+ * all root routes become tenant routes automatically.
+ */
+const SubdomainTenantRoutes = () => (
+  <TenantProvider>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Tenant public pages at root */}
+        <Route index element={<Index />} />
+        <Route path="agendar" element={<AgendarPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
+        <Route path="qrcode" element={<QRCodePage />} />
+        <Route path="comprar" element={<ComprarPage />} />
 
-      {/* Admin (tenant admin) — /dashboard resolves tenant and redirects */}
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRouter /></ProtectedRoute>} />
-      <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
+        {/* Tenant admin routes */}
+        <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/agendamentos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/servicos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/barbeiros" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBarbeiros /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/produtos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminProdutos /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/relatorios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminRelatorios /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/config" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminConfig /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/avaliacoes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAvaliacoes /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/pedidos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminPedidos /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/lembretes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminLembretes /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/galeria" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminGaleria /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/landing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
 
-      {/* Super Admin */}
-      <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformDashboard /></ProtectedRoute>} />
-      <Route path="/super-admin/tenants" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformTenants /></ProtectedRoute>} />
-      <Route path="/super-admin/stores" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformStores /></ProtectedRoute>} />
-      <Route path="/super-admin/planos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPlans /></ProtectedRoute>} />
-      <Route path="/super-admin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformReports /></ProtectedRoute>} />
-      <Route path="/super-admin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
-      <Route path="/super-admin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUsers /></ProtectedRoute>} />
-      <Route path="/super-admin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
-      <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
-      <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
-      <Route path="/super-admin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformWhatsApp /></ProtectedRoute>} />
-      {/* Legacy super admin redirects */}
-      <Route path="/admin-platform" element={<Navigate to="/super-admin/dashboard" replace />} />
-      <Route path="/admin-platform/*" element={<Navigate to="/super-admin/dashboard" replace />} />
-
-      {/* Affiliate */}
-      <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
-      <Route path="/affiliate/referrals" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateReferrals /></AffiliateLayout></ProtectedRoute>} />
-      <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
-
-      {/* Staff */}
-      <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
-      <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
-      <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
-
-      {/* Tenant public routes */}
-      <Route path="/t/:slug/*" element={<TenantRoutes />} />
-
-      {/* Catch-all */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </Suspense>
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  </TenantProvider>
 );
+
+const AppRoutes = () => {
+  // If accessed via subdomain, render tenant routes at root level
+  if (isSubdomainAccess) {
+    return <SubdomainTenantRoutes />;
+  }
+
+  // Standard path-based routing
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<UnifiedLoginPage />} />
+        <Route path="/cadastrar" element={<SaasSignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/comprar" element={<ComprarPage />} />
+        <Route path="/ref/:code" element={<ReferralRedirectPage />} />
+        <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
+        <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
+
+        {/* Legacy redirects */}
+        <Route path="/entrar" element={<Navigate to="/login" replace />} />
+        <Route path="/admin-platform/login" element={<Navigate to="/login" replace />} />
+
+        {/* Admin (tenant admin) — /dashboard resolves tenant and redirects */}
+        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRouter /></ProtectedRoute>} />
+        <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Super Admin */}
+        <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformDashboard /></ProtectedRoute>} />
+        <Route path="/super-admin/tenants" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformTenants /></ProtectedRoute>} />
+        <Route path="/super-admin/stores" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformStores /></ProtectedRoute>} />
+        <Route path="/super-admin/planos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPlans /></ProtectedRoute>} />
+        <Route path="/super-admin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformReports /></ProtectedRoute>} />
+        <Route path="/super-admin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
+        <Route path="/super-admin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUsers /></ProtectedRoute>} />
+        <Route path="/super-admin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
+        <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
+        <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
+        <Route path="/super-admin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformWhatsApp /></ProtectedRoute>} />
+        {/* Legacy super admin redirects */}
+        <Route path="/admin-platform" element={<Navigate to="/super-admin/dashboard" replace />} />
+        <Route path="/admin-platform/*" element={<Navigate to="/super-admin/dashboard" replace />} />
+
+        {/* Affiliate */}
+        <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
+        <Route path="/affiliate/referrals" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateReferrals /></AffiliateLayout></ProtectedRoute>} />
+        <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
+
+        {/* Staff */}
+        <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
+
+        {/* Tenant public routes (path-based) */}
+        <Route path="/t/:slug/*" element={<TenantRoutes />} />
+
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  );
+};
 
 const App = () => (
   <ThemeProvider>
