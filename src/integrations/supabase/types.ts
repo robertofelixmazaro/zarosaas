@@ -144,6 +144,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          attendance_confirmation_status: string | null
           barber_id: string
           client_name: string
           client_phone: string
@@ -163,10 +164,12 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
           webhook_sent: boolean
+          whatsapp_reminder_sent: boolean | null
         }
         Insert: {
           appointment_date: string
           appointment_time: string
+          attendance_confirmation_status?: string | null
           barber_id: string
           client_name: string
           client_phone: string
@@ -186,10 +189,12 @@ export type Database = {
           tenant_id?: string | null
           updated_at?: string | null
           webhook_sent?: boolean
+          whatsapp_reminder_sent?: boolean | null
         }
         Update: {
           appointment_date?: string
           appointment_time?: string
+          attendance_confirmation_status?: string | null
           barber_id?: string
           client_name?: string
           client_phone?: string
@@ -209,6 +214,7 @@ export type Database = {
           tenant_id?: string | null
           updated_at?: string | null
           webhook_sent?: boolean
+          whatsapp_reminder_sent?: boolean | null
         }
         Relationships: [
           {

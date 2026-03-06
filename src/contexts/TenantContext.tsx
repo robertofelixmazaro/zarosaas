@@ -47,13 +47,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Super admins don't need a tenant — skip resolution entirely
-      if (userRole === "super_admin") {
-        setTenant(null);
-        setLoading(false);
-        return;
-      }
-
+      // Public route with slug: always resolve by slug, regardless of user role
       if (slug) {
         // Public route: resolve by slug using safe RPC (no phone/address exposed)
         const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_slug", { _slug: slug });
@@ -76,6 +70,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             created_at: "",
           });
         }
+      } else if (userRole === "super_admin") {
+        // Super admins without slug don't need a tenant
+        setTenant(null);
       } else if (user) {
         // Admin route without slug: resolve from user profile
         const { data: profile } = await supabase
