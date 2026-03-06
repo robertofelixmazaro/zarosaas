@@ -1100,10 +1100,17 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_barber_user: { Args: { _barber_id: string }; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "barber" | "client" | "super_admin" | "affiliate"
+      app_role:
+        | "admin"
+        | "barber"
+        | "client"
+        | "super_admin"
+        | "affiliate"
+        | "staff"
       appointment_status:
         | "pendente"
         | "confirmado"
@@ -1237,7 +1244,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "barber", "client", "super_admin", "affiliate"],
+      app_role: [
+        "admin",
+        "barber",
+        "client",
+        "super_admin",
+        "affiliate",
+        "staff",
+      ],
       appointment_status: [
         "pendente",
         "confirmado",
