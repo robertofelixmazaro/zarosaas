@@ -157,13 +157,18 @@ const SaasSignupPage = () => {
     }
 
     setLoading(true);
-    const { error: signupErr } = await signUp(email, password, {
+    const metadata: Record<string, string> = {
       name,
       cpf: strippedCpf,
       phone: phone.replace(/\D/g, ""),
       whatsapp: whatsapp.replace(/\D/g, ""),
       account_type: accountType,
-    });
+    };
+    if (refCode) {
+      metadata.ref_code = refCode;
+    }
+
+    const { error: signupErr } = await signUp(email, password, metadata);
 
     if (signupErr) {
       toast.error("Erro ao criar conta: " + signupErr.message);
