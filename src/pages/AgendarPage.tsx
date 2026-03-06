@@ -162,6 +162,9 @@ const AgendarPage = () => {
 
   const getAvailableSlots = () => {
     if (!selectedBarber || !selectedDate || !selectedService) return [];
+    // Full-day services don't need time slots
+    if (selectedService.is_full_day) return ["08:00"];
+    
     const dayOfWeek = selectedDate.getDay();
     const barberAvail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
 
@@ -265,7 +268,7 @@ const AgendarPage = () => {
                   </div>
                   <div className="text-right">
                     <div className="font-bold">R$ {Number(s.price).toFixed(0)}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {s.duration_minutes}min</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes}min`}</div>
                   </div>
                 </button>
               ))}
@@ -301,7 +304,7 @@ const AgendarPage = () => {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(d) => { setSelectedDate(d); if (d) setStep("horario"); }}
+                onSelect={(d) => { setSelectedDate(d); if (d) { if (selectedService?.is_full_day) { setSelectedTime("08:00"); setStep("dados"); } else { setStep("horario"); } } }}
                 disabled={(date) => {
                   if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
                   const dateStr = format(date, "yyyy-MM-dd");

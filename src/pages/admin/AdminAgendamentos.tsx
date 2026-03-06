@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, fetchBookedSlots, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { generateRawSlots, filterAvailableSlots, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -60,6 +60,7 @@ const AdminAgendamentos = () => {
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
+  const [dialogBookedSlots, setDialogBookedSlots] = useState<{ time: string; duration: number }[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedBarberId, setSelectedBarberId] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -170,13 +171,24 @@ const AdminAgendamentos = () => {
       fetchBarberAvailability(selectedBarberId, tenantId || undefined).then(setAvailability);
       setSelectedDate(undefined);
       setSelectedTime("");
+      setDialogBookedSlots([]);
     }
   }, [selectedBarberId, tenantId]);
+
+  // Fetch booked slots when date changes in create dialog
+  useEffect(() => {
+    if (selectedBarberId && selectedDate) {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      fetchBookedSlots(selectedBarberId, dateStr).then(setDialogBookedSlots).catch(() => setDialogBookedSlots([]));
+    }
+  }, [selectedBarberId, selectedDate]);
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
 
   const getAvailableSlots = () => {
     if (!selectedBarberId || !selectedDate || !selectedService) return [];
+    if (selectedService.is_full_day) return ["08:00"];
+    
     const dayOfWeek = selectedDate.getDay();
     const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
 
@@ -188,7 +200,7 @@ const AdminAgendamentos = () => {
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, [], blockedDates, selectedBarberId);
+    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, dialogBookedSlots, blockedDates, selectedBarberId);
   };
 
   const handleCreate = async () => {

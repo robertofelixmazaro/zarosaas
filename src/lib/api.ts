@@ -11,6 +11,7 @@ export interface DbService {
   active: boolean;
   image_url: string | null;
   tenant_id: string | null;
+  is_full_day?: boolean;
 }
 
 export interface DbBarber {

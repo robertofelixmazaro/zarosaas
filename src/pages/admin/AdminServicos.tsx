@@ -20,7 +20,7 @@ const serviceSchema = z.object({
   active: z.boolean(),
 });
 
-const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true };
+const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true, is_full_day: false };
 
 const AdminServicos = () => {
   const { tenantId } = useTenant();
@@ -59,7 +59,7 @@ const AdminServicos = () => {
   };
 
   const openEdit = (s: DbService) => {
-    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active });
+    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active, is_full_day: s.is_full_day || false });
     setEditingId(s.id);
     setErrors({});
     setImageFile(null);
@@ -113,11 +113,11 @@ const AdminServicos = () => {
         if (imageFile) {
           imageUrl = await uploadImage(editingId);
         }
-        await updateService(editingId, { ...parsed.data, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
+        await updateService(editingId, { ...parsed.data, is_full_day: form.is_full_day, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
         toast.success("Serviço atualizado!");
       } else {
         // Create first, then upload image
-        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, tenant_id: tenantId } as any).select("id").single();
+        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, is_full_day: form.is_full_day, tenant_id: tenantId } as any).select("id").single();
         if (error) throw error;
         const newId = (created as any).id;
         if (imageFile) {
@@ -235,7 +235,7 @@ const AdminServicos = () => {
               <p className="text-sm text-muted-foreground mb-3">{s.description}</p>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold">R$ {Number(s.price).toFixed(0)}</span>
-                <span className="text-xs text-muted-foreground">⏱ {s.duration_minutes}min</span>
+                <span className="text-xs text-muted-foreground">⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes}min`}</span>
               </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" className="flex-1 gap-1" onClick={() => openEdit(s)}><Edit className="h-3 w-3" /> Editar</Button>
@@ -305,6 +305,10 @@ const AdminServicos = () => {
                 <label className="text-sm font-medium mb-1 block">Ícone</label>
                 <Input value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })} maxLength={10} />
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={form.is_full_day} onChange={e => setForm({ ...form, is_full_day: e.target.checked, ...(e.target.checked ? { duration_minutes: 480 } : {}) })} id="is_full_day" className="rounded" />
+              <label htmlFor="is_full_day" className="text-sm">Serviço de dia inteiro</label>
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} id="active" className="rounded" />

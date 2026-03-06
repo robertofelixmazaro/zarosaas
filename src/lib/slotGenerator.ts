@@ -34,6 +34,8 @@ export const DEFAULT_BUSINESS_HOURS: BusinessHours = {
   lunch: { enabled: true, start: "12:00", end: "13:00" },
 };
 
+const SLOT_INTERVAL = 30; // Generate slots every 30 minutes
+
 function timeToMin(t: string): number {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
@@ -50,7 +52,10 @@ function minToTime(min: number): string {
  * - Business hours for that day of week
  * - Barber-specific availability (overrides business hours if provided)
  * - Lunch break
- * - Service duration
+ * - Service duration (slot must fit entirely before end of day / lunch)
+ *
+ * Slots are generated at fixed 30-minute intervals so that even
+ * long-duration services show intermediate start times.
  */
 export function generateRawSlots(
   dayOfWeek: number,
@@ -85,7 +90,7 @@ export function generateRawSlots(
     }
 
     slots.push(minToTime(current));
-    current += serviceDurationMinutes;
+    current += SLOT_INTERVAL; // Fixed 30-min interval instead of service duration
   }
 
   return slots;
@@ -96,6 +101,7 @@ export function generateRawSlots(
  * - Past time slots (for today)
  * - Blocked date/time slots
  * - Already booked slots (with overlap detection)
+ * - Full-day bookings (entire day blocked)
  */
 export function filterAvailableSlots(
   slots: string[],
@@ -110,6 +116,10 @@ export function filterAvailableSlots(
   const todayStr = formatDateLocal(currentDate);
   const currentTime = currentDate.toTimeString().slice(0, 5);
 
+  // Check if there's a full-day booking (is_full_day service)
+  const hasFullDayBooking = bookedSlots.some((b) => b.duration >= 1440);
+  if (hasFullDayBooking) return [];
+
   // Blocked entries for this date
   const blocksForDate = blockedDates.filter((bd) => {
     const matchDate = bd.blocked_date === dateStr || !bd.blocked_date;
@@ -121,17 +131,18 @@ export function filterAvailableSlots(
     // Filter past slots for today
     if (dateStr === todayStr && slot <= currentTime) return false;
 
+    const slotStart = timeToMin(slot);
+    const slotEnd = slotStart + serviceDuration;
+
     // Filter blocked time ranges
     const isBlocked = blocksForDate.some((bd) => {
-      const bStart = bd.start_time?.slice(0, 5) || "00:00";
-      const bEnd = bd.end_time?.slice(0, 5) || "23:59";
-      return slot >= bStart && slot < bEnd;
+      const bStart = timeToMin(bd.start_time?.slice(0, 5) || "00:00");
+      const bEnd = timeToMin(bd.end_time?.slice(0, 5) || "23:59");
+      return slotStart < bEnd && slotEnd > bStart;
     });
     if (isBlocked) return false;
 
     // Filter already booked (overlap detection)
-    const slotStart = timeToMin(slot);
-    const slotEnd = slotStart + serviceDuration;
     const isBooked = bookedSlots.some((b) => {
       const bStart = timeToMin(b.time);
       const bEnd = bStart + b.duration;
