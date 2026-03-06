@@ -59,6 +59,25 @@ const AgendarPage = () => {
       }
       setLoading(false);
     });
+
+    // Load no-show policy from tenant
+    if (tenantId) {
+      supabase
+        .from("tenants" as any)
+        .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+        .eq("id", tenantId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setNoShowPolicy({
+              enabled: (data as any).no_show_enabled || false,
+              deposit: Number((data as any).no_show_deposit_value) || 0,
+              retention: Number((data as any).no_show_retention_percentage) || 100,
+              cancelHours: Number((data as any).no_show_cancel_limit_hours) || 4,
+            });
+          }
+        });
+    }
   }, [preSelectedServiceId, tenantId]);
 
   useEffect(() => {
