@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { detectTenantSlug } from "@/lib/tenantResolver";
 
 export interface Tenant {
   id: string;
@@ -22,6 +23,8 @@ interface TenantContextType {
   tenantSlug: string | null;
   loading: boolean;
   error: string | null;
+  /** Whether tenant was resolved from subdomain */
+  isSubdomain: boolean;
 }
 
 const TenantContext = createContext<TenantContextType>({
@@ -30,14 +33,22 @@ const TenantContext = createContext<TenantContextType>({
   tenantSlug: null,
   loading: true,
   error: null,
+  isSubdomain: false,
 });
 
+// Detect once at module level so it's stable across renders
+const subdomainResolution = detectTenantSlug();
+
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug: routeSlug } = useParams<{ slug: string }>();
   const { user, userRole, roleLoading } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Effective slug: route param > subdomain/query detection
+  const effectiveSlug = routeSlug || subdomainResolution.slug;
+  const isSubdomain = !routeSlug && subdomainResolution.source === "subdomain";
 
   useEffect(() => {
     // Wait for role to load before deciding
@@ -47,15 +58,14 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Public route with slug: always resolve by slug, regardless of user role
-      if (slug) {
-        // Public route: resolve by slug using safe RPC (no phone/address exposed)
-        const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_slug", { _slug: slug });
+      // Public route with slug (from URL param or subdomain): resolve by slug
+      if (effectiveSlug) {
+        const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_slug", { _slug: effectiveSlug });
         const row = Array.isArray(data) ? data[0] : data;
         if (err) {
           setError("Erro ao carregar negócio.");
         } else if (!row) {
-          setError("Negócio não encontrado.");
+          setError("Empresa não encontrada.");
         } else {
           setTenant({
             id: row.id,
@@ -88,22 +98,21 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             .maybeSingle();
           if (data) setTenant(data as any);
         }
-        // If no tenant_id found, tenant stays null — no error, just no tenant
       }
-      // Always finish loading regardless of outcome
       setLoading(false);
     };
     loadTenant();
-  }, [slug, user, userRole, roleLoading]);
+  }, [effectiveSlug, user, userRole, roleLoading]);
 
   return (
     <TenantContext.Provider
       value={{
         tenant,
         tenantId: tenant?.id || null,
-        tenantSlug: tenant?.slug || slug || null,
+        tenantSlug: tenant?.slug || effectiveSlug || null,
         loading,
         error,
+        isSubdomain,
       }}
     >
       {children}
