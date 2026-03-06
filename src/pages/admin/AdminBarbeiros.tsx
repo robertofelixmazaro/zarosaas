@@ -171,7 +171,7 @@ const AdminBarbeiros = () => {
         }
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         await saveLunch(barberId);
-        toast.success("Barbeiro criado!");
+        toast.success(`${nicheLabels.staffSingular} criado!`);
       }
       setDialogOpen(false);
       loadData();
