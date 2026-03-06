@@ -44,6 +44,8 @@ import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
 import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
+import AffiliateReferrals from "./pages/affiliate/AffiliateReferrals";
+import ReferralRedirectPage from "./pages/ReferralRedirectPage";
 import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
 import ComprarPage from "./pages/ComprarPage";
 import ConfirmAppointmentPage from "./pages/ConfirmAppointmentPage";
