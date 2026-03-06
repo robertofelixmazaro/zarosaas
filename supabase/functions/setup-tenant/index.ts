@@ -61,17 +61,36 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Resolve referral affiliate from user metadata
+    let referredByAffiliateId: string | null = null;
+    const refCode = user.user_metadata?.ref_code;
+    if (refCode) {
+      const { data: affiliateData } = await adminClient
+        .from("affiliates")
+        .select("id")
+        .eq("ref_code", refCode)
+        .maybeSingle();
+      if (affiliateData) {
+        referredByAffiliateId = affiliateData.id;
+      }
+    }
+
     // 1. Create tenant
+    const tenantInsert: Record<string, any> = {
+      name: name.trim(),
+      slug: slug.trim().toLowerCase(),
+      phone: phone || null,
+      address: address || null,
+      owner_user_id: user.id,
+      niche: business_type || "other",
+    };
+    if (referredByAffiliateId) {
+      tenantInsert.referred_by_affiliate_id = referredByAffiliateId;
+    }
+
     const { data: tenant, error: tenantErr } = await adminClient
       .from("tenants")
-      .insert({
-        name: name.trim(),
-        slug: slug.trim().toLowerCase(),
-        phone: phone || null,
-        address: address || null,
-        owner_user_id: user.id,
-        niche: business_type || "other",
-      })
+      .insert(tenantInsert)
       .select("id, slug")
       .single();
 
