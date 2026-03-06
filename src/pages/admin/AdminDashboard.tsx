@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { getNicheLabels } from "@/lib/nicheLabels";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   confirmado: { label: "Confirmado", className: "bg-info/10 text-info border-info/20" },
@@ -18,7 +19,8 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
@@ -85,7 +87,7 @@ const AdminDashboard = () => {
     { icon: Calendar, label: "Agendamentos Hoje", value: todayAppts.length.toString(), color: "text-info" },
     { icon: DollarSign, label: "Faturamento Hoje", value: `R$ ${totalHoje}`, color: "text-success" },
     { icon: TrendingUp, label: "Faturamento Total", value: `R$ ${totalMes}`, color: "text-foreground" },
-    ...(isAdmin ? [{ icon: Users, label: "Barbeiros Ativos", value: barbers.length.toString(), color: "text-secondary" }] : []),
+    ...(isAdmin ? [{ icon: Users, label: `${nicheLabels.staffPlural} Ativos`, value: barbers.length.toString(), color: "text-secondary" }] : []),
   ];
 
   const noShowStats = isAdmin ? [

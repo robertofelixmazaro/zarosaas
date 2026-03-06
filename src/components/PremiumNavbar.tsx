@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Scissors, ChevronRight, Star, Home, Briefcase, Calendar, ShoppingBag, MessageSquare, Image, Phone, LogIn, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import ShareButton from "@/components/ShareButton";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/contexts/TenantContext";
 
@@ -10,6 +11,7 @@ interface PremiumNavbarProps {
   shopName?: string;
   logoUrl?: string;
   avgRating?: string;
+  shareUrl?: string;
 }
 
 const menuItems = [
@@ -22,7 +24,7 @@ const menuItems = [
   { label: "Contato", href: "#contato", icon: Phone },
 ];
 
-const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0" }: PremiumNavbarProps) => {
+const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0", shareUrl }: PremiumNavbarProps) => {
   const { tenantSlug } = useTenant();
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [isOpen, setIsOpen] = useState(false);
@@ -96,6 +98,7 @@ const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0" }
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            {shareUrl && <ShareButton url={shareUrl} title={shopName} />}
             <Link to={`${basePath}/agendar`} className="hidden sm:inline-flex">
               <Button size="sm" className="gap-1.5 font-semibold shadow-md shadow-primary/20">
                 Agendar <ChevronRight className="h-3.5 w-3.5" />

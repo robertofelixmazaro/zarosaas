@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
-import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +14,7 @@ import ProductCart, { CartItem } from "@/components/ProductCart";
 import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import { useDynamicManifest } from "@/hooks/useDynamicManifest";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -23,6 +24,10 @@ const Index = () => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
+
+  // Dynamic PWA manifest per tenant
+  const logoForManifest = tenant?.logo_url || "";
+  useDynamicManifest(tenant?.name, logoForManifest || undefined);
 
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
   const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services", tenantId], queryFn: () => fetchServices(tenantId || undefined), enabled: !!tenantId });
@@ -112,6 +117,7 @@ const Index = () => {
         shopName={shopName}
         logoUrl={logoUrl}
         avgRating={avgRating}
+        shareUrl={window.location.href}
       />
 
       {/* Hero */}
