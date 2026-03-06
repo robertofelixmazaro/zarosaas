@@ -96,6 +96,7 @@ const TenantRoutes = () => (
       <Route path="admin/landing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminLandingPage /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
     </Routes>
   </TenantProvider>
 );
