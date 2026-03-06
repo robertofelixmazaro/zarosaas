@@ -202,7 +202,7 @@ const AdminBarbeiros = () => {
       await supabase.from("appointments" as any).delete().eq("barber_id", id);
       // Now delete the barber
       await deleteBarber(id);
-      toast.success("Barbeiro excluído!");
+      toast.success(`${nicheLabels.staffSingular} excluído!`);
       loadData();
     } catch (err: any) {
       toast.error("Erro ao excluir", { description: err.message });
