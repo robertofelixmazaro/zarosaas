@@ -25,6 +25,10 @@ const Index = () => {
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
 
+  // Dynamic PWA manifest per tenant
+  const logoForManifest = tenant?.logo_url || "";
+  useDynamicManifest(tenant?.name, logoForManifest || undefined);
+
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
   const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services", tenantId], queryFn: () => fetchServices(tenantId || undefined), enabled: !!tenantId });
   const { data: products = [] } = useQuery<DbProduct[]>({ queryKey: ["products", tenantId], queryFn: () => fetchProducts(tenantId || undefined), enabled: !!tenantId });
