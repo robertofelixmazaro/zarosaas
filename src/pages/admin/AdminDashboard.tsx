@@ -87,7 +87,7 @@ const AdminDashboard = () => {
     { icon: Calendar, label: "Agendamentos Hoje", value: todayAppts.length.toString(), color: "text-info" },
     { icon: DollarSign, label: "Faturamento Hoje", value: `R$ ${totalHoje}`, color: "text-success" },
     { icon: TrendingUp, label: "Faturamento Total", value: `R$ ${totalMes}`, color: "text-foreground" },
-    ...(isAdmin ? [{ icon: Users, label: "Barbeiros Ativos", value: barbers.length.toString(), color: "text-secondary" }] : []),
+    ...(isAdmin ? [{ icon: Users, label: `${nicheLabels.staffPlural} Ativos`, value: barbers.length.toString(), color: "text-secondary" }] : []),
   ];
 
   const noShowStats = isAdmin ? [

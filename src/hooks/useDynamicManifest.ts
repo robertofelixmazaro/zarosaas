@@ -1,0 +1,47 @@
+import { useEffect } from "react";
+
+/**
+ * Dynamically updates the PWA manifest based on tenant data.
+ * Creates a blob URL manifest with tenant name and logo.
+ */
+export function useDynamicManifest(tenantName?: string, logoUrl?: string) {
+  useEffect(() => {
+    if (!tenantName) return;
+
+    const manifest = {
+      name: tenantName,
+      short_name: tenantName.slice(0, 12),
+      description: `Agende seu horário em ${tenantName}`,
+      start_url: window.location.pathname,
+      display: "standalone" as const,
+      background_color: "#ffffff",
+      theme_color: "#000000",
+      orientation: "portrait" as const,
+      icons: logoUrl
+        ? [
+            { src: logoUrl, sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: logoUrl, sizes: "512x512", type: "image/png", purpose: "any" },
+          ]
+        : [
+            { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+            { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+          ],
+    };
+
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    // Replace existing manifest link
+    let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    if (link) {
+      link.href = url;
+    } else {
+      link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = url;
+      document.head.appendChild(link);
+    }
+
+    return () => URL.revokeObjectURL(url);
+  }, [tenantName, logoUrl]);
+}
