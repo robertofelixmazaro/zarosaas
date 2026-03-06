@@ -91,18 +91,45 @@ const UnifiedLoginPage = () => {
       return;
     }
 
-    const { data: roleData, error: roleError } = await supabase
+    // Check if role exists
+    let { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", currentUser.id)
       .maybeSingle();
 
-    if (roleError || !roleData?.role) {
+    // If no role found, try to provision via edge function
+    if (!roleData?.role) {
+      try {
+        const { data: provisionResult, error: provisionError } = await supabase.functions.invoke("provision-user");
+        if (provisionError) {
+          console.error("Provision error:", provisionError);
+        }
+        if (provisionResult?.role) {
+          roleData = { role: provisionResult.role };
+        } else {
+          // Retry fetching role after provisioning
+          const { data: retryRole } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+          roleData = retryRole;
+        }
+      } catch (err) {
+        console.error("Provision fallback error:", err);
+      }
+    }
+
+    if (!roleData?.role) {
       await signOut();
       toast.error("Sua conta ainda não foi provisionada. Tente novamente em instantes.");
       setLoading(false);
       return;
     }
+
+    // Refresh role in AuthContext
+    await refreshUserRole();
 
     toast.success("Login realizado com sucesso!");
     redirectByRole(roleData.role);
