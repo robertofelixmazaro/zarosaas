@@ -136,10 +136,27 @@ const AdminBarbeiros = () => {
     }
     setSaving(true);
     try {
+      const saveLunch = async (barberId: string) => {
+        if (!tenantId) return;
+        const key = `barber_lunch_${barberId}`;
+        const { data: existing } = await supabase
+          .from("site_settings")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("key", key)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from("site_settings").update({ value: JSON.stringify(lunchForm), updated_at: new Date().toISOString() } as any).eq("id", existing.id);
+        } else {
+          await supabase.from("site_settings").insert({ key, value: JSON.stringify(lunchForm), tenant_id: tenantId } as any);
+        }
+      };
+
       if (editingId) {
         const photoUrl = await uploadPhoto(editingId);
         await updateBarber(editingId, { ...parsed.data, ...(photoUrl ? { photo_url: photoUrl } : {}) });
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
+        await saveLunch(editingId);
         toast.success("Barbeiro atualizado!");
       } else {
         const { data: newBarber, error } = await supabase
@@ -151,6 +168,7 @@ const AdminBarbeiros = () => {
           await updateBarber(barberId, { photo_url: photoUrl });
         }
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
+        await saveLunch(barberId);
         toast.success("Barbeiro criado!");
       }
       setDialogOpen(false);
