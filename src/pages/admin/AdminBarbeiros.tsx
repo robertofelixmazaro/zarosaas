@@ -407,7 +407,7 @@ const AdminBarbeiros = () => {
           <div className="space-y-4">
             {credHasUser && (
               <p className="text-sm text-muted-foreground">
-                Este barbeiro já possui acesso. Preencha para atualizar email e/ou senha.
+                Este profissional já possui acesso. Preencha para atualizar email e/ou senha.
               </p>
             )}
             <div>

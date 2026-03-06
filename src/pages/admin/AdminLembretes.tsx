@@ -101,7 +101,7 @@ const AdminLembretes = () => {
       `📅 Data: *${dateStr}*\n` +
       `🕐 Horário: *${timeStr}*\n` +
       `✂️ Serviço: *${serviceName}*\n` +
-      `💈 Barbeiro: *${barberName}*\n\n` +
+      `💈 Profissional: *${barberName}*\n\n` +
       `Estamos te esperando! 😄`
     );
   };

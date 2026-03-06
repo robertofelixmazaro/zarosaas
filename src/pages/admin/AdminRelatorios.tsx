@@ -239,7 +239,7 @@ const AdminRelatorios = () => {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Agendamentos por Barbeiro</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Agendamentos por Profissional</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={barberData.map((b) => ({ name: b.name, value: filtered.filter((a) => (a.barbers?.name || barberMap[a.barber_id]) === b.name).length }))}>
