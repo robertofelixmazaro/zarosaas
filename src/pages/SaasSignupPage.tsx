@@ -56,6 +56,7 @@ const AccountTypeSelector = ({ value, onChange }: { value: AccountType; onChange
 
 const SaasSignupPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
