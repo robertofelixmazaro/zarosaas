@@ -130,6 +130,11 @@ const AppRoutes = () => (
     <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
     <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
 
+    {/* Staff */}
+    <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
+    <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
+    <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
+
     {/* Tenant public routes */}
     <Route path="/t/:slug/*" element={<TenantRoutes />} />
 
