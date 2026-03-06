@@ -3,7 +3,7 @@ import { fetchAppointmentsAdmin, fetchBarbers, fetchBarberByUserId, DbAppointmen
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert, ShieldAlert, UserX, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
