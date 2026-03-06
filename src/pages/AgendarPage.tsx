@@ -29,6 +29,7 @@ const AgendarPage = () => {
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ time: string; duration: number }[]>([]);
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
+  const [barberLunch, setBarberLunch] = useState<{ enabled: boolean; start: string; end: string } | null>(null);
   const [selectedService, setSelectedService] = useState<DbService | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<DbBarber | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
