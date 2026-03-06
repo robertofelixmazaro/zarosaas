@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare, CreditCard } from "lucide-react";
+import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
 import { addDays, addMonths, addYears, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
@@ -542,6 +543,9 @@ const AdminConfig = () => {
           </Button>
         </div>
       </div>
+
+      {/* WhatsApp Notifications */}
+      <WhatsAppNotificationConfig />
 
       {/* Taxa de entrega */}
       <div className="rounded-lg border bg-card p-5">

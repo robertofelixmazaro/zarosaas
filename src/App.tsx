@@ -46,6 +46,9 @@ import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
 import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
 import ComprarPage from "./pages/ComprarPage";
+import ConfirmAppointmentPage from "./pages/ConfirmAppointmentPage";
+import CancelAppointmentPage from "./pages/CancelAppointmentPage";
+import PlatformWhatsApp from "./pages/platform/PlatformWhatsApp";
 import NotFound from "./pages/NotFound";
 import StaffLayout from "./components/StaffLayout";
 import StaffDashboard from "./pages/staff/StaffDashboard";
@@ -102,6 +105,8 @@ const AppRoutes = () => (
     <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/comprar" element={<ComprarPage />} />
+    <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
+    <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
 
     {/* Legacy redirects */}
     <Route path="/entrar" element={<Navigate to="/login" replace />} />
@@ -122,6 +127,7 @@ const AppRoutes = () => (
     <Route path="/super-admin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
     <Route path="/super-admin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
     <Route path="/super-admin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
+    <Route path="/super-admin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformWhatsApp /></ProtectedRoute>} />
     {/* Legacy super admin redirects */}
     <Route path="/admin-platform" element={<Navigate to="/super-admin/dashboard" replace />} />
     <Route path="/admin-platform/*" element={<Navigate to="/super-admin/dashboard" replace />} />
