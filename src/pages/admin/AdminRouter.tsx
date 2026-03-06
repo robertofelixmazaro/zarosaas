@@ -28,6 +28,12 @@ const AdminRouter = () => {
         return;
       }
 
+      // Staff go to their dashboard
+      if (userRole === "staff") {
+        setChecking(false);
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("profiles" as any)
         .select("tenant_id")
