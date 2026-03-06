@@ -29,6 +29,7 @@ import AdminGaleria from "./pages/admin/AdminGaleria";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import AdminClientes from "./pages/admin/AdminClientes";
 import AdminBilling from "./pages/admin/AdminBilling";
+import AdminHorarios from "./pages/admin/AdminHorarios";
 import AdminRouter from "./pages/admin/AdminRouter";
 import MinhasAvaliacoes from "./pages/MinhasAvaliacoes";
 import QRCodePage from "./pages/QRCodePage";
