@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
         phone: phone || null,
         address: address || null,
         owner_user_id: user.id,
+        niche: business_type || "other",
       })
       .select("id, slug")
       .single();
