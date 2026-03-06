@@ -98,6 +98,7 @@ const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0", 
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            {shareUrl && <ShareButton url={shareUrl} title={shopName} />}
             <Link to={`${basePath}/agendar`} className="hidden sm:inline-flex">
               <Button size="sm" className="gap-1.5 font-semibold shadow-md shadow-primary/20">
                 Agendar <ChevronRight className="h-3.5 w-3.5" />
