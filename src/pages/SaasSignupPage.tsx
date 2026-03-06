@@ -66,6 +66,15 @@ const SaasSignupPage = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
 
+  // Capture referral code from URL or localStorage
+  const refCode = searchParams.get("ref") || localStorage.getItem("zaro_ref_code") || "";
+
+  useEffect(() => {
+    if (refCode) {
+      localStorage.setItem("zaro_ref_code", refCode);
+    }
+  }, [refCode]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
