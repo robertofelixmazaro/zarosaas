@@ -211,7 +211,7 @@ const AdminRelatorios = () => {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Faturamento por Barbeiro</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Faturamento por Profissional</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={barberData}>
