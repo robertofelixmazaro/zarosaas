@@ -13,6 +13,7 @@ export interface Tenant {
   address: string | null;
   created_at: string;
   active?: boolean;
+  niche?: string | null;
 }
 
 interface TenantContextType {
