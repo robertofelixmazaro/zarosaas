@@ -98,7 +98,6 @@ const AdminAgendamentos = () => {
 
     // Load business hours
     if (tenantId) {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { data: bhData } = await supabase
         .from("site_settings")
         .select("value")
