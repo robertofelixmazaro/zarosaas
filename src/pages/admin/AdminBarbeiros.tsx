@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { getNicheLabels } from "@/lib/nicheLabels";
 
 const barberSchema = z.object({
   name: z.string().trim().min(1, "Nome obrigatório").max(100),
@@ -33,7 +34,8 @@ const defaultLunch: LunchForm = { enabled: true, start: "12:00", end: "13:00" };
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const AdminBarbeiros = () => {
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const { canAddStaff, limits } = usePlanLimits();
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
@@ -157,7 +159,7 @@ const AdminBarbeiros = () => {
         await updateBarber(editingId, { ...parsed.data, ...(photoUrl ? { photo_url: photoUrl } : {}) });
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         await saveLunch(editingId);
-        toast.success("Barbeiro atualizado!");
+        toast.success(`${nicheLabels.staffSingular} atualizado!`);
       } else {
         const { data: newBarber, error } = await supabase
           .from("barbers" as any).insert({ ...parsed.data, tenant_id: tenantId } as any).select("id").single();
@@ -169,7 +171,7 @@ const AdminBarbeiros = () => {
         }
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
         await saveLunch(barberId);
-        toast.success("Barbeiro criado!");
+        toast.success(`${nicheLabels.staffSingular} criado!`);
       }
       setDialogOpen(false);
       loadData();
@@ -182,7 +184,7 @@ const AdminBarbeiros = () => {
   const handleToggleActive = async (b: DbBarber) => {
     try {
       await updateBarber(b.id, { active: !b.active });
-      toast.success(b.active ? "Barbeiro desativado" : "Barbeiro ativado");
+      toast.success(b.active ? `${nicheLabels.staffSingular} desativado` : `${nicheLabels.staffSingular} ativado`);
       loadData();
     } catch (err: any) {
       toast.error("Erro", { description: err.message });
@@ -190,7 +192,7 @@ const AdminBarbeiros = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este barbeiro?")) return;
+    if (!confirm(`Excluir este ${nicheLabels.staffSingular.toLowerCase()}?`)) return;
     try {
       // Delete related availability records first
       await supabase.from("barber_availability" as any).delete().eq("barber_id", id);
@@ -200,7 +202,7 @@ const AdminBarbeiros = () => {
       await supabase.from("appointments" as any).delete().eq("barber_id", id);
       // Now delete the barber
       await deleteBarber(id);
-      toast.success("Barbeiro excluído!");
+      toast.success(`${nicheLabels.staffSingular} excluído!`);
       loadData();
     } catch (err: any) {
       toast.error("Erro ao excluir", { description: err.message });
@@ -258,7 +260,7 @@ const AdminBarbeiros = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Barbeiros</h2>
+          <h2 className="text-xl font-bold">{nicheLabels.staffTitle}</h2>
           <p className="text-sm text-muted-foreground">Gerencie sua equipe</p>
         </div>
         <Button size="sm" className="gap-2" onClick={openCreate}><Plus className="h-4 w-4" /> Adicionar</Button>
@@ -298,7 +300,7 @@ const AdminBarbeiros = () => {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openCredentials(b)} title="Acesso do barbeiro">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openCredentials(b)} title={`Acesso do ${nicheLabels.staffSingular.toLowerCase()}`}>
                     <KeyRound className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(b)}><Edit className="h-4 w-4" /></Button>
@@ -314,7 +316,7 @@ const AdminBarbeiros = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar Barbeiro" : "Novo Barbeiro"}</DialogTitle>
+            <DialogTitle>{editingId ? `Editar ${nicheLabels.staffSingular}` : `Novo ${nicheLabels.staffSingular}`}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Photo upload */}
@@ -349,7 +351,7 @@ const AdminBarbeiros = () => {
 
             <div>
               <label className="text-sm font-medium mb-1 block">Nome *</label>
-              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nome do barbeiro" />
+              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={`Nome do ${nicheLabels.staffSingular.toLowerCase()}`} />
               {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
