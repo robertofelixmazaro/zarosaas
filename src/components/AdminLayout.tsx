@@ -71,8 +71,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { signOut, userRole } = useAuth();
   const { tenantSlug, tenant } = useTenant();
   const { limits, loading: limitsLoading } = usePlanLimits();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const role = userRole || "client";
+  const allNavItems = getNavItems(nicheLabels.staffTitle);
   const navItems = allNavItems.filter((item) => item.roles.includes(role)).map(item => ({
     ...item,
     path: `${basePath}${item.path}`,
