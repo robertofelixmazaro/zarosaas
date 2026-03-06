@@ -29,6 +29,7 @@ const AgendarPage = () => {
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ time: string; duration: number }[]>([]);
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
+  const [barberLunch, setBarberLunch] = useState<{ enabled: boolean; start: string; end: string } | null>(null);
   const [selectedService, setSelectedService] = useState<DbService | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<DbBarber | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -107,6 +108,22 @@ const AgendarPage = () => {
   useEffect(() => {
     if (selectedBarber) {
       fetchBarberAvailability(selectedBarber.id, tenantId || undefined).then(setAvailability);
+      // Load barber-specific lunch break
+      if (tenantId) {
+        supabase
+          .from("site_settings")
+          .select("value")
+          .eq("tenant_id", tenantId)
+          .eq("key", `barber_lunch_${selectedBarber.id}`)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.value) {
+              try { setBarberLunch(JSON.parse(data.value)); } catch { setBarberLunch(null); }
+            } else {
+              setBarberLunch(null);
+            }
+          });
+      }
     }
   }, [selectedBarber, tenantId]);
 
@@ -172,7 +189,8 @@ const AgendarPage = () => {
       dayOfWeek,
       selectedService.duration_minutes,
       businessHours,
-      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null
+      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null,
+      barberLunch
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");

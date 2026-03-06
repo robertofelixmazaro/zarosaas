@@ -20,12 +20,15 @@ const barberSchema = z.object({
 const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 interface AvailForm { active: boolean; start_time: string; end_time: string; }
+interface LunchForm { enabled: boolean; start: string; end: string; }
 
 const defaultAvail: AvailForm[] = Array.from({ length: 7 }, (_, i) => ({
   active: i >= 1 && i <= 5,
   start_time: "09:00",
   end_time: "18:00",
 }));
+
+const defaultLunch: LunchForm = { enabled: true, start: "12:00", end: "13:00" };
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -39,6 +42,7 @@ const AdminBarbeiros = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", specialty: "" });
   const [availForm, setAvailForm] = useState<AvailForm[]>(defaultAvail);
+  const [lunchForm, setLunchForm] = useState<LunchForm>(defaultLunch);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -68,11 +72,12 @@ const AdminBarbeiros = () => {
       return;
     }
     setForm({ name: "", specialty: "" }); setEditingId(null); setErrors({});
-    setAvailForm(defaultAvail); setPhotoFile(null); setPhotoPreview(null);
+    setAvailForm(defaultAvail); setLunchForm(defaultLunch);
+    setPhotoFile(null); setPhotoPreview(null);
     setDialogOpen(true);
   };
 
-  const openEdit = (b: DbBarber) => {
+  const openEdit = async (b: DbBarber) => {
     setForm({ name: b.name, specialty: b.specialty || "" });
     setEditingId(b.id); setErrors({});
     setPhotoFile(null);
@@ -84,7 +89,24 @@ const AdminBarbeiros = () => {
         ? { active: existing.active, start_time: existing.start_time?.slice(0, 5), end_time: existing.end_time?.slice(0, 5) }
         : { active: false, start_time: "09:00", end_time: "18:00" };
     });
-    setAvailForm(avail); setDialogOpen(true);
+    setAvailForm(avail);
+    
+    // Load barber lunch break
+    if (tenantId) {
+      const { data: lunchData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", `barber_lunch_${b.id}`)
+        .maybeSingle();
+      if (lunchData?.value) {
+        try { setLunchForm(JSON.parse(lunchData.value)); } catch { setLunchForm(defaultLunch); }
+      } else {
+        setLunchForm(defaultLunch);
+      }
+    }
+    
+    setDialogOpen(true);
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,10 +136,27 @@ const AdminBarbeiros = () => {
     }
     setSaving(true);
     try {
+      const saveLunch = async (barberId: string) => {
+        if (!tenantId) return;
+        const key = `barber_lunch_${barberId}`;
+        const { data: existing } = await supabase
+          .from("site_settings")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("key", key)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from("site_settings").update({ value: JSON.stringify(lunchForm), updated_at: new Date().toISOString() } as any).eq("id", existing.id);
+        } else {
+          await supabase.from("site_settings").insert({ key, value: JSON.stringify(lunchForm), tenant_id: tenantId } as any);
+        }
+      };
+
       if (editingId) {
         const photoUrl = await uploadPhoto(editingId);
         await updateBarber(editingId, { ...parsed.data, ...(photoUrl ? { photo_url: photoUrl } : {}) });
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: editingId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
+        await saveLunch(editingId);
         toast.success("Barbeiro atualizado!");
       } else {
         const { data: newBarber, error } = await supabase
@@ -129,6 +168,7 @@ const AdminBarbeiros = () => {
           await updateBarber(barberId, { photo_url: photoUrl });
         }
         await upsertAvailability(availForm.map((a, i) => ({ barber_id: barberId, day_of_week: i, tenant_id: tenantId || undefined, ...a })));
+        await saveLunch(barberId);
         toast.success("Barbeiro criado!");
       }
       setDialogOpen(false);
@@ -328,6 +368,22 @@ const AdminBarbeiros = () => {
                     <Input type="time" value={availForm[i].end_time} onChange={e => updateAvailDay(i, { end_time: e.target.value })} disabled={!availForm[i].active} className="w-28 text-sm" />
                   </div>
                 ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Intervalo / Almoço</label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <Switch checked={lunchForm.enabled} onCheckedChange={v => setLunchForm(prev => ({ ...prev, enabled: v }))} />
+                  <span className="text-sm font-medium">Habilitar intervalo</span>
+                </div>
+                {lunchForm.enabled && (
+                  <div className="flex items-center gap-3 ml-12">
+                    <Input type="time" value={lunchForm.start} onChange={e => setLunchForm(prev => ({ ...prev, start: e.target.value }))} className="w-28 text-sm" />
+                    <span className="text-muted-foreground text-sm">até</span>
+                    <Input type="time" value={lunchForm.end} onChange={e => setLunchForm(prev => ({ ...prev, end: e.target.value }))} className="w-28 text-sm" />
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex gap-2 justify-end">

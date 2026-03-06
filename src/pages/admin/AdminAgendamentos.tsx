@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, fetchBookedSlots, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { generateRawSlots, filterAvailableSlots, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ const AdminAgendamentos = () => {
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
   const [dialogBookedSlots, setDialogBookedSlots] = useState<{ time: string; duration: number }[]>([]);
+  const [dialogBarberLunch, setDialogBarberLunch] = useState<{ enabled: boolean; start: string; end: string } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedBarberId, setSelectedBarberId] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -96,7 +98,6 @@ const AdminAgendamentos = () => {
 
     // Load business hours
     if (tenantId) {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { data: bhData } = await supabase
         .from("site_settings")
         .select("value")
@@ -172,6 +173,22 @@ const AdminAgendamentos = () => {
       setSelectedDate(undefined);
       setSelectedTime("");
       setDialogBookedSlots([]);
+      // Load barber lunch
+      if (tenantId) {
+        supabase
+          .from("site_settings")
+          .select("value")
+          .eq("tenant_id", tenantId)
+          .eq("key", `barber_lunch_${selectedBarberId}`)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.value) {
+              try { setDialogBarberLunch(JSON.parse(data.value)); } catch { setDialogBarberLunch(null); }
+            } else {
+              setDialogBarberLunch(null);
+            }
+          });
+      }
     }
   }, [selectedBarberId, tenantId]);
 
@@ -196,7 +213,8 @@ const AdminAgendamentos = () => {
       dayOfWeek,
       selectedService.duration_minutes,
       adminBusinessHours,
-      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null
+      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null,
+      dialogBarberLunch
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
@@ -261,7 +279,6 @@ const AdminAgendamentos = () => {
     if (!blockAllDay && (!blockStartTime || !blockEndTime)) { toast.error("Preencha os horários"); return; }
     setBlockSaving(true);
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { error } = await supabase.from("blocked_dates" as any).insert({
         blocked_date: blockDate || null, reason: blockReason || null, all_day: blockAllDay,
         start_time: blockAllDay ? null : blockStartTime, end_time: blockAllDay ? null : blockEndTime, barber_id: myBarberId,

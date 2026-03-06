@@ -858,6 +858,7 @@ export type Database = {
           icon: string | null
           id: string
           image_url: string | null
+          is_full_day: boolean | null
           name: string
           price: number
           tenant_id: string | null
@@ -870,6 +871,7 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
+          is_full_day?: boolean | null
           name: string
           price: number
           tenant_id?: string | null
@@ -882,6 +884,7 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
+          is_full_day?: boolean | null
           name?: string
           price?: number
           tenant_id?: string | null
