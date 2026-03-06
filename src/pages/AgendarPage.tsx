@@ -51,7 +51,12 @@ const AgendarPage = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchServices(tenantId || undefined), fetchBarbers(tenantId || undefined), fetchBlockedDates(tenantId || undefined)]).then(([s, b, bd]) => {
+   const loadInitial = async () => {
+      const [s, b, bd] = await Promise.all([
+        fetchServices(tenantId || undefined),
+        fetchBarbers(tenantId || undefined),
+        fetchBlockedDates(tenantId || undefined),
+      ]);
       setServices(s);
       setBarbersList(b);
       setBlockedDates(bd);
@@ -59,8 +64,25 @@ const AgendarPage = () => {
         const found = s.find((svc) => svc.id === preSelectedServiceId);
         if (found) setSelectedService(found);
       }
+
+      // Load business hours from site_settings
+      if (tenantId) {
+        const { data: bhData } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("tenant_id", tenantId)
+          .eq("key", "business_hours")
+          .maybeSingle();
+        if (bhData?.value) {
+          try {
+            setBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
+          } catch {}
+        }
+      }
+
       setLoading(false);
-    });
+    };
+    loadInitial();
 
     // Load no-show policy from tenant
     if (tenantId) {
