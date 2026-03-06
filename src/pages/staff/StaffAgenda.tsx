@@ -49,7 +49,7 @@ const StaffAgenda = () => {
   }, [barberId, selectedDate]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    await supabase.from("appointments").update({ status: newStatus }).eq("id", id);
+    await supabase.from("appointments").update({ status: newStatus as any }).eq("id", id);
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
     );
