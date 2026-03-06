@@ -697,7 +697,10 @@ const AdminConfig = () => {
       </div>
 
       {/* QR Code */}
-      <div className="rounded-lg border bg-card p-5">
+      {/* Push Notifications */}
+      <PushNotificationSection />
+
+      {/* QR Code */}
         <div className="flex items-center gap-2 mb-4">
           <QrCode className="h-5 w-5" />
           <h3 className="font-semibold">QR Code de Acesso</h3>
