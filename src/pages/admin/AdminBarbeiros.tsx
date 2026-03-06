@@ -370,6 +370,21 @@ const AdminBarbeiros = () => {
                 ))}
               </div>
             </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Intervalo / Almoço</label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <Switch checked={lunchForm.enabled} onCheckedChange={v => setLunchForm(prev => ({ ...prev, enabled: v }))} />
+                  <span className="text-sm font-medium">Habilitar intervalo</span>
+                </div>
+                {lunchForm.enabled && (
+                  <div className="flex items-center gap-3 ml-12">
+                    <Input type="time" value={lunchForm.start} onChange={e => setLunchForm(prev => ({ ...prev, start: e.target.value }))} className="w-28 text-sm" />
+                    <span className="text-muted-foreground text-sm">até</span>
+                    <Input type="time" value={lunchForm.end} onChange={e => setLunchForm(prev => ({ ...prev, end: e.target.value }))} className="w-28 text-sm" />
+                  </div>
+                )}
+              </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
               <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
