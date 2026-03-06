@@ -68,6 +68,7 @@ const AdminRouter = () => {
   if (!user) return <Navigate to="/login" replace />;
   if (userRole === "super_admin") return <Navigate to="/super-admin/dashboard" replace />;
   if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
+  if (userRole === "staff") return <Navigate to="/staff-dashboard" replace />;
 
   // User has tenant → redirect to tenant admin
   if (hasTenant && tenantSlug) {
