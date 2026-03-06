@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
 
       try {
         await resend.emails.send({
-          from: "Corte Certo <onboarding@resend.dev>",
+          from: "Zaro Agendamentos <onboarding@resend.dev>",
           to: [clientEmail],
           subject,
           html: `
