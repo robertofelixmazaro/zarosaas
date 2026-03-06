@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAppointmentsAdmin, fetchBarbers, fetchServices, DbBarber, DbService } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
+import { getNicheLabels } from "@/lib/nicheLabels";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
