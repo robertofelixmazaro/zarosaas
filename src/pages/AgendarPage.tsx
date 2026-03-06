@@ -268,7 +268,7 @@ const AgendarPage = () => {
                   </div>
                   <div className="text-right">
                     <div className="font-bold">R$ {Number(s.price).toFixed(0)}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {s.duration_minutes}min</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes}min`}</div>
                   </div>
                 </button>
               ))}
