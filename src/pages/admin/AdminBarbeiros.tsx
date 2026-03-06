@@ -20,12 +20,15 @@ const barberSchema = z.object({
 const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 interface AvailForm { active: boolean; start_time: string; end_time: string; }
+interface LunchForm { enabled: boolean; start: string; end: string; }
 
 const defaultAvail: AvailForm[] = Array.from({ length: 7 }, (_, i) => ({
   active: i >= 1 && i <= 5,
   start_time: "09:00",
   end_time: "18:00",
 }));
+
+const defaultLunch: LunchForm = { enabled: true, start: "12:00", end: "13:00" };
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
