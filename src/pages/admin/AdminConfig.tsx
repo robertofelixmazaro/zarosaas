@@ -49,6 +49,7 @@ const defaultSettings: SiteSettings = {
   primary_color: "",
   secondary_color: "",
   button_color: "",
+  whatsapp_default_message: "Olá {{cliente}}, estou entrando em contato sobre seu agendamento de {{servico}} marcado para {{data}} às {{hora}}. — {{empresa}}",
 };
 
 interface BlockedDate {
