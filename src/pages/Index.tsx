@@ -26,7 +26,7 @@ const Index = () => {
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
 
-  // Dynamic PWA manifest - moved after siteSettings query below
+  
 
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
