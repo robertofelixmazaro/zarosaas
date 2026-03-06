@@ -30,6 +30,7 @@ interface SiteSettings {
   primary_color: string;
   secondary_color: string;
   button_color: string;
+  whatsapp_default_message: string;
 }
 
 const defaultSettings: SiteSettings = {
