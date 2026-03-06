@@ -213,7 +213,8 @@ const AdminAgendamentos = () => {
       dayOfWeek,
       selectedService.duration_minutes,
       adminBusinessHours,
-      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null
+      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null,
+      dialogBarberLunch
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
