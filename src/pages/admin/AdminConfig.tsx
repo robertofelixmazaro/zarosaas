@@ -1,13 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare, CreditCard } from "lucide-react";
+import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Eye, EyeOff, QrCode, Download, Truck, MessageSquare, CreditCard } from "lucide-react";
 import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
-import { addDays, addMonths, addYears, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from "date-fns";
+import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fetchAllBarbers, DbBarber } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -53,15 +52,6 @@ const defaultSettings: SiteSettings = {
   whatsapp_default_message: "Olá {{cliente}}, estou entrando em contato sobre seu agendamento de {{servico}} marcado para {{data}} às {{hora}}. — {{empresa}}",
 };
 
-interface BlockedDate {
-  id: string;
-  blocked_date: string;
-  reason: string | null;
-  all_day: boolean;
-  start_time: string | null;
-  end_time: string | null;
-  barber_id: string | null;
-}
 
 const AdminConfig = () => {
   const { user } = useAuth();
@@ -90,12 +80,6 @@ const AdminConfig = () => {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
 
-  // Blocked dates state
-  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
-  const [showBlockForm, setShowBlockForm] = useState(false);
-  const [blockForm, setBlockForm] = useState({ date: "", reason: "", all_day: true, start_time: "08:00", end_time: "18:00", block_mode: "single" as "single" | "week" | "month" | "year", barber_id: "" as string });
-  const [savingBlock, setSavingBlock] = useState(false);
-  const [barbersList, setBarbersList] = useState<DbBarber[]>([]);
 
   // Mercado Pago credentials
   const [mpAccessToken, setMpAccessToken] = useState("");
@@ -110,10 +94,8 @@ const AdminConfig = () => {
   const [savingNoShow, setSavingNoShow] = useState(false);
 
   const loadData = async () => {
-    const [settingsRes, blockedRes, barbers] = await Promise.all([
+    const [settingsRes] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
-      supabase.from("blocked_dates" as any).select("*").eq("tenant_id", tenantId).order("blocked_date"),
-      fetchAllBarbers(tenantId || undefined),
     ]);
     if (settingsRes.data) {
       const map: Record<string, string> = {};
@@ -122,9 +104,6 @@ const AdminConfig = () => {
       if (map.logo_url) setLogoPreview(map.logo_url);
       if (map.cover_image_url) setCoverPreview(map.cover_image_url);
     }
-    if (blockedRes.data) setBlockedDates(blockedRes.data as any);
-    setBarbersList(barbers);
-
     // Load MP credentials from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
@@ -568,204 +547,6 @@ const AdminConfig = () => {
         </div>
       </div>
 
-      {/* Bloquear datas */}
-      <div className="rounded-lg border bg-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <h3 className="font-semibold">Datas e Horários Bloqueados</h3>
-          </div>
-          <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowBlockForm(!showBlockForm)}>
-            <Plus className="h-4 w-4" /> Adicionar
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">Bloqueie datas inteiras ou horários específicos para feriados, folgas ou manutenção</p>
-
-        {showBlockForm && (
-          <div className="border rounded-lg p-4 mb-4 space-y-3 bg-muted/30">
-            {/* Block mode selector */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Período do bloqueio</label>
-              <div className="flex flex-wrap gap-2">
-                {([
-                  { value: "single", label: "Data única" },
-                  { value: "week", label: "Semana inteira" },
-                  { value: "month", label: "Mês inteiro" },
-                  { value: "year", label: "Ano inteiro" },
-                ] as const).map((opt) => (
-                  <Button
-                    key={opt.value}
-                    type="button"
-                    size="sm"
-                    variant={blockForm.block_mode === opt.value ? "default" : "outline"}
-                    onClick={() => setBlockForm({ ...blockForm, block_mode: opt.value })}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Barber selector */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">Barbeiro</label>
-              <Select value={blockForm.barber_id} onValueChange={(v) => setBlockForm({ ...blockForm, barber_id: v === "all" ? "" : v })}>
-                <SelectTrigger><SelectValue placeholder="Todos (geral)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos (bloqueio geral)</SelectItem>
-                  {barbersList.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">Deixe "Todos" para bloquear para todo o negócio</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-1 block">
-                  {blockForm.block_mode === "single" ? "Data" : blockForm.block_mode === "week" ? "Qualquer dia da semana" : blockForm.block_mode === "month" ? "Qualquer dia do mês" : "Qualquer dia do ano"}
-                  {blockForm.block_mode !== "single" && " *"}
-                </label>
-                <Input type="date" value={blockForm.date} onChange={(e) => setBlockForm({ ...blockForm, date: e.target.value })} />
-                {blockForm.block_mode === "single" && !blockForm.date && (
-                  <p className="text-xs text-muted-foreground mt-1">Deixe vazio para bloquear permanentemente</p>
-                )}
-                {blockForm.block_mode !== "single" && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {blockForm.block_mode === "week" && "Todos os dias da semana desta data serão bloqueados"}
-                    {blockForm.block_mode === "month" && "Todos os dias do mês desta data serão bloqueados"}
-                    {blockForm.block_mode === "year" && "Todos os dias do ano desta data serão bloqueados"}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Motivo</label>
-                <Input value={blockForm.reason} onChange={(e) => setBlockForm({ ...blockForm, reason: e.target.value })} placeholder="Ex: Feriado" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch checked={blockForm.all_day} onCheckedChange={(v) => setBlockForm({ ...blockForm, all_day: v })} />
-              <span className="text-sm font-medium">Dia inteiro</span>
-            </div>
-            {!blockForm.all_day && (
-              <div className="flex items-center gap-3">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Início</label>
-                  <Input type="time" value={blockForm.start_time} onChange={(e) => setBlockForm({ ...blockForm, start_time: e.target.value })} className="w-32" />
-                </div>
-                <span className="text-muted-foreground text-sm mt-5">até</span>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Fim</label>
-                  <Input type="time" value={blockForm.end_time} onChange={(e) => setBlockForm({ ...blockForm, end_time: e.target.value })} className="w-32" />
-                </div>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <Button size="sm" disabled={savingBlock} onClick={async () => {
-                if (blockForm.block_mode !== "single" && !blockForm.date) { toast.error("Selecione uma data para bloqueio em período"); return; }
-                setSavingBlock(true);
-                try {
-                  if (blockForm.block_mode === "single" && !blockForm.date) {
-                    // Permanent block (no date)
-                    const { error } = await supabase.from("blocked_dates" as any).insert({
-                      blocked_date: null,
-                      reason: blockForm.reason || null,
-                      all_day: blockForm.all_day,
-                      start_time: blockForm.all_day ? null : blockForm.start_time,
-                      end_time: blockForm.all_day ? null : blockForm.end_time,
-                      barber_id: blockForm.barber_id || null,
-                      tenant_id: tenantId,
-                    } as any);
-                    if (error) throw error;
-                    toast.success("Bloqueio permanente criado!");
-                  } else {
-                    const refDate = new Date(blockForm.date + "T12:00:00");
-                    let dates: Date[] = [];
-
-                    if (blockForm.block_mode === "single") {
-                      dates = [refDate];
-                    } else if (blockForm.block_mode === "week") {
-                      dates = eachDayOfInterval({ start: startOfWeek(refDate, { weekStartsOn: 1 }), end: endOfWeek(refDate, { weekStartsOn: 1 }) });
-                    } else if (blockForm.block_mode === "month") {
-                      dates = eachDayOfInterval({ start: startOfMonth(refDate), end: endOfMonth(refDate) });
-                    } else if (blockForm.block_mode === "year") {
-                      dates = eachDayOfInterval({ start: startOfYear(refDate), end: endOfYear(refDate) });
-                    }
-
-                    const rows = dates.map((d) => ({
-                      blocked_date: format(d, "yyyy-MM-dd"),
-                      reason: blockForm.reason || null,
-                      all_day: blockForm.all_day,
-                      start_time: blockForm.all_day ? null : blockForm.start_time,
-                      end_time: blockForm.all_day ? null : blockForm.end_time,
-                      barber_id: blockForm.barber_id || null,
-                      tenant_id: tenantId,
-                    }));
-
-                    for (let i = 0; i < rows.length; i += 100) {
-                      const batch = rows.slice(i, i + 100);
-                      const { error } = await supabase.from("blocked_dates" as any).insert(batch as any);
-                      if (error) throw error;
-                    }
-                    toast.success(`${rows.length} dia(s) bloqueado(s)!`);
-                  }
-                  setBlockForm({ date: "", reason: "", all_day: true, start_time: "08:00", end_time: "18:00", block_mode: "single", barber_id: "" });
-                  setShowBlockForm(false);
-                  loadData();
-                } catch (err: any) {
-                  toast.error("Erro", { description: err.message });
-                }
-                setSavingBlock(false);
-              }}>{savingBlock ? "Salvando..." : "Salvar"}</Button>
-              <Button variant="outline" size="sm" onClick={() => setShowBlockForm(false)}>Cancelar</Button>
-            </div>
-          </div>
-        )}
-
-        {blockedDates.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">Nenhuma data bloqueada</p>
-        ) : (
-          <div className="space-y-2">
-            {blockedDates.map((bd) => (
-              <div key={bd.id} className="flex items-center justify-between p-3 rounded-lg border bg-background">
-                <div>
-                  <span className="font-medium text-sm">
-                    {bd.blocked_date ? new Date(bd.blocked_date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "Permanente"}
-                  </span>
-                  {bd.all_day ? (
-                    <span className="ml-2 text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded">Dia inteiro</span>
-                  ) : (
-                    <span className="ml-2 text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">
-                      {bd.start_time?.slice(0, 5)} - {bd.end_time?.slice(0, 5)}
-                    </span>
-                  )}
-                  {bd.barber_id && (
-                    <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                      {barbersList.find((b) => b.id === bd.barber_id)?.name || "Barbeiro"}
-                    </span>
-                  )}
-                  {!bd.barber_id && (
-                    <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Geral</span>
-                  )}
-                  {bd.reason && <span className="ml-2 text-sm text-muted-foreground">— {bd.reason}</span>}
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
-                  try {
-                    await supabase.from("blocked_dates" as any).delete().eq("id", bd.id);
-                    toast.success("Bloqueio removido!");
-                    loadData();
-                  } catch (err: any) {
-                    toast.error("Erro", { description: err.message });
-                  }
-                }}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Alterar acesso */}
       <div className="rounded-lg border bg-card p-5">
