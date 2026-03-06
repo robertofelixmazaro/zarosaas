@@ -24,7 +24,7 @@ const menuItems = [
   { label: "Contato", href: "#contato", icon: Phone },
 ];
 
-const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0" }: PremiumNavbarProps) => {
+const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0", shareUrl }: PremiumNavbarProps) => {
   const { tenantSlug } = useTenant();
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [isOpen, setIsOpen] = useState(false);
