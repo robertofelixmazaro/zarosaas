@@ -161,16 +161,16 @@ const AdminAgendamentos = () => {
     if (!selectedBarberId || !selectedDate || !selectedService) return [];
     const dayOfWeek = selectedDate.getDay();
     const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
-    if (!avail) return [];
-    const allSlots = generateTimeSlots(avail.start_time, avail.end_time, selectedService.duration_minutes);
+
+    const rawSlots = generateRawSlots(
+      dayOfWeek,
+      selectedService.duration_minutes,
+      adminBusinessHours,
+      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null
+    );
+
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const blocksForDate = blockedDates.filter((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && !bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarberId));
-    if (blocksForDate.length === 0) return allSlots;
-    return allSlots.filter((slot) => !blocksForDate.some((bd) => {
-      const start = bd.start_time?.slice(0, 5) || "00:00";
-      const end = bd.end_time?.slice(0, 5) || "23:59";
-      return slot >= start && slot < end;
-    }));
+    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, [], blockedDates, selectedBarberId);
   };
 
   const handleCreate = async () => {
