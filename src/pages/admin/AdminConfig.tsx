@@ -742,6 +742,62 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* Mercado Pago */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="h-5 w-5" />
+          <h3 className="font-semibold">Pagamentos — Mercado Pago</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Conecte sua conta do Mercado Pago para receber pagamentos diretamente. Os valores serão depositados na sua conta.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Access Token</label>
+            <Input
+              type="password"
+              value={mpAccessToken}
+              onChange={(e) => setMpAccessToken(e.target.value)}
+              placeholder="APP_USR-..."
+            />
+            <p className="text-xs text-muted-foreground mt-1">Encontre em: Mercado Pago → Seu negócio → Configurações → Credenciais de produção</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Public Key</label>
+            <Input
+              type="password"
+              value={mpPublicKey}
+              onChange={(e) => setMpPublicKey(e.target.value)}
+              placeholder="APP_USR-..."
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingMp}
+            onClick={async () => {
+              setSavingMp(true);
+              try {
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({
+                    mercadopago_access_token: mpAccessToken || null,
+                    mercadopago_public_key: mpPublicKey || null,
+                  } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Credenciais do Mercado Pago salvas!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingMp(false);
+            }}
+          >
+            {savingMp ? "Salvando..." : "Salvar Credenciais MP"}
+          </Button>
+        </div>
+      </div>
+
       {/* QR Code */}
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
