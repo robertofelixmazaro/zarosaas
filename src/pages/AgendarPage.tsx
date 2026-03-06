@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, generateTimeSlots, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { generateRawSlots, filterAvailableSlots, isDateBlocked, isDayActive, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
 import { useTenant } from "@/contexts/TenantContext";
 import { getNicheLabels } from "@/lib/nicheLabels";
 import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
@@ -27,6 +28,7 @@ const AgendarPage = () => {
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ time: string; duration: number }[]>([]);
+  const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
   const [selectedService, setSelectedService] = useState<DbService | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<DbBarber | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -49,7 +51,12 @@ const AgendarPage = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchServices(tenantId || undefined), fetchBarbers(tenantId || undefined), fetchBlockedDates(tenantId || undefined)]).then(([s, b, bd]) => {
+   const loadInitial = async () => {
+      const [s, b, bd] = await Promise.all([
+        fetchServices(tenantId || undefined),
+        fetchBarbers(tenantId || undefined),
+        fetchBlockedDates(tenantId || undefined),
+      ]);
       setServices(s);
       setBarbersList(b);
       setBlockedDates(bd);
@@ -57,8 +64,25 @@ const AgendarPage = () => {
         const found = s.find((svc) => svc.id === preSelectedServiceId);
         if (found) setSelectedService(found);
       }
+
+      // Load business hours from site_settings
+      if (tenantId) {
+        const { data: bhData } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("tenant_id", tenantId)
+          .eq("key", "business_hours")
+          .maybeSingle();
+        if (bhData?.value) {
+          try {
+            setBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
+          } catch {}
+        }
+      }
+
       setLoading(false);
-    });
+    };
+    loadInitial();
 
     // Load no-show policy from tenant
     if (tenantId) {
@@ -136,53 +160,30 @@ const AgendarPage = () => {
 
   const currentStepIndex = steps.findIndex((s) => s.key === step);
 
-  const isSlotInPast = (slot: string) => {
-    if (!selectedDate) return false;
-    const today = format(now, "yyyy-MM-dd");
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    if (dateStr < today) return true;
-    if (dateStr === today) {
-      const currentTime = format(now, "HH:mm");
-      return slot <= currentTime;
-    }
-    return false;
-  };
-
   const getAvailableSlots = () => {
     if (!selectedBarber || !selectedDate || !selectedService) return [];
     const dayOfWeek = selectedDate.getDay();
-    const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
-    if (!avail) return [];
-    const allSlots = generateTimeSlots(avail.start_time, avail.end_time, selectedService.duration_minutes);
+    const barberAvail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
+
+    const rawSlots = generateRawSlots(
+      dayOfWeek,
+      selectedService.duration_minutes,
+      businessHours,
+      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null
+    );
+
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const blocksForDate = blockedDates.filter((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && !bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber.id));
-    const serviceDuration = selectedService.duration_minutes;
-    return allSlots.filter((slot) => {
-      // Filter past slots
-      if (isSlotInPast(slot)) return false;
-      // Filter blocked slots
-      const isBlocked = blocksForDate.some((bd) => {
-        const start = bd.start_time?.slice(0, 5) || "00:00";
-        const end = bd.end_time?.slice(0, 5) || "23:59";
-        return slot >= start && slot < end;
-      });
-      if (isBlocked) return false;
-      // Filter already booked slots (with overlap detection)
-      const slotStart = timeToMin(slot);
-      const slotEnd = slotStart + serviceDuration;
-      const isBooked = bookedSlots.some((b) => {
-        const bStart = timeToMin(b.time);
-        const bEnd = bStart + b.duration;
-        return slotStart < bEnd && slotEnd > bStart;
-      });
-      return !isBooked;
-    });
+    return filterAvailableSlots(
+      rawSlots,
+      dateStr,
+      selectedService.duration_minutes,
+      bookedSlots,
+      blockedDates,
+      selectedBarber.id,
+      now
+    );
   };
 
-  const timeToMin = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  };
   const handleConfirm = async () => {
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) return;
     try {
@@ -304,10 +305,10 @@ const AgendarPage = () => {
                 disabled={(date) => {
                   if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
                   const dateStr = format(date, "yyyy-MM-dd");
-                  const allDayBlock = blockedDates.some((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber?.id));
-                  if (allDayBlock) return true;
+                  if (isDateBlocked(dateStr, blockedDates, selectedBarber?.id)) return true;
                   const day = date.getDay();
-                  return !availability.some((a) => a.day_of_week === day && a.active);
+                  const barberAvail = availability.find((a) => a.day_of_week === day && a.active);
+                  return !isDayActive(day, businessHours, barberAvail ? { active: barberAvail.active } : null);
                 }}
                 locale={ptBR}
                 className="rounded-lg border p-3 pointer-events-auto"

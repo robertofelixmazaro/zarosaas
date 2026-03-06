@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, generateTimeSlots, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { generateRawSlots, filterAvailableSlots, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ const AdminAgendamentos = () => {
   const [blockReason, setBlockReason] = useState("");
   const [blockSaving, setBlockSaving] = useState(false);
   const [myBlockedDates, setMyBlockedDates] = useState<DbBlockedDate[]>([]);
+  const [adminBusinessHours, setAdminBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
 
   const loadData = useCallback(async (barberId?: string) => {
     const [data, bList, sList] = await Promise.all([
@@ -90,6 +92,23 @@ const AdminAgendamentos = () => {
       const allBlocked = await fetchBlockedDates(tenantId || undefined);
       setMyBlockedDates(allBlocked.filter((bd) => bd.barber_id === barberId));
     }
+
+    // Load business hours
+    if (tenantId) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: bhData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", "business_hours")
+        .maybeSingle();
+      if (bhData?.value) {
+        try {
+          setAdminBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
+        } catch {}
+      }
+    }
+
     setLoading(false);
   }, [tenantId]);
 
@@ -160,16 +179,16 @@ const AdminAgendamentos = () => {
     if (!selectedBarberId || !selectedDate || !selectedService) return [];
     const dayOfWeek = selectedDate.getDay();
     const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
-    if (!avail) return [];
-    const allSlots = generateTimeSlots(avail.start_time, avail.end_time, selectedService.duration_minutes);
+
+    const rawSlots = generateRawSlots(
+      dayOfWeek,
+      selectedService.duration_minutes,
+      adminBusinessHours,
+      avail ? { start_time: avail.start_time, end_time: avail.end_time, active: avail.active } : null
+    );
+
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const blocksForDate = blockedDates.filter((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && !bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarberId));
-    if (blocksForDate.length === 0) return allSlots;
-    return allSlots.filter((slot) => !blocksForDate.some((bd) => {
-      const start = bd.start_time?.slice(0, 5) || "00:00";
-      const end = bd.end_time?.slice(0, 5) || "23:59";
-      return slot >= start && slot < end;
-    }));
+    return filterAvailableSlots(rawSlots, dateStr, selectedService.duration_minutes, [], blockedDates, selectedBarberId);
   };
 
   const handleCreate = async () => {
