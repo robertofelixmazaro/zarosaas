@@ -351,7 +351,7 @@ const AdminBarbeiros = () => {
 
             <div>
               <label className="text-sm font-medium mb-1 block">Nome *</label>
-              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nome do barbeiro" />
+              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={`Nome do ${nicheLabels.staffSingular.toLowerCase()}`} />
               {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
