@@ -80,12 +80,6 @@ const AdminConfig = () => {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
 
-  // Blocked dates state
-  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
-  const [showBlockForm, setShowBlockForm] = useState(false);
-  const [blockForm, setBlockForm] = useState({ date: "", reason: "", all_day: true, start_time: "08:00", end_time: "18:00", block_mode: "single" as "single" | "week" | "month" | "year", barber_id: "" as string });
-  const [savingBlock, setSavingBlock] = useState(false);
-  const [barbersList, setBarbersList] = useState<DbBarber[]>([]);
 
   // Mercado Pago credentials
   const [mpAccessToken, setMpAccessToken] = useState("");
