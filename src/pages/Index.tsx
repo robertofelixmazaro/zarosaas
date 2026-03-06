@@ -26,10 +26,7 @@ const Index = () => {
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
 
-  // Dynamic PWA manifest per tenant (color resolved after siteSettings load)
-  const logoForManifest = tenant?.logo_url || "";
-  const themeColorForManifest = siteSettings?.primary_color || undefined;
-  useDynamicManifest(tenant?.name, logoForManifest || undefined, themeColorForManifest);
+  // Dynamic PWA manifest - moved after siteSettings query below
 
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
