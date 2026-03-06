@@ -20,7 +20,7 @@ const serviceSchema = z.object({
   active: z.boolean(),
 });
 
-const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true };
+const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true, is_full_day: false };
 
 const AdminServicos = () => {
   const { tenantId } = useTenant();
