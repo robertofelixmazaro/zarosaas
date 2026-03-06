@@ -11,7 +11,7 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const UnifiedLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, signOut, user, userRole, loading: authLoading, roleLoading } = useAuth();
+  const { signIn, signOut, user, userRole, loading: authLoading, roleLoading, refreshUserRole } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
