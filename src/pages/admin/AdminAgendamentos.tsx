@@ -173,6 +173,22 @@ const AdminAgendamentos = () => {
       setSelectedDate(undefined);
       setSelectedTime("");
       setDialogBookedSlots([]);
+      // Load barber lunch
+      if (tenantId) {
+        supabase
+          .from("site_settings")
+          .select("value")
+          .eq("tenant_id", tenantId)
+          .eq("key", `barber_lunch_${selectedBarberId}`)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.value) {
+              try { setDialogBarberLunch(JSON.parse(data.value)); } catch { setDialogBarberLunch(null); }
+            } else {
+              setDialogBarberLunch(null);
+            }
+          });
+      }
     }
   }, [selectedBarberId, tenantId]);
 
