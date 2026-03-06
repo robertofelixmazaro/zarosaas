@@ -16,7 +16,8 @@ type Step = "servico" | "barbeiro" | "data" | "horario" | "dados" | "confirmacao
 
 const AgendarPage = () => {
   const navigate = useNavigate();
-  const { tenantId, tenantSlug } = useTenant();
+  const { tenantId, tenantSlug, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [searchParams] = useSearchParams();
   const preSelectedServiceId = searchParams.get("servico");
