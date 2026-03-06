@@ -37,6 +37,11 @@ const AgendarPage = () => {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
 
+  // No-show policy
+  const [noShowPolicy, setNoShowPolicy] = useState<{ enabled: boolean; deposit: number; retention: number; cancelHours: number }>({
+    enabled: false, deposit: 0, retention: 100, cancelHours: 4,
+  });
+
   // Real-time clock update every 30s
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
@@ -54,6 +59,25 @@ const AgendarPage = () => {
       }
       setLoading(false);
     });
+
+    // Load no-show policy from tenant
+    if (tenantId) {
+      supabase
+        .from("tenants" as any)
+        .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+        .eq("id", tenantId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setNoShowPolicy({
+              enabled: (data as any).no_show_enabled || false,
+              deposit: Number((data as any).no_show_deposit_value) || 0,
+              retention: Number((data as any).no_show_retention_percentage) || 100,
+              cancelHours: Number((data as any).no_show_cancel_limit_hours) || 4,
+            });
+          }
+        });
+    }
   }, [preSelectedServiceId, tenantId]);
 
   useEffect(() => {
@@ -335,6 +359,19 @@ const AgendarPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* No-show warning */}
+            {noShowPolicy.enabled && noShowPolicy.deposit > 0 && (
+              <div className="mt-4 p-4 rounded-lg border border-warning/30 bg-warning/10">
+                <p className="text-sm font-medium text-foreground mb-1">⚠️ Garantia de Agendamento</p>
+                <p className="text-sm text-muted-foreground">
+                  Este agendamento exige uma garantia de <strong>R$ {noShowPolicy.deposit.toFixed(2)}</strong> para confirmar o horário.
+                  Caso não compareça ou cancele fora do prazo de {noShowPolicy.cancelHours}h antes do horário,
+                  {noShowPolicy.retention}% do valor poderá ser retido.
+                </p>
+              </div>
+            )}
+
             <div className="mt-8 p-5 rounded-lg border bg-muted/50 space-y-2 text-sm">
               <div className="font-semibold text-base mb-3">Resumo do Agendamento</div>
               <div className="flex justify-between"><span className="text-muted-foreground">Serviço</span><span className="font-medium">{selectedService?.name}</span></div>
@@ -342,6 +379,9 @@ const AgendarPage = () => {
               <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span className="font-medium">{selectedDate && format(selectedDate, "dd/MM/yyyy")}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span className="font-medium">{selectedTime}</span></div>
               <div className="flex justify-between border-t pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-bold text-lg">R$ {selectedService && Number(selectedService.price).toFixed(0)}</span></div>
+              {noShowPolicy.enabled && noShowPolicy.deposit > 0 && (
+                <div className="flex justify-between text-warning"><span className="font-medium">Garantia</span><span className="font-medium">R$ {noShowPolicy.deposit.toFixed(2)}</span></div>
+              )}
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="ghost" onClick={() => setStep("horario")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>

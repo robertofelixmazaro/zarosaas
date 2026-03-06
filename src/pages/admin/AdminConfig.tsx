@@ -101,6 +101,13 @@ const AdminConfig = () => {
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [savingMp, setSavingMp] = useState(false);
 
+  // No-show policy
+  const [noShowEnabled, setNoShowEnabled] = useState(false);
+  const [noShowDeposit, setNoShowDeposit] = useState("0");
+  const [noShowRetention, setNoShowRetention] = useState("100");
+  const [noShowCancelHours, setNoShowCancelHours] = useState("4");
+  const [savingNoShow, setSavingNoShow] = useState(false);
+
   const loadData = async () => {
     const [settingsRes, blockedRes, barbers] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
@@ -120,12 +127,16 @@ const AdminConfig = () => {
     // Load MP credentials from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("mercadopago_access_token, mercadopago_public_key")
+      .select("mercadopago_access_token, mercadopago_public_key, no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
       setMpAccessToken((tenantData as any).mercadopago_access_token || "");
       setMpPublicKey((tenantData as any).mercadopago_public_key || "");
+      setNoShowEnabled((tenantData as any).no_show_enabled || false);
+      setNoShowDeposit(String((tenantData as any).no_show_deposit_value || 0));
+      setNoShowRetention(String((tenantData as any).no_show_retention_percentage || 100));
+      setNoShowCancelHours(String((tenantData as any).no_show_cancel_limit_hours || 4));
     }
 
     setLoading(false);
@@ -444,6 +455,91 @@ const AdminConfig = () => {
             <label className="text-sm font-medium mb-1 block">Domingo</label>
             <Input value={settings.hours_sunday} onChange={(e) => setSettings({ ...settings, hours_sunday: e.target.value })} placeholder="Ex: Domingo: Fechado" />
           </div>
+        </div>
+      </div>
+
+      {/* Política de No-Show */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="h-5 w-5" />
+          <h3 className="font-semibold">Política de No-Show (Garantia de Agendamento)</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Configure a política de cobrança por ausência. Quando ativada, os clientes precisarão pagar uma garantia ao agendar.
+        </p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Switch checked={noShowEnabled} onCheckedChange={setNoShowEnabled} />
+            <span className="text-sm font-medium">Ativar política de no-show</span>
+          </div>
+          {noShowEnabled && (
+            <>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Valor da garantia (R$)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={noShowDeposit}
+                  onChange={(e) => setNoShowDeposit(e.target.value)}
+                  placeholder="Ex: 20.00"
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Valor cobrado como garantia no agendamento</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Percentual de retenção (%)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={noShowRetention}
+                  onChange={(e) => setNoShowRetention(e.target.value)}
+                  placeholder="Ex: 50"
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Percentual retido em caso de no-show</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Prazo para cancelamento sem multa (horas)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={noShowCancelHours}
+                  onChange={(e) => setNoShowCancelHours(e.target.value)}
+                  placeholder="Ex: 4"
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Horas antes do agendamento em que o cancelamento é gratuito</p>
+              </div>
+            </>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingNoShow}
+            onClick={async () => {
+              setSavingNoShow(true);
+              try {
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({
+                    no_show_enabled: noShowEnabled,
+                    no_show_deposit_value: Number(noShowDeposit) || 0,
+                    no_show_retention_percentage: Number(noShowRetention) || 100,
+                    no_show_cancel_limit_hours: Number(noShowCancelHours) || 4,
+                  } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Política de no-show salva!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingNoShow(false);
+            }}
+          >
+            {savingNoShow ? "Salvando..." : "Salvar Política de No-Show"}
+          </Button>
         </div>
       </div>
 

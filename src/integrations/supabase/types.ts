@@ -965,6 +965,8 @@ export type Database = {
           created_at: string | null
           id: string
           logo_url: string | null
+          mercadopago_access_token: string | null
+          mercadopago_public_key: string | null
           name: string
           niche: string | null
           owner_user_id: string | null
@@ -978,6 +980,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           logo_url?: string | null
+          mercadopago_access_token?: string | null
+          mercadopago_public_key?: string | null
           name: string
           niche?: string | null
           owner_user_id?: string | null
@@ -991,6 +995,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           logo_url?: string | null
+          mercadopago_access_token?: string | null
+          mercadopago_public_key?: string | null
           name?: string
           niche?: string | null
           owner_user_id?: string | null

@@ -3,7 +3,7 @@ import { fetchAppointmentsAdmin, fetchBarbers, fetchBarberByUserId, DbAppointmen
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert, ShieldAlert, UserX, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -70,12 +70,30 @@ const AdminDashboard = () => {
   const totalHoje = todayAppts.reduce((acc, a) => acc + Number(a.price), 0);
   const totalMes = appointments.reduce((acc, a) => acc + Number(a.price), 0);
 
+  // No-show metrics
+  const noShowAppts = appointments.filter((a) => (a.status as string) === "no_show");
+  const completedAppts = appointments.filter((a) => a.status === "concluido");
+  const totalScheduled = appointments.filter((a) => (a.status as string) !== "cancelado").length;
+  const attendanceRate = totalScheduled > 0 ? Math.round(((totalScheduled - noShowAppts.length) / totalScheduled) * 100) : 100;
+  const depositAppts = appointments.filter((a) => (a as any).deposit_required && (a as any).deposit_paid);
+  const noShowRecovered = noShowAppts.reduce((acc, a) => {
+    const deposit = Number((a as any).deposit_amount) || 0;
+    return acc + deposit;
+  }, 0);
+
   const stats = [
     { icon: Calendar, label: "Agendamentos Hoje", value: todayAppts.length.toString(), color: "text-info" },
     { icon: DollarSign, label: "Faturamento Hoje", value: `R$ ${totalHoje}`, color: "text-success" },
     { icon: TrendingUp, label: "Faturamento Total", value: `R$ ${totalMes}`, color: "text-foreground" },
     ...(isAdmin ? [{ icon: Users, label: "Barbeiros Ativos", value: barbers.length.toString(), color: "text-secondary" }] : []),
   ];
+
+  const noShowStats = isAdmin ? [
+    { icon: UserX, label: "No-Shows", value: noShowAppts.length.toString(), color: "text-destructive" },
+    { icon: DollarSign, label: "Valor Recuperado (No-Show)", value: `R$ ${noShowRecovered.toFixed(0)}`, color: "text-warning" },
+    { icon: CheckCircle, label: "Taxa de Comparecimento", value: `${attendanceRate}%`, color: "text-success" },
+    { icon: ShieldAlert, label: "Agendamentos Garantidos", value: depositAppts.length.toString(), color: "text-info" },
+  ] : [];
 
   if (loading) return <div className="text-center py-10 text-muted-foreground">Carregando...</div>;
 
@@ -111,6 +129,19 @@ const AdminDashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* No-Show Metrics */}
+      {isAdmin && noShowStats.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {noShowStats.map((s) => (
+            <div key={s.label} className="p-5 rounded-lg border bg-card">
+              <div className={`p-2 rounded-lg bg-muted ${s.color} inline-flex mb-3`}><s.icon className="h-4 w-4" /></div>
+              <div className="text-2xl font-bold">{s.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="rounded-lg border bg-card">
         <div className="flex items-center justify-between p-5 border-b">
