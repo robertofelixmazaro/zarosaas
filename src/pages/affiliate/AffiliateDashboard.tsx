@@ -73,10 +73,10 @@ const AffiliateDashboard = () => {
   if (loading) return <div className="p-6 text-muted-foreground">Carregando...</div>;
 
   const cards = [
-    { title: "Total de Vendas", value: stats.totalSales, icon: ShoppingCart, color: "text-primary" },
-    { title: "Comissões", value: `R$ ${stats.totalCommission}`, icon: DollarSign, color: "text-green-500" },
-    { title: "Clientes Ativos", value: stats.clients, icon: Users, color: "text-blue-500" },
-    { title: "Pagamentos Pendentes", value: stats.pending, icon: TrendingUp, color: "text-orange-500" },
+    { title: "Lojas Indicadas", value: stats.referredStores, icon: ShoppingCart, color: "text-primary" },
+    { title: "Comissão Total", value: `R$ ${stats.totalCommission.toFixed(2)}`, icon: DollarSign, color: "text-green-500" },
+    { title: "Comissão Paga", value: `R$ ${stats.commissionPaid.toFixed(2)}`, icon: TrendingUp, color: "text-blue-500" },
+    { title: "Comissão Pendente", value: `R$ ${stats.commissionPending.toFixed(2)}`, icon: Users, color: "text-orange-500" },
   ];
 
   return (
