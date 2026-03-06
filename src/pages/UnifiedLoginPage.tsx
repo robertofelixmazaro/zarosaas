@@ -32,6 +32,9 @@ const UnifiedLoginPage = () => {
       case "affiliate":
         navigate("/affiliate/dashboard", { replace: true });
         break;
+      case "staff":
+        navigate("/staff-dashboard", { replace: true });
+        break;
       case "admin":
       default:
         navigate("/dashboard", { replace: true });

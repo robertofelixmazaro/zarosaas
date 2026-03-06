@@ -47,6 +47,10 @@ import AffiliateSales from "./pages/affiliate/AffiliateSales";
 import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
 import ComprarPage from "./pages/ComprarPage";
 import NotFound from "./pages/NotFound";
+import StaffLayout from "./components/StaffLayout";
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import StaffAgenda from "./pages/staff/StaffAgenda";
+import StaffClientes from "./pages/staff/StaffClientes";
 
 const queryClient = new QueryClient();
 
@@ -56,9 +60,9 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
   if (loading || roleLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!userRole || !allowedRoles.includes(userRole)) {
-    // Redirect to their correct dashboard
     if (userRole === "super_admin") return <Navigate to="/super-admin/dashboard" replace />;
     if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
+    if (userRole === "staff") return <Navigate to="/staff-dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
@@ -125,6 +129,11 @@ const AppRoutes = () => (
     {/* Affiliate */}
     <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
     <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
+
+    {/* Staff */}
+    <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
+    <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
+    <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
 
     {/* Tenant public routes */}
     <Route path="/t/:slug/*" element={<TenantRoutes />} />

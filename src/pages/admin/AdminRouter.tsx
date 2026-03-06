@@ -28,6 +28,12 @@ const AdminRouter = () => {
         return;
       }
 
+      // Staff go to their dashboard
+      if (userRole === "staff") {
+        setChecking(false);
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("profiles" as any)
         .select("tenant_id")
@@ -62,6 +68,7 @@ const AdminRouter = () => {
   if (!user) return <Navigate to="/login" replace />;
   if (userRole === "super_admin") return <Navigate to="/super-admin/dashboard" replace />;
   if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
+  if (userRole === "staff") return <Navigate to="/staff-dashboard" replace />;
 
   // User has tenant → redirect to tenant admin
   if (hasTenant && tenantSlug) {
