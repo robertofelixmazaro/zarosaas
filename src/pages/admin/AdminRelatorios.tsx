@@ -79,7 +79,7 @@ function exportPDF(
 <div class="card"><div class="label">Ticket Médio</div><div class="val">${filtered.length ? fmtBRL(totalGeral / filtered.length) : "R$ 0,00"}</div></div>
 <div class="card"><div class="label">Conclusão</div><div class="val">${filtered.length ? Math.round((totalConcluidos / filtered.length) * 100) : 0}%</div></div>
 </div>
-<table><thead><tr><th>Data</th><th>Horário</th><th>Cliente</th><th>Barbeiro</th><th>Serviço</th><th>Valor</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>
+<table><thead><tr><th>Data</th><th>Horário</th><th>Cliente</th><th>Profissional</th><th>Serviço</th><th>Valor</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>
 </body></html>`;
 
   const w = window.open("", "_blank");
