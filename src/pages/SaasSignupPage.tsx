@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +56,7 @@ const AccountTypeSelector = ({ value, onChange }: { value: AccountType; onChange
 
 const SaasSignupPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -64,6 +65,15 @@ const SaasSignupPage = () => {
   const [accountType, setAccountType] = useState<AccountType>("admin");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
+
+  // Capture referral code from URL or localStorage
+  const refCode = searchParams.get("ref") || localStorage.getItem("zaro_ref_code") || "";
+
+  useEffect(() => {
+    if (refCode) {
+      localStorage.setItem("zaro_ref_code", refCode);
+    }
+  }, [refCode]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -147,13 +157,18 @@ const SaasSignupPage = () => {
     }
 
     setLoading(true);
-    const { error: signupErr } = await signUp(email, password, {
+    const metadata: Record<string, string> = {
       name,
       cpf: strippedCpf,
       phone: phone.replace(/\D/g, ""),
       whatsapp: whatsapp.replace(/\D/g, ""),
       account_type: accountType,
-    });
+    };
+    if (refCode) {
+      metadata.ref_code = refCode;
+    }
+
+    const { error: signupErr } = await signUp(email, password, metadata);
 
     if (signupErr) {
       toast.error("Erro ao criar conta: " + signupErr.message);

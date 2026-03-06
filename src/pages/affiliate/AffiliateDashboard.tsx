@@ -6,7 +6,14 @@ import { DollarSign, Users, ShoppingCart, TrendingUp } from "lucide-react";
 
 const AffiliateDashboard = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ totalSales: 0, totalCommission: 0, clients: 0, pending: 0 });
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalCommission: 0,
+    commissionPaid: 0,
+    commissionPending: 0,
+    clients: 0,
+    referredStores: 0,
+  });
   const [affiliate, setAffiliate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,17 +28,41 @@ const AffiliateDashboard = () => {
 
       if (aff) {
         setAffiliate(aff);
+        const affId = (aff as any).id;
+
         const { data: sales } = await supabase
           .from("affiliate_sales" as any)
           .select("*")
-          .eq("affiliate_id", (aff as any).id);
+          .eq("affiliate_id", affId);
 
         const allSales = (sales as any[]) || [];
+        const paidSales = allSales.filter((s: any) => s.payment_status === "paid");
+        const pendingSales = allSales.filter((s: any) => s.payment_status === "pending");
+
+        // Count referred stores
+        const { count: storeCount } = await supabase
+          .from("tenants" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("referred_by_affiliate_id", affId);
+
+        // Get commissions
+        const { data: commissions } = await supabase
+          .from("affiliate_commissions" as any)
+          .select("amount, status")
+          .eq("affiliate_id", affId);
+
+        const allCommissions = (commissions as any[]) || [];
+        const totalCommission = allCommissions.reduce((sum: number, c: any) => sum + Number(c.amount), 0);
+        const paidCommission = allCommissions.filter((c: any) => c.status === "pago").reduce((sum: number, c: any) => sum + Number(c.amount), 0);
+        const pendingCommission = totalCommission - paidCommission;
+
         setStats({
           totalSales: allSales.length,
-          totalCommission: allSales.filter((s: any) => s.payment_status === "paid").length * 50, // placeholder
-          clients: allSales.filter((s: any) => s.access_released).length,
-          pending: allSales.filter((s: any) => s.payment_status === "pending").length,
+          totalCommission,
+          commissionPaid: paidCommission,
+          commissionPending: pendingCommission,
+          clients: paidSales.length,
+          referredStores: storeCount || 0,
         });
       }
       setLoading(false);
@@ -42,10 +73,10 @@ const AffiliateDashboard = () => {
   if (loading) return <div className="p-6 text-muted-foreground">Carregando...</div>;
 
   const cards = [
-    { title: "Total de Vendas", value: stats.totalSales, icon: ShoppingCart, color: "text-primary" },
-    { title: "Comissões", value: `R$ ${stats.totalCommission}`, icon: DollarSign, color: "text-green-500" },
-    { title: "Clientes Ativos", value: stats.clients, icon: Users, color: "text-blue-500" },
-    { title: "Pagamentos Pendentes", value: stats.pending, icon: TrendingUp, color: "text-orange-500" },
+    { title: "Lojas Indicadas", value: stats.referredStores, icon: ShoppingCart, color: "text-primary" },
+    { title: "Comissão Total", value: `R$ ${stats.totalCommission.toFixed(2)}`, icon: DollarSign, color: "text-green-500" },
+    { title: "Comissão Paga", value: `R$ ${stats.commissionPaid.toFixed(2)}`, icon: TrendingUp, color: "text-blue-500" },
+    { title: "Comissão Pendente", value: `R$ ${stats.commissionPending.toFixed(2)}`, icon: Users, color: "text-orange-500" },
   ];
 
   return (
@@ -54,6 +85,12 @@ const AffiliateDashboard = () => {
         <h1 className="text-2xl font-bold">Dashboard do Afiliado</h1>
         <p className="text-sm text-muted-foreground">
           Seu código de referência: <span className="font-mono font-semibold text-primary">{(affiliate as any)?.ref_code || "—"}</span>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Seu link de indicação:{" "}
+          <span className="font-mono text-primary break-all">
+            {window.location.origin}/ref/{(affiliate as any)?.ref_code || ""}
+          </span>
         </p>
       </div>
 

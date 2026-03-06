@@ -44,6 +44,8 @@ import PlatformStores from "./pages/platform/PlatformStores";
 import AffiliateLayout from "./components/AffiliateLayout";
 import AffiliateDashboard from "./pages/affiliate/AffiliateDashboard";
 import AffiliateSales from "./pages/affiliate/AffiliateSales";
+import AffiliateReferrals from "./pages/affiliate/AffiliateReferrals";
+import ReferralRedirectPage from "./pages/ReferralRedirectPage";
 import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
 import ComprarPage from "./pages/ComprarPage";
 import ConfirmAppointmentPage from "./pages/ConfirmAppointmentPage";
@@ -105,6 +107,7 @@ const AppRoutes = () => (
     <Route path="/cadastrar" element={<SaasSignupPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/comprar" element={<ComprarPage />} />
+    <Route path="/ref/:code" element={<ReferralRedirectPage />} />
     <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
     <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
 
@@ -134,6 +137,7 @@ const AppRoutes = () => (
 
     {/* Affiliate */}
     <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
+    <Route path="/affiliate/referrals" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateReferrals /></AffiliateLayout></ProtectedRoute>} />
     <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
 
     {/* Staff */}
