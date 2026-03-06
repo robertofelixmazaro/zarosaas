@@ -162,6 +162,9 @@ const AgendarPage = () => {
 
   const getAvailableSlots = () => {
     if (!selectedBarber || !selectedDate || !selectedService) return [];
+    // Full-day services don't need time slots
+    if (selectedService.is_full_day) return ["08:00"];
+    
     const dayOfWeek = selectedDate.getDay();
     const barberAvail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
 
