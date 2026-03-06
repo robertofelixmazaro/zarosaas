@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Scissors, ChevronRight, Star, Home, Briefcase, Calendar, ShoppingBag, MessageSquare, Image, Phone, LogIn, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import ShareButton from "@/components/ShareButton";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/contexts/TenantContext";
 
@@ -10,6 +11,7 @@ interface PremiumNavbarProps {
   shopName?: string;
   logoUrl?: string;
   avgRating?: string;
+  shareUrl?: string;
 }
 
 const menuItems = [
