@@ -151,7 +151,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
-          <Scissors className="h-5 w-5" />
+          {tenant?.logo_url ? (
+            <img src={tenant.logo_url} alt={tenant.name} className="h-7 w-7 rounded-full object-cover" />
+          ) : null}
           <span className="font-bold tracking-tight">{tenant?.name || "ADMIN"}</span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
