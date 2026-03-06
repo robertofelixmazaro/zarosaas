@@ -43,3 +43,49 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((r) => r || caches.match('/')))
   );
 });
+
+// Push notification handler
+self.addEventListener('push', (event) => {
+  let data = { title: 'Novo agendamento!', body: 'Você tem um novo agendamento.' };
+  
+  try {
+    if (event.data) {
+      data = event.data.json();
+    }
+  } catch (e) {
+    console.error('Push data parse error:', e);
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'appointment-notification',
+    data: {
+      url: data.url || '/',
+    },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Click on notification -> open app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(url) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
