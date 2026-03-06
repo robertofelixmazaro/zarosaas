@@ -58,7 +58,8 @@ function exportPDF(
   filtered: DbAppointment[],
   barberMap: Record<string, string>,
   totalGeral: number,
-  totalConcluidos: number
+  totalConcluidos: number,
+  businessName: string = "Meu Negócio"
 ) {
   const fmtBRL = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
   const tableRows = filtered
@@ -68,9 +69,9 @@ function exportPDF(
     )
     .join("");
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório Caetano Barber</title>
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório</title>
 <style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1{font-size:20px}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#000;color:#fff}.summary{display:flex;gap:24px;margin:16px 0}.card{background:#f5f5f5;padding:12px 16px;border-radius:8px}.card .label{font-size:11px;color:#666}.card .val{font-size:18px;font-weight:bold}</style></head>
-<body><h1>Relatório — Caetano Barber</h1>
+<body><h1>Relatório — ${businessName}</h1>
 <div class="summary">
 <div class="card"><div class="label">Faturamento Total</div><div class="val">${fmtBRL(totalGeral)}</div></div>
 <div class="card"><div class="label">Agendamentos</div><div class="val">${filtered.length}</div></div>
@@ -89,7 +90,7 @@ function exportPDF(
 }
 
 const AdminRelatorios = () => {
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
@@ -177,7 +178,7 @@ const AdminRelatorios = () => {
               <DropdownMenuItem onClick={() => exportCSV(filtered, barberMap)}>
                 Exportar CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportPDF(filtered, barberMap, totalGeral, totalConcluidos)}>
+              <DropdownMenuItem onClick={() => exportPDF(filtered, barberMap, totalGeral, totalConcluidos, tenant?.name)}>
                 Exportar PDF (Imprimir)
               </DropdownMenuItem>
             </DropdownMenuContent>

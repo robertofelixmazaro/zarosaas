@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, generateTimeSlots, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
-import { Scissors, ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
+import { getNicheLabels } from "@/lib/nicheLabels";
+import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,8 @@ type Step = "servico" | "barbeiro" | "data" | "horario" | "dados" | "confirmacao
 
 const AgendarPage = () => {
   const navigate = useNavigate();
-  const { tenantId, tenantSlug } = useTenant();
+  const { tenantId, tenantSlug, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const [searchParams] = useSearchParams();
   const preSelectedServiceId = searchParams.get("servico");
@@ -101,7 +103,7 @@ const AgendarPage = () => {
 
   const steps: { key: Step; label: string }[] = [
     { key: "servico", label: "Serviço" },
-    { key: "barbeiro", label: "Barbeiro" },
+    { key: "barbeiro", label: nicheLabels.staffSingular },
     { key: "data", label: "Data" },
     { key: "horario", label: "Horário" },
     { key: "dados", label: "Dados" },
@@ -193,8 +195,10 @@ const AgendarPage = () => {
         <div className="container mx-auto flex items-center h-16 px-4 gap-4">
           <Link to={basePath || "/"}><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
-            <Scissors className="h-5 w-5" />
-            <span className="font-bold tracking-tight">CAETANO BARBER</span>
+            {tenant?.logo_url ? (
+              <img src={tenant.logo_url} alt={tenant.name} className="h-8 w-8 rounded-full object-cover" />
+            ) : null}
+            <span className="font-bold tracking-tight">{tenant?.name || "Agendamento"}</span>
           </div>
         </div>
       </header>
@@ -246,7 +250,7 @@ const AgendarPage = () => {
 
         {step === "barbeiro" && (
           <div className="animate-fade-in">
-            <h2 className="text-2xl font-bold mb-2">Escolha o Barbeiro</h2>
+            <h2 className="text-2xl font-bold mb-2">Escolha o {nicheLabels.staffSingular}</h2>
             <p className="text-muted-foreground mb-6">Selecione o profissional de sua preferência</p>
             <div className="grid gap-4">
               {barbersList.map((b) => (
@@ -334,7 +338,7 @@ const AgendarPage = () => {
             <div className="mt-8 p-5 rounded-lg border bg-muted/50 space-y-2 text-sm">
               <div className="font-semibold text-base mb-3">Resumo do Agendamento</div>
               <div className="flex justify-between"><span className="text-muted-foreground">Serviço</span><span className="font-medium">{selectedService?.name}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Barbeiro</span><span className="font-medium">{selectedBarber?.name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{nicheLabels.staffSingular}</span><span className="font-medium">{selectedBarber?.name}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span className="font-medium">{selectedDate && format(selectedDate, "dd/MM/yyyy")}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span className="font-medium">{selectedTime}</span></div>
               <div className="flex justify-between border-t pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-bold text-lg">R$ {selectedService && Number(selectedService.price).toFixed(0)}</span></div>

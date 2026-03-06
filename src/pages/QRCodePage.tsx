@@ -1,14 +1,17 @@
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Scissors } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import barberLogo from "@/assets/caetano-barber-logo.jpeg";
-
-const SITE_URL = "https://horario-ideal.lovable.app";
+import { useTenant } from "@/contexts/TenantContext";
 
 const QRCodePage = () => {
   const qrRef = useRef<HTMLDivElement>(null);
+  const { tenant, tenantSlug } = useTenant();
+  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const siteUrl = `${window.location.origin}${basePath}`;
+  const shopName = tenant?.name || "Meu Negócio";
+  const logoUrl = tenant?.logo_url || "";
 
   const handleDownload = () => {
     if (!qrRef.current) return;
@@ -26,7 +29,7 @@ const QRCodePage = () => {
     img.onload = () => {
       ctx?.drawImage(img, 0, 0, size, size);
       const link = document.createElement("a");
-      link.download = "caetano-barber-qrcode.png";
+      link.download = `${tenantSlug || "negocio"}-qrcode.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     };
@@ -37,8 +40,10 @@ const QRCodePage = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Scissors className="h-6 w-6" />
-          <span className="text-xl font-bold tracking-tight">CAETANO BARBER</span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={shopName} className="h-8 w-8 rounded-full object-cover" />
+          ) : null}
+          <span className="text-xl font-bold tracking-tight">{shopName}</span>
         </div>
 
         <h1 className="text-2xl font-bold">QR Code de Acesso</h1>
@@ -51,28 +56,28 @@ const QRCodePage = () => {
           className="bg-white p-6 rounded-2xl inline-block mx-auto shadow-lg"
         >
           <QRCodeSVG
-            value={SITE_URL}
+            value={siteUrl}
             size={256}
             level="H"
             includeMargin
             fgColor="#000000"
             bgColor="#ffffff"
-            imageSettings={{
-              src: barberLogo,
+            imageSettings={logoUrl ? {
+              src: logoUrl,
               x: undefined,
               y: undefined,
               height: 56,
               width: 56,
               excavate: true,
-            }}
+            } : undefined}
           />
         </div>
 
-        <p className="text-xs text-muted-foreground break-all">{SITE_URL}</p>
+        <p className="text-xs text-muted-foreground break-all">{siteUrl}</p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Button variant="outline" asChild>
-            <Link to="/"><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Link>
+            <Link to={basePath || "/"}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Link>
           </Button>
           <Button onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" /> Baixar QR Code

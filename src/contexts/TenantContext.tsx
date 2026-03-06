@@ -13,6 +13,7 @@ export interface Tenant {
   address: string | null;
   created_at: string;
   active?: boolean;
+  niche?: string | null;
 }
 
 interface TenantContextType {
@@ -68,6 +69,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             slug: row.slug,
             logo_url: row.logo_url,
             active: row.active,
+            niche: row.niche || null,
             owner_user_id: null,
             phone: null,
             address: null,

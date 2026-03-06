@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Scissors, LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { getNicheLabels } from "@/lib/nicheLabels";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -13,17 +14,17 @@ import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 
-const allNavItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "barber"] },
-  { icon: Calendar, label: "Agendamentos", path: "/admin/agendamentos", roles: ["admin", "barber"] },
+const getNavItems = (staffLabel: string) => [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
+  { icon: Calendar, label: "Agendamentos", path: "/admin/agendamentos", roles: ["admin"] },
   { icon: Users, label: "Clientes", path: "/admin/clientes", roles: ["admin"] },
   { icon: Sparkles, label: "Serviços", path: "/admin/servicos", roles: ["admin"] },
-  { icon: Users, label: "Equipe", path: "/admin/barbeiros", roles: ["admin"] },
+  { icon: Users, label: staffLabel, path: "/admin/barbeiros", roles: ["admin"] },
   { icon: Package, label: "Produtos", path: "/admin/produtos", roles: ["admin"] },
   { icon: ShoppingBag, label: "Pedidos", path: "/admin/pedidos", roles: ["admin"] },
   { icon: BarChart3, label: "Relatórios", path: "/admin/relatorios", roles: ["admin"] },
-  { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin", "barber"] },
-  { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin", "barber"] },
+  { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin"] },
+  { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin"] },
   { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
   { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
   { icon: CreditCard, label: "Faturamento", path: "/admin/billing", roles: ["admin"] },
@@ -70,8 +71,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { signOut, userRole } = useAuth();
   const { tenantSlug, tenant } = useTenant();
   const { limits, loading: limitsLoading } = usePlanLimits();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const role = userRole || "client";
+  const allNavItems = getNavItems(nicheLabels.staffTitle);
   const navItems = allNavItems.filter((item) => item.roles.includes(role)).map(item => ({
     ...item,
     path: `${basePath}${item.path}`,
@@ -148,7 +151,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
-          <Scissors className="h-5 w-5" />
+          {tenant?.logo_url ? (
+            <img src={tenant.logo_url} alt={tenant.name} className="h-7 w-7 rounded-full object-cover" />
+          ) : null}
           <span className="font-bold tracking-tight">{tenant?.name || "ADMIN"}</span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">

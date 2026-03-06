@@ -717,7 +717,7 @@ const AdminConfig = () => {
         <div className="flex items-center gap-6">
           <div className="bg-white p-3 rounded-xl">
             <QRCodeSVG
-              value="https://horario-ideal.lovable.app"
+              value={`${window.location.origin}/t/${tenant?.slug || ""}`}
               size={160}
               level="H"
               includeMargin
@@ -735,7 +735,7 @@ const AdminConfig = () => {
               canvas.width = 1024; canvas.height = 1024;
               const svgData = new XMLSerializer().serializeToString(svg);
               const img = new window.Image();
-              img.onload = () => { ctx?.drawImage(img, 0, 0, 1024, 1024); const a = document.createElement("a"); a.download = "caetano-barber-qrcode.png"; a.href = canvas.toDataURL("image/png"); a.click(); };
+              img.onload = () => { ctx?.drawImage(img, 0, 0, 1024, 1024); const a = document.createElement("a"); a.download = `${tenant?.slug || "negocio"}-qrcode.png`; a.href = canvas.toDataURL("image/png"); a.click(); };
               img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
             }}>
               <Download className="h-4 w-4" /> Baixar QR Code
@@ -745,7 +745,7 @@ const AdminConfig = () => {
         </div>
         <div id="admin-qr-wrapper" className="hidden">
           <QRCodeSVG
-            value="https://horario-ideal.lovable.app"
+            value={`${window.location.origin}/t/${tenant?.slug || ""}`}
             size={1024}
             level="H"
             includeMargin
