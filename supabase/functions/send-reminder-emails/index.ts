@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       }
 
       const timeStr = appt.appointment_time.slice(0, 5);
-      const barberName = escapeHtml((appt.barbers as any)?.name || "nosso barbeiro");
+      const barberName = escapeHtml((appt.barbers as any)?.name || "nosso profissional");
       const serviceName = escapeHtml((appt.services as any)?.name || "seu serviço");
       const subject = "⏰ Lembrete: Seu horário é em breve!";
 
