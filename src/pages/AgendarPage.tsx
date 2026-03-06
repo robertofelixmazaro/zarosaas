@@ -338,7 +338,7 @@ const AgendarPage = () => {
             <div className="mt-8 p-5 rounded-lg border bg-muted/50 space-y-2 text-sm">
               <div className="font-semibold text-base mb-3">Resumo do Agendamento</div>
               <div className="flex justify-between"><span className="text-muted-foreground">Serviço</span><span className="font-medium">{selectedService?.name}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Barbeiro</span><span className="font-medium">{selectedBarber?.name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{nicheLabels.staffSingular}</span><span className="font-medium">{selectedBarber?.name}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span className="font-medium">{selectedDate && format(selectedDate, "dd/MM/yyyy")}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span className="font-medium">{selectedTime}</span></div>
               <div className="flex justify-between border-t pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-bold text-lg">R$ {selectedService && Number(selectedService.price).toFixed(0)}</span></div>
