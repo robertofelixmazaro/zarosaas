@@ -316,7 +316,7 @@ const AdminBarbeiros = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar Barbeiro" : "Novo Barbeiro"}</DialogTitle>
+            <DialogTitle>{editingId ? `Editar ${nicheLabels.staffSingular}` : `Novo ${nicheLabels.staffSingular}`}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Photo upload */}
