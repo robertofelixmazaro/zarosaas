@@ -94,10 +94,8 @@ const AdminConfig = () => {
   const [savingNoShow, setSavingNoShow] = useState(false);
 
   const loadData = async () => {
-    const [settingsRes, blockedRes, barbers] = await Promise.all([
+    const [settingsRes] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
-      supabase.from("blocked_dates" as any).select("*").eq("tenant_id", tenantId).order("blocked_date"),
-      fetchAllBarbers(tenantId || undefined),
     ]);
     if (settingsRes.data) {
       const map: Record<string, string> = {};
