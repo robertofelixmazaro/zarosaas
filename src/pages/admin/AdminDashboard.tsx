@@ -70,12 +70,30 @@ const AdminDashboard = () => {
   const totalHoje = todayAppts.reduce((acc, a) => acc + Number(a.price), 0);
   const totalMes = appointments.reduce((acc, a) => acc + Number(a.price), 0);
 
+  // No-show metrics
+  const noShowAppts = appointments.filter((a) => a.status === "no_show");
+  const completedAppts = appointments.filter((a) => a.status === "concluido");
+  const totalScheduled = appointments.filter((a) => !["cancelado"].includes(a.status)).length;
+  const attendanceRate = totalScheduled > 0 ? Math.round(((totalScheduled - noShowAppts.length) / totalScheduled) * 100) : 100;
+  const depositAppts = appointments.filter((a) => (a as any).deposit_required && (a as any).deposit_paid);
+  const noShowRecovered = noShowAppts.reduce((acc, a) => {
+    const deposit = Number((a as any).deposit_amount) || 0;
+    return acc + deposit;
+  }, 0);
+
   const stats = [
     { icon: Calendar, label: "Agendamentos Hoje", value: todayAppts.length.toString(), color: "text-info" },
     { icon: DollarSign, label: "Faturamento Hoje", value: `R$ ${totalHoje}`, color: "text-success" },
     { icon: TrendingUp, label: "Faturamento Total", value: `R$ ${totalMes}`, color: "text-foreground" },
     ...(isAdmin ? [{ icon: Users, label: "Barbeiros Ativos", value: barbers.length.toString(), color: "text-secondary" }] : []),
   ];
+
+  const noShowStats = isAdmin ? [
+    { icon: UserX, label: "No-Shows", value: noShowAppts.length.toString(), color: "text-destructive" },
+    { icon: DollarSign, label: "Valor Recuperado (No-Show)", value: `R$ ${noShowRecovered.toFixed(0)}`, color: "text-warning" },
+    { icon: CheckCircle, label: "Taxa de Comparecimento", value: `${attendanceRate}%`, color: "text-success" },
+    { icon: ShieldAlert, label: "Agendamentos Garantidos", value: depositAppts.length.toString(), color: "text-info" },
+  ] : [];
 
   if (loading) return <div className="text-center py-10 text-muted-foreground">Carregando...</div>;
 
