@@ -328,10 +328,10 @@ const AgendarPage = () => {
                 disabled={(date) => {
                   if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
                   const dateStr = format(date, "yyyy-MM-dd");
-                  const allDayBlock = blockedDates.some((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber?.id));
-                  if (allDayBlock) return true;
+                  if (isDateBlocked(dateStr, blockedDates, selectedBarber?.id)) return true;
                   const day = date.getDay();
-                  return !availability.some((a) => a.day_of_week === day && a.active);
+                  const barberAvail = availability.find((a) => a.day_of_week === day && a.active);
+                  return !isDayActive(day, businessHours, barberAvail ? { active: barberAvail.active } : null);
                 }}
                 locale={ptBR}
                 className="rounded-lg border p-3 pointer-events-auto"
