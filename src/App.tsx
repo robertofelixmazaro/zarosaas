@@ -47,6 +47,10 @@ import AffiliateSales from "./pages/affiliate/AffiliateSales";
 import PlatformAffiliates from "./pages/platform/PlatformAffiliates";
 import ComprarPage from "./pages/ComprarPage";
 import NotFound from "./pages/NotFound";
+import StaffLayout from "./components/StaffLayout";
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import StaffAgenda from "./pages/staff/StaffAgenda";
+import StaffClientes from "./pages/staff/StaffClientes";
 
 const queryClient = new QueryClient();
 
