@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.delete-user]
 verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false
+
+[functions.og-tenant]
+verify_jwt = false
