@@ -61,6 +61,7 @@ const AdminAgendamentos = () => {
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
   const [dialogBookedSlots, setDialogBookedSlots] = useState<{ time: string; duration: number }[]>([]);
+  const [dialogBarberLunch, setDialogBarberLunch] = useState<{ enabled: boolean; start: string; end: string } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedBarberId, setSelectedBarberId] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
