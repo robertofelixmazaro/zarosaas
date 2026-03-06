@@ -117,7 +117,7 @@ const AdminDashboard = () => {
 
       {!isAdmin && currentBarber && (
         <div className="p-4 rounded-lg border bg-card">
-          <p className="text-sm text-muted-foreground">Logado como barbeiro</p>
+          <p className="text-sm text-muted-foreground">Logado como {getNicheLabels(tenant?.niche).staffSingular.toLowerCase()}</p>
           <p className="text-lg font-bold">{currentBarber.name}</p>
         </div>
       )}

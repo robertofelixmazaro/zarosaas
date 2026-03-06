@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { getNicheLabels } from "@/lib/nicheLabels";
 
 const barberSchema = z.object({
   name: z.string().trim().min(1, "Nome obrigatório").max(100),
