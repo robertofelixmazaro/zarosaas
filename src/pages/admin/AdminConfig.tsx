@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare } from "lucide-react";
+import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare, CreditCard } from "lucide-react";
 import { addDays, addMonths, addYears, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
