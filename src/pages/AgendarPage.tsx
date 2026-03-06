@@ -160,53 +160,30 @@ const AgendarPage = () => {
 
   const currentStepIndex = steps.findIndex((s) => s.key === step);
 
-  const isSlotInPast = (slot: string) => {
-    if (!selectedDate) return false;
-    const today = format(now, "yyyy-MM-dd");
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    if (dateStr < today) return true;
-    if (dateStr === today) {
-      const currentTime = format(now, "HH:mm");
-      return slot <= currentTime;
-    }
-    return false;
-  };
-
   const getAvailableSlots = () => {
     if (!selectedBarber || !selectedDate || !selectedService) return [];
     const dayOfWeek = selectedDate.getDay();
-    const avail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
-    if (!avail) return [];
-    const allSlots = generateTimeSlots(avail.start_time, avail.end_time, selectedService.duration_minutes);
+    const barberAvail = availability.find((a) => a.day_of_week === dayOfWeek && a.active);
+
+    const rawSlots = generateRawSlots(
+      dayOfWeek,
+      selectedService.duration_minutes,
+      businessHours,
+      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null
+    );
+
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const blocksForDate = blockedDates.filter((bd) => (bd.blocked_date === dateStr || !bd.blocked_date) && !bd.all_day && (!bd.barber_id || bd.barber_id === selectedBarber.id));
-    const serviceDuration = selectedService.duration_minutes;
-    return allSlots.filter((slot) => {
-      // Filter past slots
-      if (isSlotInPast(slot)) return false;
-      // Filter blocked slots
-      const isBlocked = blocksForDate.some((bd) => {
-        const start = bd.start_time?.slice(0, 5) || "00:00";
-        const end = bd.end_time?.slice(0, 5) || "23:59";
-        return slot >= start && slot < end;
-      });
-      if (isBlocked) return false;
-      // Filter already booked slots (with overlap detection)
-      const slotStart = timeToMin(slot);
-      const slotEnd = slotStart + serviceDuration;
-      const isBooked = bookedSlots.some((b) => {
-        const bStart = timeToMin(b.time);
-        const bEnd = bStart + b.duration;
-        return slotStart < bEnd && slotEnd > bStart;
-      });
-      return !isBooked;
-    });
+    return filterAvailableSlots(
+      rawSlots,
+      dateStr,
+      selectedService.duration_minutes,
+      bookedSlots,
+      blockedDates,
+      selectedBarber.id,
+      now
+    );
   };
 
-  const timeToMin = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  };
   const handleConfirm = async () => {
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) return;
     try {
