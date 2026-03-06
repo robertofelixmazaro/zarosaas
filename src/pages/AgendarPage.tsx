@@ -250,7 +250,7 @@ const AgendarPage = () => {
 
         {step === "barbeiro" && (
           <div className="animate-fade-in">
-            <h2 className="text-2xl font-bold mb-2">Escolha o Barbeiro</h2>
+            <h2 className="text-2xl font-bold mb-2">Escolha o {nicheLabels.staffSingular}</h2>
             <p className="text-muted-foreground mb-6">Selecione o profissional de sua preferência</p>
             <div className="grid gap-4">
               {barbersList.map((b) => (
