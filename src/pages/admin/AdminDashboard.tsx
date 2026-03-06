@@ -130,6 +130,19 @@ const AdminDashboard = () => {
         ))}
       </div>
 
+      {/* No-Show Metrics */}
+      {isAdmin && noShowStats.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {noShowStats.map((s) => (
+            <div key={s.label} className="p-5 rounded-lg border bg-card">
+              <div className={`p-2 rounded-lg bg-muted ${s.color} inline-flex mb-3`}><s.icon className="h-4 w-4" /></div>
+              <div className="text-2xl font-bold">{s.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="rounded-lg border bg-card">
         <div className="flex items-center justify-between p-5 border-b">
           <h3 className="font-semibold text-lg">Agenda de Hoje</h3>
