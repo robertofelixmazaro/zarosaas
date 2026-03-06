@@ -235,7 +235,7 @@ const AdminServicos = () => {
               <p className="text-sm text-muted-foreground mb-3">{s.description}</p>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold">R$ {Number(s.price).toFixed(0)}</span>
-                <span className="text-xs text-muted-foreground">⏱ {s.duration_minutes}min</span>
+                <span className="text-xs text-muted-foreground">⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes}min`}</span>
               </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" className="flex-1 gap-1" onClick={() => openEdit(s)}><Edit className="h-3 w-3" /> Editar</Button>
