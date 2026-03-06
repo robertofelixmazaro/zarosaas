@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calendar, Users, LogOut, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-import zaroLogo from "@/assets/zaro-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/staff-dashboard" },
