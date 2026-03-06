@@ -785,6 +785,47 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          active: boolean
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           appointment_id: string | null

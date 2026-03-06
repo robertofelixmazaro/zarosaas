@@ -15,6 +15,7 @@ import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
+import { useOgMetaTags } from "@/hooks/useOgMetaTags";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -28,6 +29,22 @@ const Index = () => {
   // Dynamic PWA manifest per tenant
   const logoForManifest = tenant?.logo_url || "";
   useDynamicManifest(tenant?.name, logoForManifest || undefined);
+
+  // Dynamic OG meta tags (client-side, for SPA navigation)
+  const publishedBase = "https://zarosaas.lovable.app";
+  const ogUrl = tenantSlug ? `${publishedBase}/t/${tenantSlug}` : publishedBase;
+  useOgMetaTags({
+    title: tenant?.name,
+    description: "Agende seu horário online com facilidade",
+    image: tenant?.logo_url || undefined,
+    url: ogUrl,
+  });
+
+  // Share URL via edge function for proper OG tags in crawlers
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const ogShareUrl = tenantSlug
+    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}`
+    : ogUrl;
 
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
   const { data: services = [] } = useQuery<DbService[]>({ queryKey: ["services", tenantId], queryFn: () => fetchServices(tenantId || undefined), enabled: !!tenantId });
@@ -117,7 +134,7 @@ const Index = () => {
         shopName={shopName}
         logoUrl={logoUrl}
         avgRating={avgRating}
-        shareUrl={window.location.href}
+        shareUrl={ogShareUrl}
       />
 
       {/* Hero */}
