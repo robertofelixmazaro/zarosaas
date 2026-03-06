@@ -92,6 +92,23 @@ const AdminAgendamentos = () => {
       const allBlocked = await fetchBlockedDates(tenantId || undefined);
       setMyBlockedDates(allBlocked.filter((bd) => bd.barber_id === barberId));
     }
+
+    // Load business hours
+    if (tenantId) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: bhData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", "business_hours")
+        .maybeSingle();
+      if (bhData?.value) {
+        try {
+          setAdminBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
+        } catch {}
+      }
+    }
+
     setLoading(false);
   }, [tenantId]);
 
