@@ -96,6 +96,11 @@ const AdminConfig = () => {
   const [savingBlock, setSavingBlock] = useState(false);
   const [barbersList, setBarbersList] = useState<DbBarber[]>([]);
 
+  // Mercado Pago credentials
+  const [mpAccessToken, setMpAccessToken] = useState("");
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [savingMp, setSavingMp] = useState(false);
+
   const loadData = async () => {
     const [settingsRes, blockedRes, barbers] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
