@@ -101,6 +101,13 @@ const AdminConfig = () => {
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [savingMp, setSavingMp] = useState(false);
 
+  // No-show policy
+  const [noShowEnabled, setNoShowEnabled] = useState(false);
+  const [noShowDeposit, setNoShowDeposit] = useState("0");
+  const [noShowRetention, setNoShowRetention] = useState("100");
+  const [noShowCancelHours, setNoShowCancelHours] = useState("4");
+  const [savingNoShow, setSavingNoShow] = useState(false);
+
   const loadData = async () => {
     const [settingsRes, blockedRes, barbers] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
