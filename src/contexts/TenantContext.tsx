@@ -70,6 +70,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             created_at: "",
           });
         }
+      } else if (userRole === "super_admin") {
+        // Super admins without slug don't need a tenant
+        setTenant(null);
       } else if (user) {
         // Admin route without slug: resolve from user profile
         const { data: profile } = await supabase
