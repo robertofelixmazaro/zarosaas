@@ -61,7 +61,8 @@ export function generateRawSlots(
   dayOfWeek: number,
   serviceDurationMinutes: number,
   businessHours: BusinessHours,
-  barberAvailability?: { start_time: string; end_time: string; active: boolean } | null
+  barberAvailability?: { start_time: string; end_time: string; active: boolean } | null,
+  barberLunch?: { enabled: boolean; start: string; end: string } | null
 ): string[] {
   // Use barber-specific hours if available, otherwise store hours
   const dayConfig = barberAvailability
