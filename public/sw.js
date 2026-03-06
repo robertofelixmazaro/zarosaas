@@ -1,9 +1,6 @@
-const CACHE_NAME = 'zaro-agendamentos-v2';
+const CACHE_NAME = 'zaro-agendamentos-v3';
 const STATIC_ASSETS = [
   '/',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.json',
 ];
 
 self.addEventListener('install', (event) => {
@@ -76,8 +73,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: data.icon || undefined,
+    badge: data.icon || undefined,
     vibrate: [200, 100, 200],
     tag: data.tag || 'appointment-notification',
     data: {

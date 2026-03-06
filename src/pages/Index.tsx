@@ -26,9 +26,7 @@ const Index = () => {
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const { canInstall, isInstalled, install } = usePwaInstall();
 
-  // Dynamic PWA manifest per tenant
-  const logoForManifest = tenant?.logo_url || "";
-  useDynamicManifest(tenant?.name, logoForManifest || undefined);
+  
 
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
@@ -92,6 +90,13 @@ const Index = () => {
     },
     enabled: !!tenantId,
   });
+
+  // Dynamic PWA manifest per tenant
+  useDynamicManifest(
+    tenant?.name,
+    siteSettings.logo_url || tenant?.logo_url || undefined,
+    siteSettings.primary_color || undefined
+  );
 
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
