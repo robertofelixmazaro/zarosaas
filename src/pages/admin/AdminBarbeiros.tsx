@@ -77,7 +77,7 @@ const AdminBarbeiros = () => {
     setDialogOpen(true);
   };
 
-  const openEdit = (b: DbBarber) => {
+  const openEdit = async (b: DbBarber) => {
     setForm({ name: b.name, specialty: b.specialty || "" });
     setEditingId(b.id); setErrors({});
     setPhotoFile(null);
@@ -89,7 +89,24 @@ const AdminBarbeiros = () => {
         ? { active: existing.active, start_time: existing.start_time?.slice(0, 5), end_time: existing.end_time?.slice(0, 5) }
         : { active: false, start_time: "09:00", end_time: "18:00" };
     });
-    setAvailForm(avail); setDialogOpen(true);
+    setAvailForm(avail);
+    
+    // Load barber lunch break
+    if (tenantId) {
+      const { data: lunchData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", `barber_lunch_${b.id}`)
+        .maybeSingle();
+      if (lunchData?.value) {
+        try { setLunchForm(JSON.parse(lunchData.value)); } catch { setLunchForm(defaultLunch); }
+      } else {
+        setLunchForm(defaultLunch);
+      }
+    }
+    
+    setDialogOpen(true);
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
