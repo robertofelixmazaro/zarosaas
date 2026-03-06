@@ -189,7 +189,8 @@ const AgendarPage = () => {
       dayOfWeek,
       selectedService.duration_minutes,
       businessHours,
-      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null
+      barberAvail ? { start_time: barberAvail.start_time, end_time: barberAvail.end_time, active: barberAvail.active } : null,
+      barberLunch
     );
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
