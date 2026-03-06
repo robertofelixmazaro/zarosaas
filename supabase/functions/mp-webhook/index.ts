@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const mpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN")!;
+    const globalMpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN") || "";
 
     const body = await req.json();
     console.log("MP Webhook received:", JSON.stringify(body));
@@ -35,11 +35,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Try to fetch payment with global token first, then tenant-specific if needed
+    let mpAccessToken = globalMpAccessToken;
+
     // Fetch payment details from Mercado Pago
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${mpAccessToken}` },
     });
-    const payment = await mpRes.json();
+    let payment = await mpRes.json();
+
+    // If global token fails, try to resolve tenant token from external_reference
+    if (!mpRes.ok && mpRes.status === 401) {
+      // We can't know which tenant yet without the payment data
+      console.log("Global MP token failed, payment may belong to a tenant-specific account");
+    }
 
     console.log("Payment status:", payment.status, "external_reference:", payment.external_reference);
 

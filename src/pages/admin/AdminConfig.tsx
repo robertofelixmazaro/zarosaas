@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare } from "lucide-react";
+import { Settings, Clock, Calendar, Save, Upload, X, Image, Plus, Trash2, Mail, Lock, User, Eye, EyeOff, CalendarRange, QrCode, Download, Truck, MessageSquare, CreditCard } from "lucide-react";
 import { addDays, addMonths, addYears, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,11 @@ const AdminConfig = () => {
   const [savingBlock, setSavingBlock] = useState(false);
   const [barbersList, setBarbersList] = useState<DbBarber[]>([]);
 
+  // Mercado Pago credentials
+  const [mpAccessToken, setMpAccessToken] = useState("");
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [savingMp, setSavingMp] = useState(false);
+
   const loadData = async () => {
     const [settingsRes, blockedRes, barbers] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
@@ -111,6 +116,18 @@ const AdminConfig = () => {
     }
     if (blockedRes.data) setBlockedDates(blockedRes.data as any);
     setBarbersList(barbers);
+
+    // Load MP credentials from tenant
+    const { data: tenantData } = await supabase
+      .from("tenants" as any)
+      .select("mercadopago_access_token, mercadopago_public_key")
+      .eq("id", tenantId)
+      .maybeSingle();
+    if (tenantData) {
+      setMpAccessToken((tenantData as any).mercadopago_access_token || "");
+      setMpPublicKey((tenantData as any).mercadopago_public_key || "");
+    }
+
     setLoading(false);
   };
 
@@ -739,6 +756,62 @@ const AdminConfig = () => {
               Alterar Senha
             </Button>
           </div>
+        </div>
+      </div>
+
+      {/* Mercado Pago */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="h-5 w-5" />
+          <h3 className="font-semibold">Pagamentos — Mercado Pago</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Conecte sua conta do Mercado Pago para receber pagamentos diretamente. Os valores serão depositados na sua conta.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Access Token</label>
+            <Input
+              type="password"
+              value={mpAccessToken}
+              onChange={(e) => setMpAccessToken(e.target.value)}
+              placeholder="APP_USR-..."
+            />
+            <p className="text-xs text-muted-foreground mt-1">Encontre em: Mercado Pago → Seu negócio → Configurações → Credenciais de produção</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Public Key</label>
+            <Input
+              type="password"
+              value={mpPublicKey}
+              onChange={(e) => setMpPublicKey(e.target.value)}
+              placeholder="APP_USR-..."
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingMp}
+            onClick={async () => {
+              setSavingMp(true);
+              try {
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({
+                    mercadopago_access_token: mpAccessToken || null,
+                    mercadopago_public_key: mpPublicKey || null,
+                  } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Credenciais do Mercado Pago salvas!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingMp(false);
+            }}
+          >
+            {savingMp ? "Salvando..." : "Salvar Credenciais MP"}
+          </Button>
         </div>
       </div>
 
