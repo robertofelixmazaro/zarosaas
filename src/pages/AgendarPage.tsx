@@ -58,9 +58,9 @@ const AgendarPage = () => {
 
   useEffect(() => {
     if (selectedBarber) {
-      fetchBarberAvailability(selectedBarber.id).then(setAvailability);
+      fetchBarberAvailability(selectedBarber.id, tenantId || undefined).then(setAvailability);
     }
-  }, [selectedBarber]);
+  }, [selectedBarber, tenantId]);
 
   const refreshBookedSlots = useCallback(() => {
     if (selectedBarber && selectedDate) {
