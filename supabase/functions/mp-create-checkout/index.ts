@@ -14,20 +14,36 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const mpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN")!;
+    const globalMpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN") || "";
 
-    if (!mpAccessToken) {
-      return new Response(JSON.stringify({ error: "Mercado Pago não configurado" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { plan_id, plan_name, plan_price, client_email, client_name, ref_code } = await req.json();
+    const { plan_id, plan_name, plan_price, client_email, client_name, ref_code, tenant_id } = await req.json();
 
     if (!plan_id || !plan_price || !client_email) {
       return new Response(JSON.stringify({ error: "Dados incompletos" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Resolve MP access token: tenant-specific takes priority over global
+    let mpAccessToken = globalMpAccessToken;
+
+    if (tenant_id) {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: tenantData } = await adminClient
+        .from("tenants")
+        .select("mercadopago_access_token")
+        .eq("id", tenant_id)
+        .maybeSingle();
+
+      if (tenantData?.mercadopago_access_token) {
+        mpAccessToken = tenantData.mercadopago_access_token;
+      }
+    }
+
+    if (!mpAccessToken) {
+      return new Response(JSON.stringify({ error: "Mercado Pago não configurado" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -57,6 +73,7 @@ Deno.serve(async (req) => {
         client_email,
         client_name: client_name || "",
         ref_code: ref_code || "",
+        tenant_id: tenant_id || "",
       }),
       notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
     };
