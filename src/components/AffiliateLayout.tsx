@@ -4,7 +4,6 @@ import { LayoutDashboard, ShoppingCart, LogOut, Menu, X, Link2 } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
-import zaroLogo from "@/assets/zaro-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/affiliate/dashboard" },
