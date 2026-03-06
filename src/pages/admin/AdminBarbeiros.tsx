@@ -192,7 +192,7 @@ const AdminBarbeiros = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este barbeiro?")) return;
+    if (!confirm(`Excluir este ${nicheLabels.staffSingular.toLowerCase()}?`)) return;
     try {
       // Delete related availability records first
       await supabase.from("barber_availability" as any).delete().eq("barber_id", id);
