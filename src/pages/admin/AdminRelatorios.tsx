@@ -58,7 +58,8 @@ function exportPDF(
   filtered: DbAppointment[],
   barberMap: Record<string, string>,
   totalGeral: number,
-  totalConcluidos: number
+  totalConcluidos: number,
+  businessName: string = "Meu Negócio"
 ) {
   const fmtBRL = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
   const tableRows = filtered
