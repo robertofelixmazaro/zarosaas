@@ -19,7 +19,8 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
