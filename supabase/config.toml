@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.confirm-appointment]
 verify_jwt = false
+
+[functions.provision-user]
+verify_jwt = false
