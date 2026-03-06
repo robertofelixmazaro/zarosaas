@@ -307,6 +307,10 @@ const AdminServicos = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <input type="checkbox" checked={form.is_full_day} onChange={e => setForm({ ...form, is_full_day: e.target.checked, ...(e.target.checked ? { duration_minutes: 480 } : {}) })} id="is_full_day" className="rounded" />
+              <label htmlFor="is_full_day" className="text-sm">Serviço de dia inteiro</label>
+            </div>
+            <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} id="active" className="rounded" />
               <label htmlFor="active" className="text-sm">Serviço ativo</label>
             </div>
