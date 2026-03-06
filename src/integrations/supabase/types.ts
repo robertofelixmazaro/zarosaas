@@ -149,7 +149,11 @@ export type Database = {
           client_phone: string
           client_user_id: string | null
           created_at: string | null
+          deposit_amount: number | null
+          deposit_paid: boolean | null
+          deposit_required: boolean | null
           id: string
+          payment_status: string | null
           price: number
           reminder_24h_sent: boolean
           reminder_2h_sent: boolean
@@ -168,7 +172,11 @@ export type Database = {
           client_phone: string
           client_user_id?: string | null
           created_at?: string | null
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_required?: boolean | null
           id?: string
+          payment_status?: string | null
           price: number
           reminder_24h_sent?: boolean
           reminder_2h_sent?: boolean
@@ -187,7 +195,11 @@ export type Database = {
           client_phone?: string
           client_user_id?: string | null
           created_at?: string | null
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_required?: boolean | null
           id?: string
+          payment_status?: string | null
           price?: number
           reminder_24h_sent?: boolean
           reminder_2h_sent?: boolean
@@ -969,6 +981,10 @@ export type Database = {
           mercadopago_public_key: string | null
           name: string
           niche: string | null
+          no_show_cancel_limit_hours: number | null
+          no_show_deposit_value: number | null
+          no_show_enabled: boolean | null
+          no_show_retention_percentage: number | null
           owner_user_id: string | null
           phone: string | null
           plan_id: string | null
@@ -984,6 +1000,10 @@ export type Database = {
           mercadopago_public_key?: string | null
           name: string
           niche?: string | null
+          no_show_cancel_limit_hours?: number | null
+          no_show_deposit_value?: number | null
+          no_show_enabled?: boolean | null
+          no_show_retention_percentage?: number | null
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
@@ -999,6 +1019,10 @@ export type Database = {
           mercadopago_public_key?: string | null
           name?: string
           niche?: string | null
+          no_show_cancel_limit_hours?: number | null
+          no_show_deposit_value?: number | null
+          no_show_enabled?: boolean | null
+          no_show_retention_percentage?: number | null
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
