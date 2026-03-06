@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
+import { fetchAppointmentsAdmin, fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBarberByUserId, fetchAdminPhone, fetchBookedSlots, createAppointment, updateAppointmentStatus, DbAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { generateRawSlots, filterAvailableSlots, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
