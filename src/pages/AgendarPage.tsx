@@ -304,7 +304,7 @@ const AgendarPage = () => {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(d) => { setSelectedDate(d); if (d) setStep("horario"); }}
+                onSelect={(d) => { setSelectedDate(d); if (d) { if (selectedService?.is_full_day) { setSelectedTime("08:00"); setStep("dados"); } else { setStep("horario"); } } }}
                 disabled={(date) => {
                   if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
                   const dateStr = format(date, "yyyy-MM-dd");
