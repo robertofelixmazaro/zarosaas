@@ -544,6 +544,9 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* WhatsApp Notifications */}
+      <WhatsAppNotificationConfig />
+
       {/* Taxa de entrega */}
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
