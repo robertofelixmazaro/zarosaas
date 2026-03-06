@@ -42,6 +42,7 @@ const AdminBarbeiros = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", specialty: "" });
   const [availForm, setAvailForm] = useState<AvailForm[]>(defaultAvail);
+  const [lunchForm, setLunchForm] = useState<LunchForm>(defaultLunch);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
