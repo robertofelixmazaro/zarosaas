@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Eye, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash2, CreditCard } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,9 +35,20 @@ interface Plan {
   active: boolean;
 }
 
+interface Subscription {
+  id: string;
+  tenant_id: string;
+  plan_id: string;
+  status: string;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  trial_ends_at: string | null;
+}
+
 const PlatformTenants = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Record<string, Subscription>>({});
   const [loading, setLoading] = useState(true);
 
   // Edit state
@@ -51,10 +62,17 @@ const PlatformTenants = () => {
   const [deleteTenant, setDeleteTenant] = useState<Tenant | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Plan activation state
+  const [planOpen, setPlanOpen] = useState(false);
+  const [planTenant, setPlanTenant] = useState<Tenant | null>(null);
+  const [planForm, setPlanForm] = useState({ plan_id: "", status: "active", expiration_date: "" });
+  const [planSaving, setPlanSaving] = useState(false);
+
   const fetchData = async () => {
-    const [tenantsRes, plansRes] = await Promise.all([
+    const [tenantsRes, plansRes, subsRes] = await Promise.all([
       supabase.from("tenants").select("*").order("created_at", { ascending: false }),
       supabase.from("plans").select("id, name, active").eq("active", true).order("price", { ascending: true }),
+      supabase.from("subscriptions" as any).select("*"),
     ]);
 
     if (tenantsRes.error) {
@@ -63,6 +81,13 @@ const PlatformTenants = () => {
     }
     setTenants((tenantsRes.data || []).map((t: any) => ({ ...t, active: t.active ?? true })));
     setPlans(plansRes.data || []);
+
+    // Map subscriptions by tenant_id
+    const subsMap: Record<string, Subscription> = {};
+    ((subsRes.data as any) || []).forEach((s: any) => {
+      subsMap[s.tenant_id] = s;
+    });
+    setSubscriptions(subsMap);
     setLoading(false);
   };
 
@@ -137,7 +162,6 @@ const PlatformTenants = () => {
     if (!deleteTenant) return;
     setDeleting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const res = await supabase.functions.invoke("delete-tenant", {
         body: { tenant_id: deleteTenant.id },
       });
@@ -152,6 +176,101 @@ const PlatformTenants = () => {
     }
     setDeleting(false);
     setDeleteOpen(false);
+  };
+
+  // Plan activation handlers
+  const openPlanDialog = (t: Tenant) => {
+    setPlanTenant(t);
+    const sub = subscriptions[t.id];
+    const defaultExpiration = new Date();
+    defaultExpiration.setMonth(defaultExpiration.getMonth() + 1);
+    setPlanForm({
+      plan_id: sub?.plan_id || t.plan_id || "",
+      status: sub?.status || "active",
+      expiration_date: sub?.current_period_end
+        ? new Date(sub.current_period_end).toISOString().split("T")[0]
+        : defaultExpiration.toISOString().split("T")[0],
+    });
+    setPlanOpen(true);
+  };
+
+  const savePlan = async () => {
+    if (!planTenant || !planForm.plan_id) return;
+    setPlanSaving(true);
+
+    const sub = subscriptions[planTenant.id];
+    const periodEnd = planForm.expiration_date
+      ? new Date(planForm.expiration_date + "T23:59:59Z").toISOString()
+      : null;
+
+    if (sub) {
+      // Update existing subscription
+      const { error } = await supabase
+        .from("subscriptions" as any)
+        .update({
+          plan_id: planForm.plan_id,
+          status: planForm.status,
+          current_period_end: periodEnd,
+          current_period_start: sub.current_period_start || new Date().toISOString(),
+        } as any)
+        .eq("id", sub.id);
+      if (error) {
+        toast.error("Erro ao atualizar assinatura");
+        setPlanSaving(false);
+        return;
+      }
+    } else {
+      // Create new subscription
+      const { error } = await supabase
+        .from("subscriptions" as any)
+        .insert({
+          tenant_id: planTenant.id,
+          plan_id: planForm.plan_id,
+          status: planForm.status,
+          current_period_start: new Date().toISOString(),
+          current_period_end: periodEnd,
+        } as any);
+      if (error) {
+        toast.error("Erro ao criar assinatura");
+        setPlanSaving(false);
+        return;
+      }
+    }
+
+    // Also update tenant plan_id and active status
+    await supabase
+      .from("tenants")
+      .update({
+        plan_id: planForm.plan_id,
+        active: planForm.status === "active" || planForm.status === "trial",
+      } as any)
+      .eq("id", planTenant.id);
+
+    toast.success("Plano atualizado com sucesso");
+    setPlanSaving(false);
+    setPlanOpen(false);
+    fetchData();
+  };
+
+  const getSubscriptionBadge = (tenantId: string) => {
+    const sub = subscriptions[tenantId];
+    if (!sub) return <Badge variant="outline">Sem assinatura</Badge>;
+    
+    const isExpired = sub.current_period_end && new Date(sub.current_period_end) < new Date();
+    
+    if (isExpired || sub.status === "expired" || sub.status === "cancelled") {
+      return <Badge variant="destructive">Expirado</Badge>;
+    }
+    if (sub.status === "trial") {
+      return <Badge variant="secondary">Trial</Badge>;
+    }
+    return <Badge variant="default">Ativo</Badge>;
+  };
+
+  const getExpirationText = (tenantId: string) => {
+    const sub = subscriptions[tenantId];
+    if (!sub?.current_period_end) return "—";
+    return format(new Date(sub.current_period_end), "dd/MM/yyyy", { locale: ptBR });
   };
 
   return (
@@ -179,9 +298,9 @@ const PlatformTenants = () => {
                     <TableRow>
                       <TableHead>Nome</TableHead>
                       <TableHead>Slug</TableHead>
-                      <TableHead>Telefone</TableHead>
                       <TableHead>Plano</TableHead>
-                      <TableHead>Criado em</TableHead>
+                      <TableHead>Status Assinatura</TableHead>
+                      <TableHead>Expira em</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
@@ -191,26 +310,11 @@ const PlatformTenants = () => {
                       <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.name}</TableCell>
                         <TableCell className="text-muted-foreground">/t/{t.slug}</TableCell>
-                        <TableCell>{t.phone || "—"}</TableCell>
                         <TableCell>
-                          <Select
-                            value={t.plan_id || "none"}
-                            onValueChange={(val) => assignPlan(t.id, val)}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue placeholder="Sem plano" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Sem plano</SelectItem>
-                              {plans.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {plans.find(p => p.id === (subscriptions[t.id]?.plan_id || t.plan_id))?.name || "Sem plano"}
                         </TableCell>
-                        <TableCell>
-                          {t.created_at ? format(new Date(t.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
-                        </TableCell>
+                        <TableCell>{getSubscriptionBadge(t.id)}</TableCell>
+                        <TableCell>{getExpirationText(t.id)}</TableCell>
                         <TableCell>
                           <Badge variant={t.active ? "default" : "destructive"}>
                             {t.active ? "Ativo" : "Inativo"}
@@ -221,26 +325,24 @@ const PlatformTenants = () => {
                             <Button
                               size="icon"
                               variant="ghost"
-                              title="Visualizar página pública"
-                              asChild
+                              title="Gerenciar plano"
+                              onClick={() => openPlanDialog(t)}
                             >
+                              <CreditCard className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" title="Visualizar" asChild>
                               <a href={`/t/${t.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              title="Editar negócio"
-                              onClick={() => openEdit(t)}
-                            >
+                            <Button size="icon" variant="ghost" title="Editar" onClick={() => openEdit(t)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               size="icon"
                               variant="ghost"
                               className="text-destructive hover:text-destructive"
-                              title="Excluir negócio"
+                              title="Excluir"
                               onClick={() => openDelete(t)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -256,6 +358,58 @@ const PlatformTenants = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Plan Management Dialog */}
+      <Dialog open={planOpen} onOpenChange={setPlanOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Plano — {planTenant?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label>Plano</Label>
+              <Select value={planForm.plan_id} onValueChange={(v) => setPlanForm({ ...planForm, plan_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um plano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Status da Assinatura</Label>
+              <Select value={planForm.status} onValueChange={(v) => setPlanForm({ ...planForm, status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="expired">Expirado</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Data de Expiração</Label>
+              <Input
+                type="date"
+                value={planForm.expiration_date}
+                onChange={(e) => setPlanForm({ ...planForm, expiration_date: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPlanOpen(false)}>Cancelar</Button>
+            <Button onClick={savePlan} disabled={planSaving || !planForm.plan_id}>
+              {planSaving ? "Salvando..." : "Salvar Plano"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -308,7 +462,7 @@ const PlatformTenants = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza que deseja excluir este negócio?</AlertDialogTitle>
             <AlertDialogDescription>
-              O negócio <strong>"{deleteTenant?.name}"</strong> e todos os seus dados (serviços, agendamentos, clientes, produtos, galeria e avaliações) serão removidos permanentemente. Esta ação não pode ser desfeita.
+              O negócio <strong>"{deleteTenant?.name}"</strong> e todos os seus dados serão removidos permanentemente. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

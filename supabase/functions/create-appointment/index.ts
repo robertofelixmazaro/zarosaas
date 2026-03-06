@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
       throw insertError;
     }
 
-    // Trigger notification
+    // Trigger notification webhook
     try {
       const notifyUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-webhook`;
       await fetch(notifyUrl, {
@@ -188,6 +188,33 @@ Deno.serve(async (req) => {
       });
     } catch (notifyErr) {
       console.error("Notify webhook trigger failed:", notifyErr);
+    }
+
+    // Trigger push notification
+    try {
+      // Get service name for the notification
+      const { data: svcInfo } = await supabase
+        .from("services")
+        .select("name")
+        .eq("id", service_id)
+        .single();
+
+      const pushUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-push`;
+      await fetch(pushUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          tenant_id,
+          title: "Novo agendamento! 📅",
+          body: `${client_name} — ${svcInfo?.name || "Serviço"} às ${appointment_time}`,
+          tag: `appt-${insertData.id}`,
+        }),
+      });
+    } catch (pushErr) {
+      console.error("Push notification trigger failed:", pushErr);
     }
 
     return new Response(
