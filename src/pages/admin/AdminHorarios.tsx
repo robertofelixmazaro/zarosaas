@@ -6,16 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, CalendarOff, Trash2, Plus } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Clock, CalendarOff, Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
 
 const DAY_NAMES = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+const BLOCKS_INITIAL_VISIBLE = 5;
 
 interface DayConfig {
   active: boolean;
@@ -57,6 +55,7 @@ const AdminHorarios = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [blockedDates, setBlockedDates] = useState<BlockedEntry[]>([]);
+  const [showAllBlocks, setShowAllBlocks] = useState(false);
 
   // Block dialog
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
@@ -70,7 +69,6 @@ const AdminHorarios = () => {
   useEffect(() => {
     if (!tenantId) return;
     const load = async () => {
-      // Load business hours from site_settings
       const { data } = await supabase
         .from("site_settings")
         .select("value")
@@ -87,7 +85,6 @@ const AdminHorarios = () => {
         }
       }
 
-      // Load blocked dates (store-level, no barber_id)
       const { data: blocks } = await supabase
         .from("blocked_dates")
         .select("*")
@@ -123,9 +120,7 @@ const AdminHorarios = () => {
           .insert({ key: "business_hours", value: JSON.stringify(hours), tenant_id: tenantId } as any);
       }
 
-      // Also sync barber_availability for all barbers based on business hours
       await syncBarberAvailability();
-
       toast.success("Horário de funcionamento salvo!");
     } catch (err: any) {
       toast.error("Erro ao salvar", { description: err.message });
@@ -135,7 +130,6 @@ const AdminHorarios = () => {
 
   const syncBarberAvailability = async () => {
     if (!tenantId) return;
-    // Get all active barbers
     const { data: barbers } = await supabase
       .from("barbers")
       .select("id")
@@ -218,7 +212,6 @@ const AdminHorarios = () => {
       setBlockReason("");
       setBlockAllDay(true);
 
-      // Reload
       const { data: blocks } = await supabase
         .from("blocked_dates")
         .select("*")
@@ -243,6 +236,9 @@ const AdminHorarios = () => {
   };
 
   if (loading) return <div className="text-center py-10 text-muted-foreground">Carregando...</div>;
+
+  const visibleBlocks = showAllBlocks ? blockedDates : blockedDates.slice(0, BLOCKS_INITIAL_VISIBLE);
+  const hasMoreBlocks = blockedDates.length > BLOCKS_INITIAL_VISIBLE;
 
   return (
     <div className="space-y-6">
@@ -351,44 +347,62 @@ const AdminHorarios = () => {
           {blockedDates.length === 0 ? (
             <p className="text-center text-muted-foreground py-6">Nenhum bloqueio configurado</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Horário</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {blockedDates.map((bd) => (
-                  <TableRow key={bd.id}>
-                    <TableCell className="font-medium">
-                      {bd.blocked_date
-                        ? new Date(bd.blocked_date + "T12:00:00").toLocaleDateString("pt-BR")
-                        : "Recorrente"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={bd.all_day ? "destructive" : "secondary"}>
-                        {bd.all_day ? "Dia inteiro" : "Horário"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {bd.all_day
-                        ? "—"
-                        : `${bd.start_time?.slice(0, 5)} – ${bd.end_time?.slice(0, 5)}`}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{bd.reason || "—"}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteBlock(bd.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Horário</TableHead>
+                    <TableHead>Motivo</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {visibleBlocks.map((bd) => (
+                    <TableRow key={bd.id}>
+                      <TableCell className="font-medium">
+                        {bd.blocked_date
+                          ? new Date(bd.blocked_date + "T12:00:00").toLocaleDateString("pt-BR")
+                          : "Recorrente"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={bd.all_day ? "destructive" : "secondary"}>
+                          {bd.all_day ? "Dia inteiro" : "Horário"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {bd.all_day
+                          ? "—"
+                          : `${bd.start_time?.slice(0, 5)} – ${bd.end_time?.slice(0, 5)}`}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{bd.reason || "—"}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteBlock(bd.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {hasMoreBlocks && (
+                <div className="flex justify-center mt-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAllBlocks(!showAllBlocks)}
+                    className="gap-1 text-muted-foreground"
+                  >
+                    {showAllBlocks ? (
+                      <><ChevronUp className="h-4 w-4" /> Ver menos</>
+                    ) : (
+                      <><ChevronDown className="h-4 w-4" /> Ver mais ({blockedDates.length - BLOCKS_INITIAL_VISIBLE} restantes)</>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

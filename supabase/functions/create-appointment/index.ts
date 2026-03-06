@@ -29,23 +29,15 @@ Deno.serve(async (req) => {
       tenant_id,
     } = body;
 
-    // Validate required fields
     if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
-      return new Response(
-        JSON.stringify({ error: "Campos obrigatórios não preenchidos." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Campos obrigatórios não preenchidos.", 400);
     }
 
-    // SECURITY: tenant_id is required
     if (!tenant_id) {
-      return new Response(
-        JSON.stringify({ error: "Tenant não identificado." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Tenant não identificado.", 400);
     }
 
-    // SECURITY: Verify barber and service belong to the specified tenant
+    // Verify barber belongs to tenant
     const { data: barber } = await supabase
       .from("barbers")
       .select("id, tenant_id")
@@ -54,48 +46,56 @@ Deno.serve(async (req) => {
       .single();
 
     if (!barber) {
-      return new Response(
-        JSON.stringify({ error: "Profissional não encontrado neste negócio." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Profissional não encontrado neste negócio.", 400);
     }
 
+    // Get service info
     const { data: serviceData } = await supabase
       .from("services")
-      .select("duration_minutes, price")
+      .select("duration_minutes, price, is_full_day")
       .eq("id", service_id)
       .eq("tenant_id", tenant_id)
       .single();
 
     if (!serviceData) {
-      return new Response(
-        JSON.stringify({ error: "Serviço não encontrado neste negócio." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Serviço não encontrado neste negócio.", 400);
     }
+
+    const isFullDay = serviceData.is_full_day || false;
+    const duration = isFullDay ? 1440 : (serviceData.duration_minutes || 30);
 
     // Server-side time validation (São Paulo timezone)
     const now = new Date();
     const spNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     const today = spNow.toISOString().slice(0, 10);
-    
+
     if (appointment_date < today) {
-      return new Response(
-        JSON.stringify({ error: "Este horário não está mais disponível." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Este horário não está mais disponível.", 409);
     }
-    if (appointment_date === today) {
+    if (!isFullDay && appointment_date === today) {
       const currentTime = spNow.toTimeString().slice(0, 5);
       if (appointment_time <= currentTime) {
-        return new Response(
-          JSON.stringify({ error: "Este horário não está mais disponível." }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return jsonError("Este horário não está mais disponível.", 409);
       }
     }
 
-    // Check for existing active appointment at same slot
+    // For full-day services, check if any appointment exists on that day
+    if (isFullDay) {
+      const { data: existingDay } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("barber_id", barber_id)
+        .eq("tenant_id", tenant_id)
+        .eq("appointment_date", appointment_date)
+        .in("status", ["pendente", "confirmado"])
+        .limit(1);
+
+      if (existingDay && existingDay.length > 0) {
+        return jsonError("Este dia já possui agendamentos. Não é possível agendar serviço de dia inteiro.", 409);
+      }
+    }
+
+    // Check for exact slot conflict
     const { data: existing } = await supabase
       .from("appointments")
       .select("id")
@@ -107,19 +107,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      return new Response(
-        JSON.stringify({ error: "Este horário já foi reservado. Por favor, escolha outro horário." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Este horário já foi reservado. Por favor, escolha outro horário.", 409);
     }
 
-    const duration = serviceData.duration_minutes || 30;
     const validatedPrice = serviceData.price;
 
-    // Check overlap
+    // Check overlap with existing appointments
     const { data: dayAppointments } = await supabase
       .from("appointments")
-      .select("appointment_time, services(duration_minutes)")
+      .select("appointment_time, services(duration_minutes, is_full_day)")
       .eq("barber_id", barber_id)
       .eq("tenant_id", tenant_id)
       .eq("appointment_date", appointment_date)
@@ -129,20 +125,18 @@ Deno.serve(async (req) => {
     const newEndMin = newStartMin + duration;
 
     const hasOverlap = (dayAppointments || []).some((appt: any) => {
+      const existIsFullDay = appt.services?.is_full_day || false;
       const existStart = timeToMinutes(appt.appointment_time);
-      const existDuration = appt.services?.duration_minutes || 30;
+      const existDuration = existIsFullDay ? 1440 : (appt.services?.duration_minutes || 30);
       const existEnd = existStart + existDuration;
       return newStartMin < existEnd && newEndMin > existStart;
     });
 
     if (hasOverlap) {
-      return new Response(
-        JSON.stringify({ error: "Este horário conflita com outro agendamento. Por favor, escolha outro." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError("Este horário conflita com outro agendamento. Por favor, escolha outro.", 409);
     }
 
-    // Insert with tenant_id always set
+    // Insert appointment
     const insertData: any = {
       id: id || crypto.randomUUID(),
       client_name,
@@ -161,15 +155,12 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       if (insertError.code === "23505") {
-        return new Response(
-          JSON.stringify({ error: "Este horário acabou de ser reservado. Por favor, escolha outro." }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return jsonError("Este horário acabou de ser reservado. Por favor, escolha outro.", 409);
       }
       throw insertError;
     }
 
-    // Trigger notification emails server-side
+    // Trigger notification
     try {
       const notifyUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-webhook`;
       await fetch(notifyUrl, {
@@ -193,12 +184,18 @@ Deno.serve(async (req) => {
     );
   } catch (error: any) {
     console.error("Create appointment error:", error);
-    return new Response(
-      JSON.stringify({ error: "Erro ao criar agendamento." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonError("Erro ao criar agendamento.", 500);
   }
 });
+
+function jsonError(message: string, status: number) {
+  return new Response(
+    JSON.stringify({ error: message }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+const corsHeaders = undefined; // already declared above, remove duplicate
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
