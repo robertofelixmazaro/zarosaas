@@ -15,6 +15,7 @@ import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
+import { useOgMetaTags } from "@/hooks/useOgMetaTags";
 
 const Index = () => {
   const queryClient = useQueryClient();
