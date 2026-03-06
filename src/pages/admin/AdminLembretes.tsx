@@ -92,7 +92,7 @@ const AdminLembretes = () => {
   const buildWhatsAppMessage = (appt: ReminderAppointment) => {
     const dateStr = format(parseISO(appt.appointment_date), "dd/MM/yyyy", { locale: ptBR });
     const timeStr = appt.appointment_time.slice(0, 5);
-    const barberName = (appt.barbers as any)?.name || "nosso barbeiro";
+    const barberName = (appt.barbers as any)?.name || "nosso profissional";
     const serviceName = (appt.services as any)?.name || "seu serviço";
 
     return encodeURIComponent(
