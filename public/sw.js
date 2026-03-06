@@ -1,4 +1,4 @@
-const CACHE_NAME = 'caetano-barber-v2';
+const CACHE_NAME = 'zaro-agendamentos-v1';
 const STATIC_ASSETS = [
   '/',
   '/icon-192.png',

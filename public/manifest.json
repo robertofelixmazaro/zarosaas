@@ -1,7 +1,7 @@
 {
-  "name": "Caetano Barber",
-  "short_name": "Caetano",
-  "description": "Agende seu horário na Caetano Barber",
+  "name": "Zaro Agendamentos",
+  "short_name": "Zaro",
+  "description": "Sistema de agendamentos online",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
