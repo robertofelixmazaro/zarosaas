@@ -113,7 +113,7 @@ const AdminServicos = () => {
         if (imageFile) {
           imageUrl = await uploadImage(editingId);
         }
-        await updateService(editingId, { ...parsed.data, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
+        await updateService(editingId, { ...parsed.data, is_full_day: form.is_full_day, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
         toast.success("Serviço atualizado!");
       } else {
         // Create first, then upload image
