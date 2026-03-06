@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const ConfirmAppointmentPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,38 +14,31 @@ const ConfirmAppointmentPage = () => {
     if (!id) { setStatus("error"); setMessage("ID inválido"); return; }
 
     const confirm = async () => {
-      const { data, error } = await supabase
-        .from("appointments" as any)
-        .select("id, status, attendance_confirmation_status")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error || !data) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-appointment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ appointment_id: id, action: "confirm" }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (data.already) {
+            setStatus("already");
+            setMessage("Presença já confirmada anteriormente!");
+          } else {
+            setStatus("error");
+            setMessage(data.error || "Erro ao confirmar.");
+          }
+        } else {
+          setStatus("success");
+          setMessage("Presença confirmada com sucesso! ✅");
+        }
+      } catch {
         setStatus("error");
-        setMessage("Agendamento não encontrado.");
-        return;
-      }
-
-      if ((data as any).attendance_confirmation_status === "confirmed") {
-        setStatus("already");
-        setMessage("Presença já confirmada anteriormente!");
-        return;
-      }
-
-      const { error: updateErr } = await supabase
-        .from("appointments" as any)
-        .update({
-          attendance_confirmation_status: "confirmed",
-          status: "confirmado",
-        } as any)
-        .eq("id", id);
-
-      if (updateErr) {
-        setStatus("error");
-        setMessage("Erro ao confirmar. Tente novamente.");
-      } else {
-        setStatus("success");
-        setMessage("Presença confirmada com sucesso! ✅");
+        setMessage("Erro de conexão. Tente novamente.");
       }
     };
     confirm();
@@ -60,7 +55,7 @@ const ConfirmAppointmentPage = () => {
         )}
         {(status === "success" || status === "already") && (
           <>
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+            <CheckCircle className="h-16 w-16 text-primary mx-auto" />
             <h1 className="text-2xl font-bold text-foreground">{message}</h1>
             <p className="text-muted-foreground">Obrigado! Nos vemos em breve. 😄</p>
           </>

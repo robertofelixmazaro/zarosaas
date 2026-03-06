@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const CancelAppointmentPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,46 +17,58 @@ const CancelAppointmentPage = () => {
     if (!id) { setStatus("error"); setMessage("ID inválido"); return; }
 
     const load = async () => {
-      const { data, error } = await supabase
-        .from("appointments" as any)
-        .select("id, status, client_name, appointment_date, appointment_time, attendance_confirmation_status")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error || !data) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-appointment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ appointment_id: id, action: "check" }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setStatus("error");
+          setMessage(data.error || "Agendamento não encontrado.");
+          return;
+        }
+        if (data.status === "cancelado") {
+          setStatus("already");
+          setMessage("Este agendamento já foi cancelado.");
+          return;
+        }
+        setAppointment(data);
+        setStatus("confirm");
+      } catch {
         setStatus("error");
-        setMessage("Agendamento não encontrado.");
-        return;
+        setMessage("Erro de conexão.");
       }
-
-      if ((data as any).status === "cancelado") {
-        setStatus("already");
-        setMessage("Este agendamento já foi cancelado.");
-        return;
-      }
-
-      setAppointment(data);
-      setStatus("confirm");
     };
     load();
   }, [id]);
 
   const handleCancel = async () => {
     setCancelling(true);
-    const { error } = await supabase
-      .from("appointments" as any)
-      .update({
-        status: "cancelado",
-        attendance_confirmation_status: "cancelled",
-      } as any)
-      .eq("id", id);
-
-    if (error) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-appointment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ appointment_id: id, action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(data.error || "Erro ao cancelar.");
+      } else {
+        setStatus("success");
+        setMessage("Agendamento cancelado com sucesso.");
+      }
+    } catch {
       setStatus("error");
-      setMessage("Erro ao cancelar. Tente novamente.");
-    } else {
-      setStatus("success");
-      setMessage("Agendamento cancelado com sucesso.");
+      setMessage("Erro de conexão.");
     }
     setCancelling(false);
   };
@@ -90,7 +104,7 @@ const CancelAppointmentPage = () => {
         )}
         {status === "success" && (
           <>
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+            <CheckCircle className="h-16 w-16 text-primary mx-auto" />
             <h1 className="text-2xl font-bold text-foreground">{message}</h1>
           </>
         )}
