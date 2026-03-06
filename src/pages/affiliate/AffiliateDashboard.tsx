@@ -86,6 +86,12 @@ const AffiliateDashboard = () => {
         <p className="text-sm text-muted-foreground">
           Seu código de referência: <span className="font-mono font-semibold text-primary">{(affiliate as any)?.ref_code || "—"}</span>
         </p>
+        <p className="text-sm text-muted-foreground">
+          Seu link de indicação:{" "}
+          <span className="font-mono text-primary break-all">
+            {window.location.origin}/ref/{(affiliate as any)?.ref_code || ""}
+          </span>
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

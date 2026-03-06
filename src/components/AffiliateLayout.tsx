@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, LogOut, Menu, X, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -8,6 +8,7 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/affiliate/dashboard" },
+  { icon: Link2, label: "Minhas Indicações", path: "/affiliate/referrals" },
   { icon: ShoppingCart, label: "Vendas", path: "/affiliate/sales" },
 ];
 
