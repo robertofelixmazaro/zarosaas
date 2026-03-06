@@ -39,7 +39,7 @@ function downloadFile(content: string, filename: string, mime: string) {
 }
 
 function exportCSV(filtered: DbAppointment[], barberMap: Record<string, string>) {
-  const header = "Data,Horário,Cliente,Telefone,Barbeiro,Serviço,Valor,Status";
+  const header = "Data,Horário,Cliente,Telefone,Profissional,Serviço,Valor,Status";
   const rows = filtered.map((a) =>
     [
       a.appointment_date,
