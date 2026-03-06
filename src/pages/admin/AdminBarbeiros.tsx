@@ -34,7 +34,8 @@ const defaultLunch: LunchForm = { enabled: true, start: "12:00", end: "13:00" };
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const AdminBarbeiros = () => {
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
+  const nicheLabels = getNicheLabels(tenant?.niche);
   const { canAddStaff, limits } = usePlanLimits();
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
