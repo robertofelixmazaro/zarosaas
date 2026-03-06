@@ -47,7 +47,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [shopName, setShopName] = useState("CAETANO BARBER");
+  const [shopName, setShopName] = useState("");
 
   // Redirect if already logged in
   useEffect(() => {
