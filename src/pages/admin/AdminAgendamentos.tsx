@@ -60,6 +60,7 @@ const AdminAgendamentos = () => {
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [availability, setAvailability] = useState<DbAvailability[]>([]);
   const [blockedDates, setBlockedDates] = useState<DbBlockedDate[]>([]);
+  const [dialogBookedSlots, setDialogBookedSlots] = useState<{ time: string; duration: number }[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedBarberId, setSelectedBarberId] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
