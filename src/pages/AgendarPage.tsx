@@ -37,6 +37,11 @@ const AgendarPage = () => {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
 
+  // No-show policy
+  const [noShowPolicy, setNoShowPolicy] = useState<{ enabled: boolean; deposit: number; retention: number; cancelHours: number }>({
+    enabled: false, deposit: 0, retention: 100, cancelHours: 4,
+  });
+
   // Real-time clock update every 30s
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
