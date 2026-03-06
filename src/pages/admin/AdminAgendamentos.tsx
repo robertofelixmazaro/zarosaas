@@ -77,6 +77,7 @@ const AdminAgendamentos = () => {
   const [blockReason, setBlockReason] = useState("");
   const [blockSaving, setBlockSaving] = useState(false);
   const [myBlockedDates, setMyBlockedDates] = useState<DbBlockedDate[]>([]);
+  const [adminBusinessHours, setAdminBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
 
   const loadData = useCallback(async (barberId?: string) => {
     const [data, bList, sList] = await Promise.all([
