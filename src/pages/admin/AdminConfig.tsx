@@ -127,12 +127,16 @@ const AdminConfig = () => {
     // Load MP credentials from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("mercadopago_access_token, mercadopago_public_key")
+      .select("mercadopago_access_token, mercadopago_public_key, no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
       setMpAccessToken((tenantData as any).mercadopago_access_token || "");
       setMpPublicKey((tenantData as any).mercadopago_public_key || "");
+      setNoShowEnabled((tenantData as any).no_show_enabled || false);
+      setNoShowDeposit(String((tenantData as any).no_show_deposit_value || 0));
+      setNoShowRetention(String((tenantData as any).no_show_retention_percentage || 100));
+      setNoShowCancelHours(String((tenantData as any).no_show_cancel_limit_hours || 4));
     }
 
     setLoading(false);
