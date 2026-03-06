@@ -90,7 +90,7 @@ function exportPDF(
 }
 
 const AdminRelatorios = () => {
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant();
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
