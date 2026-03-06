@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { getNicheLabels } from "@/lib/nicheLabels";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   confirmado: { label: "Confirmado", className: "bg-info/10 text-info border-info/20" },
