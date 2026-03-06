@@ -994,6 +994,7 @@ export type Database = {
           owner_user_id: string | null
           phone: string | null
           plan_id: string | null
+          referred_by_affiliate_id: string | null
           slug: string
         }
         Insert: {
@@ -1013,6 +1014,7 @@ export type Database = {
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
+          referred_by_affiliate_id?: string | null
           slug: string
         }
         Update: {
@@ -1032,6 +1034,7 @@ export type Database = {
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
+          referred_by_affiliate_id?: string | null
           slug?: string
         }
         Relationships: [
@@ -1040,6 +1043,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenants_referred_by_affiliate_id_fkey"
+            columns: ["referred_by_affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
             referencedColumns: ["id"]
           },
         ]
