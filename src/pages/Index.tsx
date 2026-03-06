@@ -134,7 +134,7 @@ const Index = () => {
         shopName={shopName}
         logoUrl={logoUrl}
         avgRating={avgRating}
-        shareUrl={window.location.href}
+        shareUrl={ogShareUrl}
       />
 
       {/* Hero */}
