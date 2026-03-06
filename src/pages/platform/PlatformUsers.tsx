@@ -193,21 +193,20 @@ const PlatformUsers = () => {
     try {
       // If user has a tenant, deactivate it
       if (deleteUser.tenant_id) {
-        const { error: tenantError } = await supabase.from("tenants").update({ active: false }).eq("id", deleteUser.tenant_id);
-        if (tenantError) throw tenantError;
+        await supabase.from("tenants").update({ active: false }).eq("id", deleteUser.tenant_id);
       }
 
-      // Delete user roles
-      if (deleteUser.auth_id) {
-        const { error: roleError } = await supabase.from("user_roles").delete().eq("user_id", deleteUser.auth_id);
-        if (roleError) throw roleError;
-      }
+      // Call edge function to delete user completely (including auth.users)
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: deleteUser.auth_id, profile_id: deleteUser.profile_id },
+      });
 
-      // Delete profile
-      const { error } = await supabase.from("profiles").delete().eq("id", deleteUser.profile_id);
       if (error) throw error;
+      if (data?.errors?.length) {
+        console.warn("Partial delete errors:", data.errors);
+      }
 
-      toast.success("Usuário removido com sucesso");
+      toast.success("Usuário removido permanentemente");
       setDeleteOpen(false);
       await fetchUsers();
     } catch (err: any) {
