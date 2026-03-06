@@ -279,7 +279,6 @@ const AdminAgendamentos = () => {
     if (!blockAllDay && (!blockStartTime || !blockEndTime)) { toast.error("Preencha os horários"); return; }
     setBlockSaving(true);
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { error } = await supabase.from("blocked_dates" as any).insert({
         blocked_date: blockDate || null, reason: blockReason || null, all_day: blockAllDay,
         start_time: blockAllDay ? null : blockStartTime, end_time: blockAllDay ? null : blockEndTime, barber_id: myBarberId,
