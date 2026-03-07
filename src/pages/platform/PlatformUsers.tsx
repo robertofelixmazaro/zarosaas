@@ -220,7 +220,7 @@ const PlatformUsers = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/dashboard">
+        <Link to="/superadmin/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
       </PlatformHeader>
@@ -309,7 +309,7 @@ const PlatformUsers = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Visualizar" onClick={() => navigate(`/super-admin/users/${u.profile_id}`)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Visualizar" onClick={() => navigate(`/superadmin/users/${u.profile_id}`)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar" onClick={() => openEdit(u)}>

@@ -54,7 +54,7 @@ const PlatformUserDetail = () => {
   if (loading) return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/usuarios"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
+        <Link to="/superadmin/usuarios"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
       </PlatformHeader>
       <main className="p-6 max-w-4xl mx-auto"><p className="text-muted-foreground">Carregando...</p></main>
     </div>
@@ -63,7 +63,7 @@ const PlatformUserDetail = () => {
   if (!profile) return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/usuarios"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
+        <Link to="/superadmin/usuarios"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
       </PlatformHeader>
       <main className="p-6 max-w-4xl mx-auto"><p className="text-muted-foreground">Usuário não encontrado.</p></main>
     </div>
@@ -72,7 +72,7 @@ const PlatformUserDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/usuarios">
+        <Link to="/superadmin/usuarios">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
       </PlatformHeader>
