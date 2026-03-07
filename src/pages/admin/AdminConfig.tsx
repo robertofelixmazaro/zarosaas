@@ -525,6 +525,9 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* Reminder Channels */}
+      <ReminderChannelConfig />
+
       {/* WhatsApp Notifications */}
       <WhatsAppNotificationConfig />
 
