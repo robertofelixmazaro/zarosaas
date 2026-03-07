@@ -166,8 +166,13 @@ Deno.serve(async (req) => {
       .insert(insertData);
 
     if (insertError) {
+      // Unique constraint violation (exact same slot)
       if (insertError.code === "23505") {
         return jsonError("Este horário acabou de ser reservado. Por favor, escolha outro.", 409);
+      }
+      // Overlap trigger violation
+      if (insertError.code === "23514" || insertError.message?.includes("APPOINTMENT_OVERLAP")) {
+        return jsonError("Este horário conflita com outro agendamento. Por favor, escolha outro.", 409);
       }
       throw insertError;
     }
