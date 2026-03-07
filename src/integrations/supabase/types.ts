@@ -475,6 +475,56 @@ export type Database = {
           },
         ]
       }
+      job_queue: {
+        Row: {
+          attempts: number
+          created_at: string | null
+          error_message: string | null
+          id: string
+          locked_at: string | null
+          max_attempts: number
+          payload: Json
+          processed_at: string | null
+          status: string
+          tenant_id: string | null
+          type: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          processed_at?: string | null
+          status?: string
+          tenant_id?: string | null
+          type: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          processed_at?: string | null
+          status?: string
+          tenant_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: string
