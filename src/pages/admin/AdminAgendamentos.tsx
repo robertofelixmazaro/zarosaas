@@ -117,7 +117,7 @@ const AdminAgendamentos = () => {
   useEffect(() => {
     const init = async () => {
       if (!isAdmin && user) {
-        const barber = await fetchBarberByUserId(user.id);
+        const barber = await fetchBarberByUserId(user.id, tenantId);
         if (barber) {
           setMyBarberId(barber.id);
           loadData(barber.id);
