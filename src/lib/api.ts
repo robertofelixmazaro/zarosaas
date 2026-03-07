@@ -151,11 +151,13 @@ export async function fetchAppointmentsAdmin(barberId?: string, tenantId?: strin
   return (data as any) || [];
 }
 
-export async function fetchBarberByUserId(userId: string): Promise<DbBarber | null> {
+export async function fetchBarberByUserId(userId: string, tenantId?: string): Promise<DbBarber | null> {
+  if (!tenantId) return null;
   const { data, error } = await supabase
     .from("barbers")
     .select("*")
     .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
     .maybeSingle();
   if (error) throw error;
   return (data as any) || null;

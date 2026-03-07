@@ -10,6 +10,7 @@
 // Known main domains where subdomains map to tenant slugs
 const MAIN_DOMAINS = [
   "usaruistemas.com.br",
+  "zarosistemas.com.br",
   "zarosaas.lovable.app",
 ];
 
