@@ -177,50 +177,41 @@ Deno.serve(async (req) => {
       throw insertError;
     }
 
-    // Trigger notification webhook
-    try {
-      const notifyUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-webhook`;
-      await fetch(notifyUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: JSON.stringify({
+    // Enqueue background jobs instead of calling functions inline
+    const jobs = [
+      {
+        tenant_id,
+        type: "send_notification",
+        payload: {
           id_agendamento: insertData.id,
           email_cliente: body.email_cliente || "",
-        }),
-      });
-    } catch (notifyErr) {
-      console.error("Notify webhook trigger failed:", notifyErr);
-    }
-
-    // Trigger push notification
-    try {
-      // Get service name for the notification
-      const { data: svcInfo } = await supabase
-        .from("services")
-        .select("name")
-        .eq("id", service_id)
-        .single();
-
-      const pushUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-push`;
-      await fetch(pushUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
         },
-        body: JSON.stringify({
+      },
+      {
+        tenant_id,
+        type: "send_push",
+        payload: {
           tenant_id,
           title: "Novo agendamento! 📅",
-          body: `${client_name} — ${svcInfo?.name || "Serviço"} às ${appointment_time}`,
+          body: `${client_name} — ${appointment_time}`,
           tag: `appt-${insertData.id}`,
-        }),
-      });
-    } catch (pushErr) {
-      console.error("Push notification trigger failed:", pushErr);
-    }
+        },
+      },
+      {
+        tenant_id,
+        type: "log_activity",
+        payload: {
+          action: "appointment_created",
+          appointment_id: insertData.id,
+          client_name,
+        },
+      },
+    ];
+
+    // Insert all jobs in batch (non-blocking — errors won't affect response)
+    supabase.from("job_queue").insert(jobs).then(({ error: qErr }: any) => {
+      if (qErr) console.error("Failed to enqueue jobs:", qErr.message);
+    });
 
     return new Response(
       JSON.stringify({ status: "success", id: insertData.id }),
