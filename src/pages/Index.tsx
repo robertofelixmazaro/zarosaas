@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
 import { useOgMetaTags } from "@/hooks/useOgMetaTags";
+import TenantNotFound from "./TenantNotFound";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -116,7 +117,9 @@ const Index = () => {
   };
 
   if (tenantLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (tenantError) return <div className="min-h-screen flex items-center justify-center text-destructive">{tenantError}</div>;
+  if (tenantError || (!tenantLoading && !tenantId)) {
+    return <TenantNotFound message={tenantError || undefined} />;
+  }
 
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const shopName = siteSettings.shop_name || tenant?.name || "Meu Negócio";
