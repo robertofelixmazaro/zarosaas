@@ -80,7 +80,7 @@ const PlatformWhatsApp = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/configuracoes">
+        <Link to="/superadmin/configuracoes">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
       </PlatformHeader>
