@@ -27,7 +27,7 @@ const UnifiedLoginPage = () => {
   const redirectByRole = (role: string) => {
     switch (role) {
       case "super_admin":
-        navigate("/admin-platform", { replace: true });
+        navigate("/superadmin/dashboard", { replace: true });
         break;
       case "affiliate":
         navigate("/affiliate/dashboard", { replace: true });
