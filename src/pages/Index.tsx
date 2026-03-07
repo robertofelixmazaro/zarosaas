@@ -116,7 +116,10 @@ const Index = () => {
   };
 
   if (tenantLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (tenantError) return <div className="min-h-screen flex items-center justify-center text-destructive">{tenantError}</div>;
+  if (tenantError || (!tenantLoading && !tenantId)) {
+    const TenantNotFound = lazy(() => import("./TenantNotFound"));
+    return <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>}><TenantNotFound message={tenantError || undefined} /></Suspense>;
+  }
 
   const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
   const shopName = siteSettings.shop_name || tenant?.name || "Meu Negócio";
