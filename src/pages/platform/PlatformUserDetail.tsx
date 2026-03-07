@@ -72,7 +72,7 @@ const PlatformUserDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <PlatformHeader>
-        <Link to="/super-admin/usuarios">
+        <Link to="/superadmin/usuarios">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
       </PlatformHeader>
