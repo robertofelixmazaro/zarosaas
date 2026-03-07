@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
 import { useOgMetaTags } from "@/hooks/useOgMetaTags";
+import TenantNotFound from "./TenantNotFound";
 
 const Index = () => {
   const queryClient = useQueryClient();
