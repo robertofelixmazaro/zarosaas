@@ -76,7 +76,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
   if (loading || roleLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!userRole || !allowedRoles.includes(userRole)) {
-    if (userRole === "super_admin") return <Navigate to="/super-admin/dashboard" replace />;
+    if (userRole === "super_admin") return <Navigate to="/superadmin/dashboard" replace />;
     if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
     if (userRole === "staff") return <Navigate to="/staff-dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
