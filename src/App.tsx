@@ -56,6 +56,7 @@ const ComprarPage = lazy(() => import("./pages/ComprarPage"));
 const ConfirmAppointmentPage = lazy(() => import("./pages/ConfirmAppointmentPage"));
 const CancelAppointmentPage = lazy(() => import("./pages/CancelAppointmentPage"));
 const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"));
+const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 const StaffLayout = lazy(() => import("./components/StaffLayout"));
 const StaffDashboard = lazy(() => import("./pages/staff/StaffDashboard"));
 const StaffAgenda = lazy(() => import("./pages/staff/StaffAgenda"));
