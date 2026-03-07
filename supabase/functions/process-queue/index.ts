@@ -161,8 +161,13 @@ async function processJob(
       break;
     }
 
+    case "send_sms": {
+      // SMS integration placeholder — log for now, ready for Twilio/Vonage integration
+      console.log(`[SMS] tenant=${job.tenant_id} phone=${payload.phone} message=${payload.message?.slice(0, 80)}`);
+      break;
+    }
+
     case "log_activity": {
-      // Simple insert into a log — for now just console
       console.log(`[Activity Log] tenant=${job.tenant_id}`, JSON.stringify(payload));
       break;
     }
