@@ -34,7 +34,7 @@ const AdminDashboard = () => {
     const load = async () => {
       let barberId: string | undefined;
       if (!isAdmin && user) {
-        const barber = await fetchBarberByUserId(user.id);
+        const barber = await fetchBarberByUserId(user.id, tenantId);
         setCurrentBarber(barber);
         barberId = barber?.id;
       }

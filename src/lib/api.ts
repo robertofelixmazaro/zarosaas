@@ -99,14 +99,14 @@ export async function fetchBarbers(tenantId?: string): Promise<DbBarber[]> {
 }
 
 export async function fetchBarberAvailability(barberId: string, tenantId?: string): Promise<DbAvailability[]> {
-  let query = supabase
+  if (!tenantId) return [];
+  const { data, error } = await supabase
     .from("barber_availability")
     .select("*")
     .eq("barber_id", barberId)
+    .eq("tenant_id", tenantId)
     .eq("active", true)
     .order("day_of_week");
-  if (tenantId) query = query.eq("tenant_id", tenantId);
-  const { data, error } = await query;
   if (error) throw error;
   return (data as any) || [];
 }
@@ -151,11 +151,13 @@ export async function fetchAppointmentsAdmin(barberId?: string, tenantId?: strin
   return (data as any) || [];
 }
 
-export async function fetchBarberByUserId(userId: string): Promise<DbBarber | null> {
+export async function fetchBarberByUserId(userId: string, tenantId?: string): Promise<DbBarber | null> {
+  if (!tenantId) return null;
   const { data, error } = await supabase
     .from("barbers")
     .select("*")
     .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
     .maybeSingle();
   if (error) throw error;
   return (data as any) || null;
