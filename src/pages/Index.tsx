@@ -15,6 +15,7 @@ import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
+import { useDynamicFavicon } from "@/hooks/useDynamicFavicon";
 import { useOgMetaTags } from "@/hooks/useOgMetaTags";
 import TenantNotFound from "./TenantNotFound";
 
