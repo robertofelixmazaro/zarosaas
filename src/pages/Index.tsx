@@ -95,6 +95,9 @@ const Index = () => {
     siteSettings.primary_color || undefined
   );
 
+  // Dynamic favicon per tenant
+  useDynamicFavicon(siteSettings.logo_url || tenant?.logo_url || undefined);
+
   // Client-side OG meta tags (updates on SPA navigation; crawlers use og-tenant edge function)
   const ogDescription = siteSettings.description || (tenant?.name ? `Agende seu horário em ${tenant.name} de forma rápida e fácil.` : undefined);
   const ogImage = siteSettings.cover_image_url || siteSettings.logo_url || tenant?.logo_url || undefined;
