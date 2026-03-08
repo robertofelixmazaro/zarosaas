@@ -201,8 +201,8 @@ const CompleteRegistrationPage = () => {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center gap-3 justify-center mb-6">
-          <img src={zaroLogo} alt="Zaro Logo" className="h-14 w-14 object-contain" />
-          <span className="text-xl font-bold tracking-tight">ZARO AGENDAMENTOS</span>
+          <img src={zaroLogo} alt="Zaro Sistemas" className="h-14 w-14 object-contain" />
+          <span className="text-xl font-bold tracking-tight">Zaro Sistemas</span>
         </div>
 
         <motion.div

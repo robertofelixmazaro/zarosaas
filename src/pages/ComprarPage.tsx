@@ -119,7 +119,7 @@ const ComprarPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-3"
         >
-          <h1 className="text-3xl md:text-4xl font-bold">Comece a usar o ZARO Agendamentos</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">Comece a usar o Zaro Sistemas</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Escolha o plano ideal para o seu negócio e comece a gerenciar agendamentos de forma profissional.
           </p>

@@ -77,8 +77,8 @@ const SuperAdminLoginPage = () => {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center gap-3 justify-center mb-8">
-          <img src={zaroLogo} alt="Zaro Logo" className="h-14 w-14 object-contain" />
-          <span className="text-xl font-bold tracking-tight">ZARO AGENDAMENTOS</span>
+          <img src={zaroLogo} alt="Zaro Sistemas" className="h-14 w-14 object-contain" />
+          <span className="text-xl font-bold tracking-tight">Zaro Sistemas</span>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4" />
             <span>Painel Administrativo</span>
