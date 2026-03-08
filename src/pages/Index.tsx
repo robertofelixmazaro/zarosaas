@@ -93,7 +93,16 @@ const Index = () => {
     siteSettings.primary_color || undefined
   );
 
-  const avgRating = reviews.length > 0
+  // Client-side OG meta tags (updates on SPA navigation; crawlers use og-tenant edge function)
+  const ogDescription = siteSettings.description || (tenant?.name ? `Agende seu horário em ${tenant.name} de forma rápida e fácil.` : undefined);
+  const ogImage = siteSettings.cover_image_url || siteSettings.logo_url || tenant?.logo_url || undefined;
+  useOgMetaTags({
+    title: siteSettings.shop_name || tenant?.name,
+    description: ogDescription,
+    image: ogImage,
+    url: ogUrl,
+  });
+
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : "5.0";
 
