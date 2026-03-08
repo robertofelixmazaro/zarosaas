@@ -16,6 +16,7 @@ const navItems = [
   { icon: UserCog, label: "Usuários", path: "/superadmin/usuarios" },
   { icon: DollarSign, label: "Pagamentos", path: "/superadmin/pagamentos" },
   { icon: Globe, label: "Landing Page", path: "/superadmin/landing" },
+  { icon: HelpCircle, label: "Central de Ajuda", path: "/superadmin/help-center" },
   { icon: Settings, label: "Configurações", path: "/superadmin/configuracoes" },
 ];
 
