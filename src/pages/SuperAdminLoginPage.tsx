@@ -11,7 +11,7 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const SuperAdminLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, user, userRole, loading: authLoading, roleLoading } = useAuth();
+  const { signIn, signOut, user, userRole, loading: authLoading, roleLoading, refreshUserRole } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,11 +50,14 @@ const SuperAdminLoginPage = () => {
       .maybeSingle();
 
     if (roleData?.role !== "super_admin") {
-      await supabase.auth.signOut();
+      await signOut();
       toast.error("Acesso restrito a administradores da plataforma.");
       setLoading(false);
       return;
     }
+
+    // Sync role in AuthContext before navigating
+    await refreshUserRole();
 
     toast.success("Bem-vindo, administrador!");
     navigate("/superadmin/dashboard", { replace: true });
