@@ -14,7 +14,7 @@ import { Plus, Users, Pencil, Trash2, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { validateCPF } from "@/lib/cpfValidator";
+import { validateCpf } from "@/lib/cpfValidator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AffiliateRow {
