@@ -34,7 +34,7 @@ export function useOgMetaTags({ title, description, image, url }: OgMetaParams) 
     if (description) setMeta("property", "og:description", description);
     if (image) setMeta("property", "og:image", image);
     if (url) setMeta("property", "og:url", url);
-    setMeta("property", "og:site_name", "ZARO AGENDAMENTOS");
+    setMeta("property", "og:site_name", "Zaro Sistemas");
 
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);

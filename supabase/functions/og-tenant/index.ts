@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(image)}">
   <meta property="og:url" content="${escapeHtml(siteUrl)}">
-  <meta property="og:site_name" content="ZARO AGENDAMENTOS">
+  <meta property="og:site_name" content="Zaro Sistemas">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(title)}">
