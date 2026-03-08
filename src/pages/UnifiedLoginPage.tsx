@@ -17,7 +17,6 @@ const UnifiedLoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (authLoading || roleLoading || !user || !userRole) return;
@@ -42,23 +41,7 @@ const UnifiedLoginPage = () => {
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast.error("Informe seu e-mail para reenviar a confirmação.");
-      return;
-    }
-
-    setResendLoading(true);
-    const { error } = await supabase.auth.resend({ type: "signup", email });
-    setResendLoading(false);
-
-    if (error) {
-      toast.error("Erro ao reenviar email: " + error.message);
-      return;
-    }
-
-    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
-  };
+  // Email confirmation no longer required (auto-confirm enabled)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,11 +182,6 @@ const UnifiedLoginPage = () => {
             </Button>
           </form>
 
-          {showResendConfirmation && (
-            <Button variant="outline" className="w-full" onClick={handleResendConfirmation} disabled={resendLoading}>
-              {resendLoading ? "Reenviando..." : "Reenviar email de confirmação"}
-            </Button>
-          )}
         </motion.div>
       </motion.div>
     </div>
