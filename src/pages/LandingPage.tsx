@@ -211,7 +211,7 @@ const LandingPage = () => {
           >
             <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Recursos</span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Tudo que você precisa para organizar e crescer seu negócio
+              {landingContent?.landing_benefits_title || "Tudo que você precisa para organizar e crescer seu negócio"}
             </h2>
             <p className="text-muted-foreground">Funcionalidades pensadas para simplificar sua rotina e aumentar seus resultados.</p>
           </motion.div>
