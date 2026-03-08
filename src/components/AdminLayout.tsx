@@ -84,6 +84,23 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
+  const [showSubdomainPopup, setShowSubdomainPopup] = useState(false);
+
+  // Check if subdomain has been configured
+  useEffect(() => {
+    if (!tenant?.id || userRole !== "admin") return;
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("tenant_id", tenant.id)
+      .eq("key", "subdomain_configured")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data || data.value !== "true") {
+          setShowSubdomainPopup(true);
+        }
+      });
+  }, [tenant?.id, userRole]);
 
   // Check if the current page is billing (allow access even when blocked)
   const isBillingPage = location.pathname.includes("/admin/billing");
