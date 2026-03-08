@@ -159,7 +159,25 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background flex">
       {showBlockedOverlay && <SubscriptionBlockedOverlay basePath={basePath} />}
-
+      {showSubdomainPopup && tenant && (
+        <SubdomainSetupPopup
+          tenantId={tenant.id}
+          currentSlug={tenant.slug || ""}
+          onComplete={async (newSlug) => {
+            // Mark as configured
+            await supabase.from("site_settings").insert({
+              tenant_id: tenant.id,
+              key: "subdomain_configured",
+              value: "true",
+            });
+            setShowSubdomainPopup(false);
+            if (newSlug !== tenant.slug) {
+              navigate(`/t/${newSlug}/admin`);
+              window.location.reload();
+            }
+          }}
+        />
+      )}
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
