@@ -41,23 +41,7 @@ const UnifiedLoginPage = () => {
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast.error("Informe seu e-mail para reenviar a confirmação.");
-      return;
-    }
-
-    setResendLoading(true);
-    const { error } = await supabase.auth.resend({ type: "signup", email });
-    setResendLoading(false);
-
-    if (error) {
-      toast.error("Erro ao reenviar email: " + error.message);
-      return;
-    }
-
-    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
-  };
+  // Email confirmation no longer required (auto-confirm enabled)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
