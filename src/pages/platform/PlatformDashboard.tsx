@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3,
-  Settings, UserCog, DollarSign, Filter, Clock, Handshake
+  Settings, UserCog, DollarSign, Filter, Clock, Handshake, Globe
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -169,6 +169,7 @@ const PlatformDashboard = () => {
           <Link to="/superadmin/planos"><Button variant="outline" size="sm"><CreditCard className="h-4 w-4 mr-1" />Planos</Button></Link>
           <Link to="/superadmin/usuarios"><Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Usuários</Button></Link>
           <Link to="/superadmin/pagamentos"><Button variant="outline" size="sm"><DollarSign className="h-4 w-4 mr-1" />Pagamentos</Button></Link>
+          <Link to="/superadmin/landing"><Button variant="outline" size="sm"><Globe className="h-4 w-4 mr-1" />Landing Page</Button></Link>
           <Link to="/superadmin/configuracoes"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" />Configurações</Button></Link>
         </div>
       </PlatformHeader>

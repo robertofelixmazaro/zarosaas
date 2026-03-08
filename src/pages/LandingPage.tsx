@@ -56,6 +56,30 @@ const LandingPage = () => {
     },
   });
 
+  const { data: videoUrl } = useQuery({
+    queryKey: ["landing-video-url"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "landing_video_url")
+        .maybeSingle();
+      return data?.value || "";
+    },
+  });
+
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    if (url.endsWith(".mp4")) return url;
+    return null;
+  };
+
+  const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navbar */}
@@ -221,6 +245,36 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* ===== VÍDEO EXPLICATIVO ===== */}
+      {embedUrl && (
+        <section className="py-20 bg-muted/40">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
+              className="text-center mb-10 max-w-xl mx-auto"
+            >
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Demonstração</span>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Veja como funciona o sistema</h2>
+              <p className="text-muted-foreground">Assista ao vídeo e descubra como o Zaro pode transformar seu negócio.</p>
+            </motion.div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }}
+              className="max-w-3xl mx-auto rounded-2xl overflow-hidden border shadow-lg aspect-video bg-muted"
+            >
+              {embedUrl.endsWith(".mp4") ? (
+                <video src={embedUrl} controls className="w-full h-full object-contain" />
+              ) : (
+                <iframe
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Vídeo explicativo do Zaro"
+                />
+              )}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* ===== PLANOS ===== */}
       {plans.length > 0 && (
