@@ -99,8 +99,8 @@ const SaasSignupPage = () => {
     setGoogleLoading(true);
     try {
       const redirectPath = accountType === "affiliate" ? "/affiliate/dashboard" : "/admin";
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}${redirectPath}`,
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/completar-cadastro`,
       });
       if (error) {
         toast.error("Erro ao entrar com Google: " + (error as Error).message);

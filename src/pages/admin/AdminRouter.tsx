@@ -36,9 +36,16 @@ const AdminRouter = () => {
 
       const { data: profile } = await supabase
         .from("profiles" as any)
-        .select("tenant_id")
+        .select("tenant_id, phone")
         .eq("auth_id", user.id)
         .maybeSingle();
+
+      // If profile is incomplete (no phone), redirect to complete registration
+      if (!profile || !(profile as any).phone) {
+        setChecking(false);
+        setHasTenant(false);
+        return;
+      }
 
       if (profile && (profile as any).tenant_id) {
         const { data: tenant } = await supabase
