@@ -113,24 +113,22 @@ const AgendarPage = () => {
   }, [preSelectedServiceId, tenantId]);
 
   useEffect(() => {
-    if (selectedBarber) {
-      fetchBarberAvailability(selectedBarber.id, tenantId || undefined).then(setAvailability);
+    if (selectedBarber && tenantId) {
+      fetchBarberAvailability(selectedBarber.id, tenantId).then(setAvailability);
       // Load barber-specific lunch break
-      if (tenantId) {
-        supabase
-          .from("site_settings")
-          .select("value")
-          .eq("tenant_id", tenantId)
-          .eq("key", `barber_lunch_${selectedBarber.id}`)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data?.value) {
-              try { setBarberLunch(JSON.parse(data.value)); } catch { setBarberLunch(null); }
-            } else {
-              setBarberLunch(null);
-            }
-          });
-      }
+      supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", `barber_lunch_${selectedBarber.id}`)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.value) {
+            try { setBarberLunch(JSON.parse(data.value)); } catch { setBarberLunch(null); }
+          } else {
+            setBarberLunch(null);
+          }
+        });
     }
   }, [selectedBarber, tenantId]);
 
