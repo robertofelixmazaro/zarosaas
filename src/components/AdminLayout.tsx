@@ -283,6 +283,19 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </main>
+
+      <HelpCenter />
+
+      {showTour && (
+        <GuidedTour
+          onComplete={() => {
+            setShowTour(false);
+            if (tenant?.id) {
+              localStorage.setItem(`zaro_tour_done_${tenant.id}`, "true");
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

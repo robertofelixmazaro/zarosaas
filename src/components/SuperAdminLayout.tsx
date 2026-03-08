@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Handshake, CreditCard, UserCog,
-  DollarSign, Globe, Settings, Menu, X, LogOut, Shield
+  DollarSign, Globe, Settings, Menu, X, LogOut, Shield, HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
