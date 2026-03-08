@@ -103,6 +103,7 @@ const Index = () => {
     url: ogUrl,
   });
 
+  const avgRating = reviews.length > 0
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : "5.0";
 
