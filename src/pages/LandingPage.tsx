@@ -138,11 +138,14 @@ const LandingPage = () => {
                 Plataforma SaaS de Agendamentos
               </span>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.15] mb-6">
-                Automatize os agendamentos do seu negócio e{" "}
-                <span className="text-primary">ganhe mais clientes</span>
+                {landingContent?.landing_hero_title ? (
+                  landingContent.landing_hero_title
+                ) : (
+                  <>Automatize os agendamentos do seu negócio e{" "}<span className="text-primary">ganhe mais clientes</span></>
+                )}
               </h1>
               <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
-                Sistema completo para barbearias, clínicas, salões e prestadores de serviço organizarem agenda, clientes e equipe.
+                {landingContent?.landing_hero_subtitle || "Sistema completo para barbearias, clínicas, salões e prestadores de serviço organizarem agenda, clientes e equipe."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link to="/cadastrar">
