@@ -176,8 +176,25 @@ const SaasSignupPage = () => {
       return;
     }
 
-    setSignupEmail(email);
-    setConfirmDialogOpen(true);
+    // Auto-confirm is enabled, so user is automatically logged in
+    // Wait a moment for the trigger to create profile and role
+    await new Promise((r) => setTimeout(r, 1500));
+
+    // Try provisioning as fallback
+    try {
+      await supabase.functions.invoke("provision-user");
+    } catch (err) {
+      console.error("Provision fallback:", err);
+    }
+
+    toast.success("Conta criada com sucesso!");
+
+    // Redirect based on account type
+    if (accountType === "affiliate") {
+      navigate("/affiliate/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
+    }
     setLoading(false);
   };
 
