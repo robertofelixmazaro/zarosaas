@@ -106,15 +106,25 @@ const AdminConfig = () => {
       if (map.logo_url) setLogoPreview(map.logo_url);
       if (map.cover_image_url) setCoverPreview(map.cover_image_url);
     }
-    // Load MP credentials from tenant
+    // Load MP credentials from tenant_secrets (secure)
+    const { data: mpSecrets } = await supabase
+      .from("tenant_secrets" as any)
+      .select("key, value")
+      .eq("tenant_id", tenantId)
+      .in("key", ["mercadopago_access_token", "mercadopago_public_key"]);
+    if (mpSecrets) {
+      const secretMap: Record<string, string> = {};
+      (mpSecrets as any[]).forEach((s: any) => { secretMap[s.key] = s.value; });
+      setMpAccessToken(secretMap.mercadopago_access_token || "");
+      setMpPublicKey(secretMap.mercadopago_public_key || "");
+    }
+    // Load no-show settings from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("mercadopago_access_token, mercadopago_public_key, no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
-      setMpAccessToken((tenantData as any).mercadopago_access_token || "");
-      setMpPublicKey((tenantData as any).mercadopago_public_key || "");
       setNoShowEnabled((tenantData as any).no_show_enabled || false);
       setNoShowDeposit(String((tenantData as any).no_show_deposit_value || 0));
       setNoShowRetention(String((tenantData as any).no_show_retention_percentage || 100));
@@ -681,14 +691,16 @@ const AdminConfig = () => {
             onClick={async () => {
               setSavingMp(true);
               try {
-                const { error } = await supabase
-                  .from("tenants" as any)
-                  .update({
-                    mercadopago_access_token: mpAccessToken || null,
-                    mercadopago_public_key: mpPublicKey || null,
-                  } as any)
-                  .eq("id", tenantId);
-                if (error) throw error;
+                const upsertSecret = async (key: string, value: string) => {
+                  if (value) {
+                    const { error } = await supabase
+                      .from("tenant_secrets" as any)
+                      .upsert({ tenant_id: tenantId, key, value } as any, { onConflict: "tenant_id,key" });
+                    if (error) throw error;
+                  }
+                };
+                await upsertSecret("mercadopago_access_token", mpAccessToken);
+                await upsertSecret("mercadopago_public_key", mpPublicKey);
                 toast.success("Credenciais do Mercado Pago salvas!");
               } catch (err: any) {
                 toast.error("Erro ao salvar", { description: err.message });
