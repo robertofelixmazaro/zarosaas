@@ -39,7 +39,7 @@ const PlatformHeader = ({ children }: PlatformHeaderProps) => {
           <Shield className="h-5 w-5 text-primary shrink-0" />
         )}
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-foreground truncate">ZARO — Painel da Plataforma</h1>
+          <h1 className="text-2xl font-bold text-foreground truncate">Zaro Sistemas — Painel da Plataforma</h1>
           <p className="text-sm text-muted-foreground">Visão geral do SaaS</p>
         </div>
       </div>

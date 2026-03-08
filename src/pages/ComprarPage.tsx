@@ -107,8 +107,8 @@ const ComprarPage = () => {
       {/* Header */}
       <header className="border-b bg-card px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
-          <img src={zaroLogo} alt="Zaro Logo" className="h-10 w-10 object-contain" />
-          <span className="text-lg font-bold tracking-tight">ZARO AGENDAMENTOS</span>
+          <img src={zaroLogo} alt="Zaro Sistemas" className="h-10 w-10 object-contain" />
+          <span className="text-lg font-bold tracking-tight">Zaro Sistemas</span>
         </div>
       </header>
 
@@ -119,7 +119,7 @@ const ComprarPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-3"
         >
-          <h1 className="text-3xl md:text-4xl font-bold">Comece a usar o ZARO Agendamentos</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">Comece a usar o Zaro Sistemas</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Escolha o plano ideal para o seu negócio e comece a gerenciar agendamentos de forma profissional.
           </p>

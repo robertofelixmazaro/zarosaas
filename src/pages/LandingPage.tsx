@@ -111,8 +111,8 @@ const LandingPage = () => {
       >
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2.5">
-            <img src={zaroLogo} alt="Zaro Logo" className="h-8 w-8 object-contain" />
-            <span className="text-lg font-bold tracking-tight">ZARO AGENDAMENTOS</span>
+            <img src={zaroLogo} alt="Zaro Sistemas" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold tracking-tight">Zaro Sistemas</span>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -443,7 +443,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} ZARO AGENDAMENTOS. Todos os direitos reservados.
+          © {new Date().getFullYear()} Zaro Sistemas. Todos os direitos reservados.
         </div>
       </footer>
     </div>

@@ -45,7 +45,7 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
       }`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Shield className="h-5 w-5 text-primary" />
-          <span className="font-bold tracking-tight">ZARO — Super Admin</span>
+          <span className="font-bold tracking-tight">Zaro — Super Admin</span>
           <button className="lg:hidden ml-auto" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
           </button>
