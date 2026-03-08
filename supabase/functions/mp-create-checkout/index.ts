@@ -25,19 +25,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Resolve MP access token: tenant-specific takes priority over global
+    // Resolve MP access token: tenant_secrets takes priority over global
     let mpAccessToken = globalMpAccessToken;
 
     if (tenant_id) {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      const { data: tenantData } = await adminClient
-        .from("tenants")
-        .select("mercadopago_access_token")
-        .eq("id", tenant_id)
+      const { data: secretData } = await adminClient
+        .from("tenant_secrets")
+        .select("value")
+        .eq("tenant_id", tenant_id)
+        .eq("key", "mercadopago_access_token")
         .maybeSingle();
 
-      if (tenantData?.mercadopago_access_token) {
-        mpAccessToken = tenantData.mercadopago_access_token;
+      if (secretData?.value) {
+        mpAccessToken = secretData.value;
       }
     }
 
