@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import SubdomainSetupPopup from "@/components/SubdomainSetupPopup";
 
 const getNavItems = (staffLabel: string) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
@@ -83,6 +84,23 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
+  const [showSubdomainPopup, setShowSubdomainPopup] = useState(false);
+
+  // Check if subdomain has been configured
+  useEffect(() => {
+    if (!tenant?.id || userRole !== "admin") return;
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("tenant_id", tenant.id)
+      .eq("key", "subdomain_configured")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data || data.value !== "true") {
+          setShowSubdomainPopup(true);
+        }
+      });
+  }, [tenant?.id, userRole]);
 
   // Check if the current page is billing (allow access even when blocked)
   const isBillingPage = location.pathname.includes("/admin/billing");
@@ -141,7 +159,25 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background flex">
       {showBlockedOverlay && <SubscriptionBlockedOverlay basePath={basePath} />}
-
+      {showSubdomainPopup && tenant && (
+        <SubdomainSetupPopup
+          tenantId={tenant.id}
+          currentSlug={tenant.slug || ""}
+          onComplete={async (newSlug) => {
+            // Mark as configured
+            await supabase.from("site_settings").insert({
+              tenant_id: tenant.id,
+              key: "subdomain_configured",
+              value: "true",
+            });
+            setShowSubdomainPopup(false);
+            if (newSlug !== tenant.slug) {
+              navigate(`/t/${newSlug}/admin`);
+              window.location.reload();
+            }
+          }}
+        />
+      )}
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
