@@ -56,6 +56,30 @@ const LandingPage = () => {
     },
   });
 
+  const { data: videoUrl } = useQuery({
+    queryKey: ["landing-video-url"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "landing_video_url")
+        .maybeSingle();
+      return data?.value || "";
+    },
+  });
+
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    if (url.endsWith(".mp4")) return url;
+    return null;
+  };
+
+  const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navbar */}
