@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import SubdomainSetupPopup from "@/components/SubdomainSetupPopup";
 
 const getNavItems = (staffLabel: string) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
