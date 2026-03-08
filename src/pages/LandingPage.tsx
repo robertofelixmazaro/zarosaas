@@ -68,6 +68,26 @@ const LandingPage = () => {
     },
   });
 
+  const { data: landingContent } = useQuery({
+    queryKey: ["landing-content"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("key, value")
+        .in("key", [
+          "landing_hero_title",
+          "landing_hero_subtitle",
+          "landing_benefits_title",
+          "landing_cta_title",
+          "landing_cta_subtitle",
+          "landing_hero_image_url",
+        ]);
+      const map: Record<string, string> = {};
+      data?.forEach((row) => { map[row.key] = row.value; });
+      return map;
+    },
+  });
+
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -118,11 +138,14 @@ const LandingPage = () => {
                 Plataforma SaaS de Agendamentos
               </span>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.15] mb-6">
-                Automatize os agendamentos do seu negócio e{" "}
-                <span className="text-primary">ganhe mais clientes</span>
+                {landingContent?.landing_hero_title ? (
+                  landingContent.landing_hero_title
+                ) : (
+                  <>Automatize os agendamentos do seu negócio e{" "}<span className="text-primary">ganhe mais clientes</span></>
+                )}
               </h1>
               <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
-                Sistema completo para barbearias, clínicas, salões e prestadores de serviço organizarem agenda, clientes e equipe.
+                {landingContent?.landing_hero_subtitle || "Sistema completo para barbearias, clínicas, salões e prestadores de serviço organizarem agenda, clientes e equipe."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link to="/cadastrar">
@@ -188,7 +211,7 @@ const LandingPage = () => {
           >
             <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Recursos</span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Tudo que você precisa para organizar e crescer seu negócio
+              {landingContent?.landing_benefits_title || "Tudo que você precisa para organizar e crescer seu negócio"}
             </h2>
             <p className="text-muted-foreground">Funcionalidades pensadas para simplificar sua rotina e aumentar seus resultados.</p>
           </motion.div>
@@ -402,9 +425,11 @@ const LandingPage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }}
             className="text-center max-w-2xl mx-auto"
           >
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Pronto para organizar seu negócio?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              {landingContent?.landing_cta_title || "Pronto para organizar seu negócio?"}
+            </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Crie sua página de agendamento e comece a receber clientes hoje mesmo.
+              {landingContent?.landing_cta_subtitle || "Crie sua página de agendamento e comece a receber clientes hoje mesmo."}
             </p>
             <Link to="/cadastrar">
               <Button size="lg" className="text-base px-10 gap-2">

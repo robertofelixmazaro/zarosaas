@@ -57,6 +57,7 @@ const ConfirmAppointmentPage = lazy(() => import("./pages/ConfirmAppointmentPage
 const CancelAppointmentPage = lazy(() => import("./pages/CancelAppointmentPage"));
 const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"));
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
+const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 const CompleteRegistrationPage = lazy(() => import("./pages/CompleteRegistrationPage"));
 const StaffLayout = lazy(() => import("./components/StaffLayout"));
@@ -188,18 +189,18 @@ const AppRoutes = () => {
 
         {/* Super Admin */}
         <Route path="/superadmin" element={<SuperAdminLoginPage />} />
-        <Route path="/superadmin/dashboard" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformDashboard /></ProtectedRoute>} />
-        <Route path="/superadmin/tenants" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformTenants /></ProtectedRoute>} />
-        <Route path="/superadmin/stores" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformStores /></ProtectedRoute>} />
-        <Route path="/superadmin/planos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPlans /></ProtectedRoute>} />
-        <Route path="/superadmin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformReports /></ProtectedRoute>} />
-        <Route path="/superadmin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformSettings /></ProtectedRoute>} />
-        <Route path="/superadmin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUsers /></ProtectedRoute>} />
-        <Route path="/superadmin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformUserDetail /></ProtectedRoute>} />
-        <Route path="/superadmin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformPayments /></ProtectedRoute>} />
-        <Route path="/superadmin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformAffiliates /></ProtectedRoute>} />
-        <Route path="/superadmin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformWhatsApp /></ProtectedRoute>} />
-        <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><PlatformLandingPage /></ProtectedRoute>} />
+        <Route path="/superadmin/dashboard" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformDashboard /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/tenants" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformTenants /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/stores" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformStores /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/planos" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformPlans /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/relatorios" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformReports /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/configuracoes" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformSettings /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/usuarios" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformUsers /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformUserDetail /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformPayments /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformAffiliates /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformWhatsApp /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformLandingPage /></SuperAdminLayout></ProtectedRoute>} />
         {/* Legacy super admin redirects */}
         <Route path="/admin-platform" element={<Navigate to="/superadmin/dashboard" replace />} />
         <Route path="/admin-platform/*" element={<Navigate to="/superadmin/dashboard" replace />} />
