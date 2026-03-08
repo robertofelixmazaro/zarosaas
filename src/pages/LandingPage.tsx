@@ -246,6 +246,36 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* ===== VÍDEO EXPLICATIVO ===== */}
+      {embedUrl && (
+        <section className="py-20 bg-muted/40">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
+              className="text-center mb-10 max-w-xl mx-auto"
+            >
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Demonstração</span>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Veja como funciona o sistema</h2>
+              <p className="text-muted-foreground">Assista ao vídeo e descubra como o Zaro pode transformar seu negócio.</p>
+            </motion.div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }}
+              className="max-w-3xl mx-auto rounded-2xl overflow-hidden border shadow-lg aspect-video bg-muted"
+            >
+              {embedUrl.endsWith(".mp4") ? (
+                <video src={embedUrl} controls className="w-full h-full object-contain" />
+              ) : (
+                <iframe
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Vídeo explicativo do Zaro"
+                />
+              )}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* ===== PLANOS ===== */}
       {plans.length > 0 && (
         <section className="py-20 bg-muted/40">
