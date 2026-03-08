@@ -1028,6 +1028,7 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          payment_method: string
           plan_id: string
           status: string
           tenant_id: string
@@ -1038,6 +1039,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          payment_method?: string
           plan_id: string
           status?: string
           tenant_id: string
@@ -1048,6 +1050,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          payment_method?: string
           plan_id?: string
           status?: string
           tenant_id?: string

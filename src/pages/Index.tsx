@@ -32,17 +32,12 @@ const Index = () => {
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
   const ogUrl = tenantSlug ? `${publishedBase}/t/${tenantSlug}` : publishedBase;
-  useOgMetaTags({
-    title: tenant?.name,
-    description: "Agende seu horário online com facilidade",
-    image: tenant?.logo_url || undefined,
-    url: ogUrl,
-  });
 
   // Share URL via edge function for proper OG tags in crawlers
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const currentOrigin = typeof window !== "undefined" ? window.location.origin : publishedBase;
   const ogShareUrl = tenantSlug
-    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}`
+    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}&origin=${encodeURIComponent(`${currentOrigin}/t/${tenantSlug}`)}`
     : ogUrl;
 
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
@@ -98,6 +93,16 @@ const Index = () => {
     siteSettings.logo_url || tenant?.logo_url || undefined,
     siteSettings.primary_color || undefined
   );
+
+  // Client-side OG meta tags (updates on SPA navigation; crawlers use og-tenant edge function)
+  const ogDescription = siteSettings.description || (tenant?.name ? `Agende seu horário em ${tenant.name} de forma rápida e fácil.` : undefined);
+  const ogImage = siteSettings.cover_image_url || siteSettings.logo_url || tenant?.logo_url || undefined;
+  useOgMetaTags({
+    title: siteSettings.shop_name || tenant?.name,
+    description: ogDescription,
+    image: ogImage,
+    url: ogUrl,
+  });
 
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
