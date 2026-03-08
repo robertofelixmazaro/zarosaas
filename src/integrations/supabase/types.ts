@@ -119,24 +119,39 @@ export type Database = {
       affiliates: {
         Row: {
           commission_percent: number
+          cpf: string | null
           created_at: string | null
           id: string
+          phone: string | null
+          pix_key: string | null
+          pix_type: string | null
           ref_code: string
           user_id: string
+          whatsapp: string | null
         }
         Insert: {
           commission_percent?: number
+          cpf?: string | null
           created_at?: string | null
           id?: string
+          phone?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
           ref_code: string
           user_id: string
+          whatsapp?: string | null
         }
         Update: {
           commission_percent?: number
+          cpf?: string | null
           created_at?: string | null
           id?: string
+          phone?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
           ref_code?: string
           user_id?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
