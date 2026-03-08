@@ -14,6 +14,8 @@ import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import HelpCenter from "@/components/HelpCenter";
+import GuidedTour from "@/components/GuidedTour";
 
 const getNavItems = (staffLabel: string) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
@@ -85,8 +87,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
-  // Check if onboarding has been completed
+  // Check if onboarding has been completed and if tour should show
   useEffect(() => {
     if (!tenant?.id || userRole !== "admin") return;
     supabase
@@ -100,6 +103,25 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         }
       });
   }, [tenant?.id, userRole]);
+
+  // Check tour status after onboarding
+  useEffect(() => {
+    if (showOnboarding || !tenant?.id || userRole !== "admin") return;
+    const tourKey = `zaro_tour_done_${tenant.id}`;
+    if (localStorage.getItem(tourKey)) return;
+
+    // Check if tour is enabled globally
+    supabase
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "help_tour_enabled")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data || data.value !== "false") {
+          setShowTour(true);
+        }
+      });
+  }, [showOnboarding, tenant?.id, userRole]);
 
   // Check if the current page is billing (allow access even when blocked)
   const isBillingPage = location.pathname.includes("/admin/billing");
@@ -194,6 +216,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
+                data-tour={item.path.split("/admin/")[1] || "dashboard"}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-primary text-primary-foreground"
@@ -260,6 +283,19 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </main>
+
+      <HelpCenter />
+
+      {showTour && (
+        <GuidedTour
+          onComplete={() => {
+            setShowTour(false);
+            if (tenant?.id) {
+              localStorage.setItem(`zaro_tour_done_${tenant.id}`, "true");
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

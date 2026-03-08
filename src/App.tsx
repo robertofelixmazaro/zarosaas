@@ -57,6 +57,7 @@ const ConfirmAppointmentPage = lazy(() => import("./pages/ConfirmAppointmentPage
 const CancelAppointmentPage = lazy(() => import("./pages/CancelAppointmentPage"));
 const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"));
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
+const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCenter"));
 const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 const CompleteRegistrationPage = lazy(() => import("./pages/CompleteRegistrationPage"));
@@ -201,6 +202,7 @@ const AppRoutes = () => {
         <Route path="/superadmin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformAffiliates /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformWhatsApp /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformLandingPage /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/help-center" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformHelpCenter /></SuperAdminLayout></ProtectedRoute>} />
         {/* Legacy super admin redirects */}
         <Route path="/admin-platform" element={<Navigate to="/superadmin/dashboard" replace />} />
         <Route path="/admin-platform/*" element={<Navigate to="/superadmin/dashboard" replace />} />

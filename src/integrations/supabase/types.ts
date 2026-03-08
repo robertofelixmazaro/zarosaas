@@ -1120,6 +1120,7 @@ export type Database = {
           no_show_deposit_value: number | null
           no_show_enabled: boolean | null
           no_show_retention_percentage: number | null
+          onboarding_completed: boolean
           owner_user_id: string | null
           phone: string | null
           plan_id: string | null
@@ -1140,6 +1141,7 @@ export type Database = {
           no_show_deposit_value?: number | null
           no_show_enabled?: boolean | null
           no_show_retention_percentage?: number | null
+          onboarding_completed?: boolean
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
@@ -1160,6 +1162,7 @@ export type Database = {
           no_show_deposit_value?: number | null
           no_show_enabled?: boolean | null
           no_show_retention_percentage?: number | null
+          onboarding_completed?: boolean
           owner_user_id?: string | null
           phone?: string | null
           plan_id?: string | null
