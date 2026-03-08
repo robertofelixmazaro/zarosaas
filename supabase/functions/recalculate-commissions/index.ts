@@ -21,7 +21,27 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Verify caller is super_admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return jsonResp({ error: "Não autenticado" }, 401);
+
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authErr } = await anonClient.auth.getUser();
+    if (authErr || !user) return jsonResp({ error: "Não autenticado" }, 401);
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (!roleData) return jsonResp({ error: "Acesso negado" }, 403);
 
     // 1. Get all affiliates
     const { data: affiliates, error: affErr } = await adminClient
