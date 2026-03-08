@@ -84,20 +84,19 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
-  const [showSubdomainPopup, setShowSubdomainPopup] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Check if subdomain has been configured
+  // Check if onboarding has been completed
   useEffect(() => {
     if (!tenant?.id || userRole !== "admin") return;
     supabase
-      .from("site_settings")
-      .select("value")
-      .eq("tenant_id", tenant.id)
-      .eq("key", "subdomain_configured")
+      .from("tenants")
+      .select("onboarding_completed")
+      .eq("id", tenant.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!data || data.value !== "true") {
-          setShowSubdomainPopup(true);
+        if (data && !(data as any).onboarding_completed) {
+          setShowOnboarding(true);
         }
       });
   }, [tenant?.id, userRole]);
