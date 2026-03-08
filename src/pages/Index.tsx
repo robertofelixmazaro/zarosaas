@@ -32,12 +32,6 @@ const Index = () => {
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
   const ogUrl = tenantSlug ? `${publishedBase}/t/${tenantSlug}` : publishedBase;
-  useOgMetaTags({
-    title: tenant?.name,
-    description: "Agende seu horário online com facilidade",
-    image: tenant?.logo_url || undefined,
-    url: ogUrl,
-  });
 
   // Share URL via edge function for proper OG tags in crawlers
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

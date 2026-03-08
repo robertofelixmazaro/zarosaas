@@ -44,9 +44,15 @@ Deno.serve(async (req) => {
   (settings || []).forEach((s: any) => { settingsMap[s.key] = s.value; });
 
   const title = settingsMap.shop_name || tenant.name;
-  const description = settingsMap.description || "Agende seu horário online com facilidade";
-  const image = settingsMap.logo_url || tenant.logo_url || "";
-  const siteUrl = `https://zarosaas.lovable.app/t/${tenant.slug}`;
+  const description = settingsMap.description || `Agende seu horário em ${tenant.name} de forma rápida e fácil.`;
+  const coverImage = settingsMap.cover_image_url || "";
+  const logoImage = settingsMap.logo_url || tenant.logo_url || "";
+  // Prefer cover image for OG (larger, better preview), fallback to logo
+  const image = coverImage || logoImage;
+
+  // Build redirect URL — prefer subdomain if on zarosistemas.com.br
+  const origin = url.searchParams.get("origin");
+  const siteUrl = origin || `https://zarosaas.lovable.app/t/${tenant.slug}`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
