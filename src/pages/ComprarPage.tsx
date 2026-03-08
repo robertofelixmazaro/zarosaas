@@ -107,8 +107,8 @@ const ComprarPage = () => {
       {/* Header */}
       <header className="border-b bg-card px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
-          <img src={zaroLogo} alt="Zaro Logo" className="h-10 w-10 object-contain" />
-          <span className="text-lg font-bold tracking-tight">ZARO AGENDAMENTOS</span>
+          <img src={zaroLogo} alt="Zaro Sistemas" className="h-10 w-10 object-contain" />
+          <span className="text-lg font-bold tracking-tight">Zaro Sistemas</span>
         </div>
       </header>
 
