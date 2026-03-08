@@ -17,7 +17,6 @@ const UnifiedLoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (authLoading || roleLoading || !user || !userRole) return;
