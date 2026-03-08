@@ -87,8 +87,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
-  // Check if onboarding has been completed
+  // Check if onboarding has been completed and if tour should show
   useEffect(() => {
     if (!tenant?.id || userRole !== "admin") return;
     supabase
@@ -102,6 +103,25 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         }
       });
   }, [tenant?.id, userRole]);
+
+  // Check tour status after onboarding
+  useEffect(() => {
+    if (showOnboarding || !tenant?.id || userRole !== "admin") return;
+    const tourKey = `zaro_tour_done_${tenant.id}`;
+    if (localStorage.getItem(tourKey)) return;
+
+    // Check if tour is enabled globally
+    supabase
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "help_tour_enabled")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data || data.value !== "false") {
+          setShowTour(true);
+        }
+      });
+  }, [showOnboarding, tenant?.id, userRole]);
 
   // Check if the current page is billing (allow access even when blocked)
   const isBillingPage = location.pathname.includes("/admin/billing");
