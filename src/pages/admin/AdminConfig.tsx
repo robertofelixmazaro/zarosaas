@@ -691,14 +691,16 @@ const AdminConfig = () => {
             onClick={async () => {
               setSavingMp(true);
               try {
-                const { error } = await supabase
-                  .from("tenants" as any)
-                  .update({
-                    mercadopago_access_token: mpAccessToken || null,
-                    mercadopago_public_key: mpPublicKey || null,
-                  } as any)
-                  .eq("id", tenantId);
-                if (error) throw error;
+                const upsertSecret = async (key: string, value: string) => {
+                  if (value) {
+                    const { error } = await supabase
+                      .from("tenant_secrets" as any)
+                      .upsert({ tenant_id: tenantId, key, value } as any, { onConflict: "tenant_id,key" });
+                    if (error) throw error;
+                  }
+                };
+                await upsertSecret("mercadopago_access_token", mpAccessToken);
+                await upsertSecret("mercadopago_public_key", mpPublicKey);
                 toast.success("Credenciais do Mercado Pago salvas!");
               } catch (err: any) {
                 toast.error("Erro ao salvar", { description: err.message });
