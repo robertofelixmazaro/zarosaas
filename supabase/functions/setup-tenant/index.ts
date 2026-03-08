@@ -125,7 +125,31 @@ Deno.serve(async (req) => {
         .insert({ user_id: user.id, role: "admin", tenant_id: tenantId });
     }
 
-    // 4. Store business settings
+    // 4. Create trial subscription with "Teste" plan
+    const { data: testePlan } = await adminClient
+      .from("plans")
+      .select("id")
+      .eq("name", "Teste")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (testePlan) {
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 7);
+      await adminClient.from("subscriptions").insert({
+        tenant_id: tenantId,
+        plan_id: testePlan.id,
+        status: "trial",
+        trial_ends_at: trialEnd.toISOString(),
+        current_period_start: new Date().toISOString(),
+        current_period_end: trialEnd.toISOString(),
+      });
+
+      // Also set the plan_id on the tenant
+      await adminClient.from("tenants").update({ plan_id: testePlan.id }).eq("id", tenantId);
+    }
+
+    // 5. Store business settings
     const settings = [
       { key: "business_type", value: business_type || "other", tenant_id: tenantId },
       { key: "shop_name", value: name.trim(), tenant_id: tenantId },
