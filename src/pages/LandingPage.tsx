@@ -68,6 +68,26 @@ const LandingPage = () => {
     },
   });
 
+  const { data: landingContent } = useQuery({
+    queryKey: ["landing-content"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("key, value")
+        .in("key", [
+          "landing_hero_title",
+          "landing_hero_subtitle",
+          "landing_benefits_title",
+          "landing_cta_title",
+          "landing_cta_subtitle",
+          "landing_hero_image_url",
+        ]);
+      const map: Record<string, string> = {};
+      data?.forEach((row) => { map[row.key] = row.value; });
+      return map;
+    },
+  });
+
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
