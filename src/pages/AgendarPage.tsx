@@ -52,11 +52,18 @@ const AgendarPage = () => {
   }, []);
 
   useEffect(() => {
-   const loadInitial = async () => {
+    // CRITICAL: Wait for tenantId before loading — prevents showing default/wrong hours
+    if (!tenantId) {
+      setLoading(true);
+      return;
+    }
+
+    const loadInitial = async () => {
+      setLoading(true);
       const [s, b, bd] = await Promise.all([
-        fetchServices(tenantId || undefined),
-        fetchBarbers(tenantId || undefined),
-        fetchBlockedDates(tenantId || undefined),
+        fetchServices(tenantId),
+        fetchBarbers(tenantId),
+        fetchBlockedDates(tenantId),
       ]);
       setServices(s);
       setBarbersList(b);
@@ -66,64 +73,62 @@ const AgendarPage = () => {
         if (found) setSelectedService(found);
       }
 
-      // Load business hours from site_settings
-      if (tenantId) {
-        const { data: bhData } = await supabase
-          .from("site_settings")
-          .select("value")
-          .eq("tenant_id", tenantId)
-          .eq("key", "business_hours")
-          .maybeSingle();
-        if (bhData?.value) {
-          try {
-            setBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
-          } catch {}
+      // Load tenant-specific business hours
+      const { data: bhData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", "business_hours")
+        .maybeSingle();
+      if (bhData?.value) {
+        try {
+          setBusinessHours({ ...DEFAULT_BUSINESS_HOURS, ...JSON.parse(bhData.value) });
+        } catch {
+          setBusinessHours(DEFAULT_BUSINESS_HOURS);
         }
+      } else {
+        setBusinessHours(DEFAULT_BUSINESS_HOURS);
       }
 
       setLoading(false);
     };
     loadInitial();
 
-    // Load no-show policy from tenant
-    if (tenantId) {
-      supabase
-        .from("tenants" as any)
-        .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
-        .eq("id", tenantId)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data) {
-            setNoShowPolicy({
-              enabled: (data as any).no_show_enabled || false,
-              deposit: Number((data as any).no_show_deposit_value) || 0,
-              retention: Number((data as any).no_show_retention_percentage) || 100,
-              cancelHours: Number((data as any).no_show_cancel_limit_hours) || 4,
-            });
-          }
-        });
-    }
+    // Load no-show policy
+    supabase
+      .from("tenants" as any)
+      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+      .eq("id", tenantId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setNoShowPolicy({
+            enabled: (data as any).no_show_enabled || false,
+            deposit: Number((data as any).no_show_deposit_value) || 0,
+            retention: Number((data as any).no_show_retention_percentage) || 100,
+            cancelHours: Number((data as any).no_show_cancel_limit_hours) || 4,
+          });
+        }
+      });
   }, [preSelectedServiceId, tenantId]);
 
   useEffect(() => {
-    if (selectedBarber) {
-      fetchBarberAvailability(selectedBarber.id, tenantId || undefined).then(setAvailability);
+    if (selectedBarber && tenantId) {
+      fetchBarberAvailability(selectedBarber.id, tenantId).then(setAvailability);
       // Load barber-specific lunch break
-      if (tenantId) {
-        supabase
-          .from("site_settings")
-          .select("value")
-          .eq("tenant_id", tenantId)
-          .eq("key", `barber_lunch_${selectedBarber.id}`)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data?.value) {
-              try { setBarberLunch(JSON.parse(data.value)); } catch { setBarberLunch(null); }
-            } else {
-              setBarberLunch(null);
-            }
-          });
-      }
+      supabase
+        .from("site_settings")
+        .select("value")
+        .eq("tenant_id", tenantId)
+        .eq("key", `barber_lunch_${selectedBarber.id}`)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.value) {
+            try { setBarberLunch(JSON.parse(data.value)); } catch { setBarberLunch(null); }
+          } else {
+            setBarberLunch(null);
+          }
+        });
     }
   }, [selectedBarber, tenantId]);
 
