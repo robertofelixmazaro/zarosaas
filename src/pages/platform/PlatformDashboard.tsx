@@ -5,28 +5,14 @@ import {
   Building2, Users, CalendarCheck, TrendingUp, CreditCard, BarChart3,
   Settings, UserCog, DollarSign, Filter, Clock, Handshake, Globe
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import PlatformHeader from "@/components/PlatformHeader";
+import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, AreaChart, Area
 } from "recharts";
-
-interface MonthlyData {
-  month: string;
-  label: string;
-  count: number;
-}
-
-interface RevenueData {
-  month: string;
-  label: string;
-  amount: number;
-}
 
 const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -42,7 +28,6 @@ const PlatformDashboard = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Raw data
   const [tenants, setTenants] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -67,7 +52,6 @@ const PlatformDashboard = () => {
     fetch();
   }, []);
 
-  // Filtered data
   const filtered = useMemo(() => {
     const inRange = (dateStr: string | null) => {
       if (!dateStr) return true;
@@ -76,21 +60,16 @@ const PlatformDashboard = () => {
       if (dateTo && d > dateTo) return false;
       return true;
     };
-
-    // Filter tenants by plan
     const tenantIds = filterPlan === "all"
       ? null
       : new Set(tenants.filter(t => t.plan_id === filterPlan).map(t => t.id));
-
     const ft = tenants.filter(t => inRange(t.created_at) && (!tenantIds || tenantIds.has(t.id)));
     const fs = subscriptions.filter(s => inRange(s.created_at) && (!tenantIds || tenantIds.has(s.tenant_id)));
     const fa = appointments.filter(a => inRange(a.created_at) && (!tenantIds || tenantIds.has(a.tenant_id)));
     const fp = payments.filter(p => inRange(p.created_at) && (!tenantIds || tenantIds.has(p.tenant_id)));
-
     return { tenants: ft, subscriptions: fs, appointments: fa, payments: fp };
   }, [tenants, subscriptions, appointments, payments, filterPlan, dateFrom, dateTo]);
 
-  // Metrics
   const metrics = useMemo(() => {
     const now = new Date();
     const activeSubs = filtered.subscriptions.filter(s => s.status === "active" || s.status === "trialing").length;
@@ -105,50 +84,21 @@ const PlatformDashboard = () => {
     const monthlyRevenue = filtered.payments
       .filter(p => p.status === "approved" && p.created_at?.substring(0, 7) === thisMonth)
       .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
-
-    return {
-      totalTenants: filtered.tenants.length,
-      activeSubs,
-      trialUsers,
-      totalAppointments: filtered.appointments.length,
-      totalRevenue,
-      monthlyRevenue,
-    };
+    return { totalTenants: filtered.tenants.length, activeSubs, trialUsers, totalAppointments: filtered.appointments.length, totalRevenue, monthlyRevenue };
   }, [filtered]);
 
-  // Chart data
   const charts = useMemo(() => {
     const groupByMonth = (items: any[], key = "created_at") => {
       const map: Record<string, number> = {};
-      items.forEach(i => {
-        if (!i[key]) return;
-        const m = i[key].substring(0, 7);
-        map[m] = (map[m] || 0) + 1;
-      });
-      return Object.entries(map)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-12)
-        .map(([month, count]) => ({ month, label: formatMonthLabel(month), count }));
+      items.forEach(i => { if (!i[key]) return; const m = i[key].substring(0, 7); map[m] = (map[m] || 0) + 1; });
+      return Object.entries(map).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([month, count]) => ({ month, label: formatMonthLabel(month), count }));
     };
-
     const revenueByMonth = () => {
       const map: Record<string, number> = {};
-      filtered.payments.filter(p => p.status === "approved").forEach(p => {
-        if (!p.created_at) return;
-        const m = p.created_at.substring(0, 7);
-        map[m] = (map[m] || 0) + Number(p.amount);
-      });
-      return Object.entries(map)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-12)
-        .map(([month, amount]) => ({ month, label: formatMonthLabel(month), amount }));
+      filtered.payments.filter(p => p.status === "approved").forEach(p => { if (!p.created_at) return; const m = p.created_at.substring(0, 7); map[m] = (map[m] || 0) + Number(p.amount); });
+      return Object.entries(map).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([month, amount]) => ({ month, label: formatMonthLabel(month), amount }));
     };
-
-    return {
-      tenantsPerMonth: groupByMonth(filtered.tenants),
-      appointmentsPerMonth: groupByMonth(filtered.appointments),
-      revenuePerMonth: revenueByMonth(),
-    };
+    return { tenantsPerMonth: groupByMonth(filtered.tenants), appointmentsPerMonth: groupByMonth(filtered.appointments), revenuePerMonth: revenueByMonth() };
   }, [filtered]);
 
   const statCards = [
@@ -161,143 +111,94 @@ const PlatformDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <PlatformHeader>
-        <div className="flex gap-2 flex-wrap">
-          <Link to="/superadmin/stores"><Button variant="outline" size="sm"><Building2 className="h-4 w-4 mr-1" />Lojas</Button></Link>
-          <Link to="/superadmin/affiliates"><Button variant="outline" size="sm"><Handshake className="h-4 w-4 mr-1" />Afiliados</Button></Link>
-          <Link to="/superadmin/planos"><Button variant="outline" size="sm"><CreditCard className="h-4 w-4 mr-1" />Planos</Button></Link>
-          <Link to="/superadmin/usuarios"><Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Usuários</Button></Link>
-          <Link to="/superadmin/pagamentos"><Button variant="outline" size="sm"><DollarSign className="h-4 w-4 mr-1" />Pagamentos</Button></Link>
-          <Link to="/superadmin/landing"><Button variant="outline" size="sm"><Globe className="h-4 w-4 mr-1" />Landing Page</Button></Link>
-          <Link to="/superadmin/configuracoes"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" />Configurações</Button></Link>
-        </div>
-      </PlatformHeader>
-
-      <main className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filtros</span>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">De</Label>
-                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-40" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Até</Label>
-                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-40" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Plano</Label>
-                <Select value={filterPlan} onValueChange={setFilterPlan}>
-                  <SelectTrigger className="w-44">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os planos</SelectItem>
-                    {plans.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {(dateFrom || dateTo || filterPlan !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); setFilterPlan("all"); }}>
-                  Limpar
-                </Button>
-              )}
+    <div className="space-y-6">
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filtros</span>
             </div>
-          </CardContent>
-        </Card>
-
-        {loading ? (
-          <p className="text-muted-foreground">Carregando...</p>
-        ) : (
-          <>
-            {/* Stat cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              {statCards.map(card => (
-                <Card key={card.title}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
-                    <card.icon className={`h-4 w-4 ${card.color}`} />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">{card.value}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-1">
+              <Label className="text-xs">De</Label>
+              <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-40" />
             </div>
-
-            {/* Charts */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-primary" />
-                    Novos Negócios / Mês
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={charts.tenantsPerMonth}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="label" className="text-xs" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" name="Negócios" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <CalendarCheck className="h-4 w-4 text-primary" />
-                    Agendamentos / Mês
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <LineChart data={charts.appointmentsPerMonth}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="label" className="text-xs" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="count" name="Agendamentos" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                    Receita / Mês
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={charts.revenuePerMonth}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="label" className="text-xs" />
-                      <YAxis />
-                      <Tooltip formatter={(value: number) => [`R$ ${value.toFixed(2)}`, "Receita"]} />
-                      <Area type="monotone" dataKey="amount" name="Receita" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+            <div className="space-y-1">
+              <Label className="text-xs">Até</Label>
+              <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-40" />
             </div>
-          </>
-        )}
-      </main>
+            <div className="space-y-1">
+              <Label className="text-xs">Plano</Label>
+              <Select value={filterPlan} onValueChange={setFilterPlan}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os planos</SelectItem>
+                  {plans.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(dateFrom || dateTo || filterPlan !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); setFilterPlan("all"); }}>Limpar</Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {loading ? (
+        <p className="text-muted-foreground">Carregando...</p>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {statCards.map(card => (
+              <Card key={card.title}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
+                  <card.icon className={`h-4 w-4 ${card.color}`} />
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold text-foreground">{card.value}</p></CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" />Novos Negócios / Mês</CardTitle></CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={charts.tenantsPerMonth}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="label" className="text-xs" /><YAxis allowDecimals={false} /><Tooltip />
+                    <Bar dataKey="count" name="Negócios" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm flex items-center gap-2"><CalendarCheck className="h-4 w-4 text-primary" />Agendamentos / Mês</CardTitle></CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={charts.appointmentsPerMonth}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" /><XAxis dataKey="label" className="text-xs" /><YAxis allowDecimals={false} /><Tooltip />
+                    <Line type="monotone" dataKey="count" name="Agendamentos" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm flex items-center gap-2"><DollarSign className="h-4 w-4 text-primary" />Receita / Mês</CardTitle></CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={charts.revenuePerMonth}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" /><XAxis dataKey="label" className="text-xs" /><YAxis /><Tooltip formatter={(value: number) => [`R$ ${value.toFixed(2)}`, "Receita"]} />
+                    <Area type="monotone" dataKey="amount" name="Receita" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 };
