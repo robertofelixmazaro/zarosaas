@@ -182,11 +182,6 @@ const UnifiedLoginPage = () => {
             </Button>
           </form>
 
-          {showResendConfirmation && (
-            <Button variant="outline" className="w-full" onClick={handleResendConfirmation} disabled={resendLoading}>
-              {resendLoading ? "Reenviando..." : "Reenviar email de confirmação"}
-            </Button>
-          )}
         </motion.div>
       </motion.div>
     </div>
