@@ -158,18 +158,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background flex">
       {showBlockedOverlay && <SubscriptionBlockedOverlay basePath={basePath} />}
-      {showSubdomainPopup && tenant && (
-        <SubdomainSetupPopup
+      {showOnboarding && tenant && (
+        <OnboardingWizard
           tenantId={tenant.id}
           currentSlug={tenant.slug || ""}
-          onComplete={async (newSlug) => {
-            // Mark as configured
-            await supabase.from("site_settings").insert({
-              tenant_id: tenant.id,
-              key: "subdomain_configured",
-              value: "true",
-            });
-            setShowSubdomainPopup(false);
+          onComplete={(newSlug) => {
+            setShowOnboarding(false);
             if (newSlug !== tenant.slug) {
               navigate(`/t/${newSlug}/admin`);
               window.location.reload();
