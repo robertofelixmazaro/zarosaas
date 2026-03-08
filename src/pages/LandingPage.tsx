@@ -425,9 +425,11 @@ const LandingPage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }}
             className="text-center max-w-2xl mx-auto"
           >
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Pronto para organizar seu negócio?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              {landingContent?.landing_cta_title || "Pronto para organizar seu negócio?"}
+            </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Crie sua página de agendamento e comece a receber clientes hoje mesmo.
+              {landingContent?.landing_cta_subtitle || "Crie sua página de agendamento e comece a receber clientes hoje mesmo."}
             </p>
             <Link to="/cadastrar">
               <Button size="lg" className="text-base px-10 gap-2">
