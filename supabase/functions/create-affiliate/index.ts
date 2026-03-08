@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     if (!roleData) return jsonResp({ error: "Acesso negado" }, 403);
 
-    const { name, email, password, commission_percent } = await req.json();
+    const { name, email, password, commission_percent, phone, whatsapp, cpf, pix_type, pix_key } = await req.json();
 
     if (!name?.trim() || !email?.trim() || !password?.trim()) {
       return jsonResp({ error: "Nome, email e senha são obrigatórios" }, 400);
@@ -78,19 +78,23 @@ Deno.serve(async (req) => {
       .eq("auth_id", newUserId)
       .maybeSingle();
 
+    const profileData: Record<string, unknown> = {
+      name: name.trim(),
+      email: email.trim(),
+    };
+    if (phone?.trim()) profileData.phone = phone.trim();
+    if (whatsapp?.trim()) profileData.whatsapp = whatsapp.trim();
+    if (cpf?.trim()) profileData.cpf = cpf.trim();
+
     if (existingProfile) {
       await adminClient
         .from("profiles")
-        .update({ name: name.trim(), email: email.trim() })
+        .update(profileData)
         .eq("auth_id", newUserId);
     } else {
       await adminClient
         .from("profiles")
-        .insert({
-          auth_id: newUserId,
-          name: name.trim(),
-          email: email.trim(),
-        });
+        .insert({ auth_id: newUserId, ...profileData });
     }
 
     // 3. Ensure user_role exists as affiliate
@@ -122,6 +126,15 @@ Deno.serve(async (req) => {
       + Date.now().toString(36).slice(-4);
 
     // 5. Create affiliate record (check if trigger already created one)
+    const affiliateData: Record<string, unknown> = {
+      commission_percent: commissionPct,
+    };
+    if (phone?.trim()) affiliateData.phone = phone.trim();
+    if (whatsapp?.trim()) affiliateData.whatsapp = whatsapp.trim();
+    if (cpf?.trim()) affiliateData.cpf = cpf.trim();
+    if (pix_type?.trim()) affiliateData.pix_type = pix_type.trim();
+    if (pix_key?.trim()) affiliateData.pix_key = pix_key.trim();
+
     const { data: existingAff } = await adminClient
       .from("affiliates")
       .select("id")
@@ -131,7 +144,7 @@ Deno.serve(async (req) => {
     if (existingAff) {
       await adminClient
         .from("affiliates")
-        .update({ commission_percent: commissionPct })
+        .update(affiliateData)
         .eq("user_id", newUserId);
     } else {
       const { error: affErr } = await adminClient
@@ -139,7 +152,7 @@ Deno.serve(async (req) => {
         .insert({
           user_id: newUserId,
           ref_code: refCode,
-          commission_percent: commissionPct,
+          ...affiliateData,
         });
 
       if (affErr) {
