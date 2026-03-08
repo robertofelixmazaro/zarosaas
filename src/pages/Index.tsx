@@ -35,8 +35,9 @@ const Index = () => {
 
   // Share URL via edge function for proper OG tags in crawlers
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const currentOrigin = typeof window !== "undefined" ? window.location.origin : publishedBase;
   const ogShareUrl = tenantSlug
-    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}`
+    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}&origin=${encodeURIComponent(`${currentOrigin}/t/${tenantSlug}`)}`
     : ogUrl;
 
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
