@@ -50,11 +50,14 @@ const SuperAdminLoginPage = () => {
       .maybeSingle();
 
     if (roleData?.role !== "super_admin") {
-      await supabase.auth.signOut();
+      await signOut();
       toast.error("Acesso restrito a administradores da plataforma.");
       setLoading(false);
       return;
     }
+
+    // Sync role in AuthContext before navigating
+    await refreshUserRole();
 
     toast.success("Bem-vindo, administrador!");
     navigate("/superadmin/dashboard", { replace: true });
