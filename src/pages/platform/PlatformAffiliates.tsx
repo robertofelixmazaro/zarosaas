@@ -162,7 +162,7 @@ const PlatformAffiliates = () => {
     const cpfDigits = createForm.cpf.replace(/\D/g, "");
     if (!cpfDigits) {
       errors.cpf = "CPF é obrigatório";
-    } else if (!validateCPF(cpfDigits)) {
+    } else if (!validateCpf(cpfDigits)) {
       errors.cpf = "CPF inválido";
     }
 
