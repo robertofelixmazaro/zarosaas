@@ -57,6 +57,7 @@ const ConfirmAppointmentPage = lazy(() => import("./pages/ConfirmAppointmentPage
 const CancelAppointmentPage = lazy(() => import("./pages/CancelAppointmentPage"));
 const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"));
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
+const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCenter"));
 const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 const CompleteRegistrationPage = lazy(() => import("./pages/CompleteRegistrationPage"));
