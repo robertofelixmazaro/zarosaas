@@ -20,7 +20,20 @@ const UnifiedLoginPage = () => {
 
   useEffect(() => {
     if (authLoading || roleLoading || !user || !userRole) return;
-    redirectByRole(userRole);
+    // Check if profile is complete (has phone) — if not, redirect to complete registration
+    const checkAndRedirect = async () => {
+      const { data: profile } = await supabase
+        .from("profiles" as any)
+        .select("phone")
+        .eq("auth_id", user.id)
+        .maybeSingle();
+      if (!profile || !(profile as any).phone) {
+        navigate("/completar-cadastro", { replace: true });
+        return;
+      }
+      redirectByRole(userRole);
+    };
+    checkAndRedirect();
   }, [authLoading, roleLoading, user, userRole]);
 
   const redirectByRole = (role: string) => {
