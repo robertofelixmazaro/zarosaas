@@ -13,7 +13,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import SubdomainSetupPopup from "@/components/SubdomainSetupPopup";
+import OnboardingWizard from "@/components/OnboardingWizard";
 
 const getNavItems = (staffLabel: string) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
@@ -84,20 +84,19 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const { canInstall, isInstalled, install } = usePwaInstall();
-  const [showSubdomainPopup, setShowSubdomainPopup] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Check if subdomain has been configured
+  // Check if onboarding has been completed
   useEffect(() => {
     if (!tenant?.id || userRole !== "admin") return;
     supabase
-      .from("site_settings")
-      .select("value")
-      .eq("tenant_id", tenant.id)
-      .eq("key", "subdomain_configured")
+      .from("tenants")
+      .select("onboarding_completed")
+      .eq("id", tenant.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!data || data.value !== "true") {
-          setShowSubdomainPopup(true);
+        if (data && !(data as any).onboarding_completed) {
+          setShowOnboarding(true);
         }
       });
   }, [tenant?.id, userRole]);
@@ -159,18 +158,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background flex">
       {showBlockedOverlay && <SubscriptionBlockedOverlay basePath={basePath} />}
-      {showSubdomainPopup && tenant && (
-        <SubdomainSetupPopup
+      {showOnboarding && tenant && (
+        <OnboardingWizard
           tenantId={tenant.id}
           currentSlug={tenant.slug || ""}
-          onComplete={async (newSlug) => {
-            // Mark as configured
-            await supabase.from("site_settings").insert({
-              tenant_id: tenant.id,
-              key: "subdomain_configured",
-              value: "true",
-            });
-            setShowSubdomainPopup(false);
+          onComplete={(newSlug) => {
+            setShowOnboarding(false);
             if (newSlug !== tenant.slug) {
               navigate(`/t/${newSlug}/admin`);
               window.location.reload();
