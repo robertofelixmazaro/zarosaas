@@ -22,10 +22,10 @@ export interface PlanLimits {
 }
 
 const defaultLimits: PlanLimits = {
-  planName: "Teste Grátis",
+  planName: "Teste",
   maxStaff: 1,
   maxServices: 3,
-  maxAppointments: 50,
+  maxAppointments: 10,
   maxProducts: 5,
   maxClients: 20,
   features: [],
