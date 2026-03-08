@@ -15,6 +15,7 @@ import PremiumNavbar from "@/components/PremiumNavbar";
 import { toast } from "sonner";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useDynamicManifest } from "@/hooks/useDynamicManifest";
+import { useDynamicFavicon } from "@/hooks/useDynamicFavicon";
 import { useOgMetaTags } from "@/hooks/useOgMetaTags";
 import TenantNotFound from "./TenantNotFound";
 
@@ -93,6 +94,9 @@ const Index = () => {
     siteSettings.logo_url || tenant?.logo_url || undefined,
     siteSettings.primary_color || undefined
   );
+
+  // Dynamic favicon per tenant
+  useDynamicFavicon(siteSettings.logo_url || tenant?.logo_url || undefined);
 
   // Client-side OG meta tags (updates on SPA navigation; crawlers use og-tenant edge function)
   const ogDescription = siteSettings.description || (tenant?.name ? `Agende seu horário em ${tenant.name} de forma rápida e fácil.` : undefined);
