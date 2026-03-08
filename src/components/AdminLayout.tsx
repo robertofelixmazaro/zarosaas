@@ -14,6 +14,8 @@ import { usePwaInstall } from "@/hooks/usePwaInstall";
 import PlanUpgradeBanner from "@/components/PlanUpgradeBanner";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import HelpCenter from "@/components/HelpCenter";
+import GuidedTour from "@/components/GuidedTour";
 
 const getNavItems = (staffLabel: string) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin"] },
