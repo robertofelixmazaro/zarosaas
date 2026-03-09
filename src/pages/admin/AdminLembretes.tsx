@@ -27,12 +27,14 @@ const AdminLembretes = () => {
   const [filter, setFilter] = useState<"pending" | "sent" | "all">("pending");
 
   const loadAppointments = async () => {
+    if (!tenantId) return;
     setLoading(true);
     const today = format(new Date(), "yyyy-MM-dd");
 
     let query = supabase
       .from("appointments" as any)
       .select("id, client_name, client_phone, appointment_date, appointment_time, reminder_sent, barbers(name), services(name)")
+      .eq("tenant_id", tenantId)
       .gte("appointment_date", today)
       .in("status", ["pendente", "confirmado"])
       .order("appointment_date", { ascending: true })
