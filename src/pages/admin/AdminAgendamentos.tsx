@@ -31,6 +31,7 @@ type ViewMode = "day" | "week" | "list";
 const AdminAgendamentos = () => {
   const { user, userRole } = useAuth();
   const { tenantId } = useTenant();
+  const { canCreateAppointment, limits } = usePlanLimits();
   const isAdmin = userRole === "admin";
 
   const [myBarberId, setMyBarberId] = useState<string | undefined>();
