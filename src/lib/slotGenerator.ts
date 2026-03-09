@@ -92,7 +92,7 @@ export function generateRawSlots(
     }
 
     slots.push(minToTime(current));
-    current += SLOT_INTERVAL; // Fixed 30-min interval instead of service duration
+    current += Math.max(DEFAULT_SLOT_INTERVAL, serviceDurationMinutes); // Space slots by service duration
   }
 
   return slots;
