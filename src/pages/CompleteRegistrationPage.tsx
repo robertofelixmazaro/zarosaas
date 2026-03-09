@@ -199,7 +199,7 @@ const CompleteRegistrationPage = () => {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   }
 
-  const isValid = name && phone.replace(/\D/g, "").length >= 10 && !cpfError;
+  const isValid = name && phone.replace(/\D/g, "").length >= 10 && !cpfError && password.length >= 6;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
