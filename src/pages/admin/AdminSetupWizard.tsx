@@ -208,6 +208,27 @@ const AdminSetupWizard = () => {
     navigate(`/t/${createdTenantSlug}/admin`);
   };
 
+  const getPublicLink = () => `${createdTenantSlug}.zarosistemas.com.br`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`https://${getPublicLink()}`);
+    toast.success("Link copiado!");
+  };
+
+  const handleShareWhatsApp = () => {
+    const message = encodeURIComponent(`Olá! Agora você pode agendar comigo online: https://${getPublicLink()}`);
+    window.open(`https://wa.me/?text=${message}`, "_blank");
+  };
+
+  const handleGoToAdmin = () => {
+    navigate(`/t/${createdTenantSlug}/admin`);
+  };
+
+  const handleGoToPlans = () => {
+    loadPlans();
+    setStep(4);
+  };
+
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <motion.div
