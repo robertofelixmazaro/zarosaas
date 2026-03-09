@@ -137,6 +137,8 @@ const UnifiedLoginPage = () => {
     }
 
     toast.success("Login realizado com sucesso!");
+    // Record login history (fire-and-forget)
+    recordLoginHistory(currentUser.id).catch(() => {});
     await checkProfileAndRedirect(currentUser.id, roleData?.role ?? null);
     setLoading(false);
   };

@@ -32,6 +32,7 @@ const getNavItems = (staffLabel: string) => [
   { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
   { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
   { icon: CreditCard, label: "Faturamento", path: "/admin/billing", roles: ["admin"] },
+  { icon: Shield, label: "Segurança", path: "/admin/seguranca", roles: ["admin"] },
   { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin"] },
 ];
 

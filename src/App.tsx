@@ -155,6 +155,7 @@ const SubdomainTenantRoutes = () => (
         <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
