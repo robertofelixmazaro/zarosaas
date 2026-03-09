@@ -142,9 +142,8 @@ const AdminSetupWizard = () => {
       await refreshUserRole();
       toast.success("Negócio criado com sucesso! 🎉");
       
-      // Go to plan selection step
+      // Go to success screen
       setStep(3);
-      loadPlans();
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
     }
