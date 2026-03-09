@@ -95,6 +95,11 @@ const AdminConfig = () => {
   const [noShowCancelHours, setNoShowCancelHours] = useState("4");
   const [savingNoShow, setSavingNoShow] = useState(false);
 
+  // Marketplace visibility
+  const [marketplaceVisible, setMarketplaceVisible] = useState(false);
+  const [city, setCity] = useState("");
+  const [savingMarketplace, setSavingMarketplace] = useState(false);
+
   const loadData = async () => {
     const [settingsRes] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
