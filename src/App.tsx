@@ -34,6 +34,7 @@ const AdminLandingPage = lazy(() => import("./pages/admin/AdminLandingPage"));
 const AdminClientes = lazy(() => import("./pages/admin/AdminClientes"));
 const AdminBilling = lazy(() => import("./pages/admin/AdminBilling"));
 const AdminHorarios = lazy(() => import("./pages/admin/AdminHorarios"));
+const AdminSeguranca = lazy(() => import("./pages/admin/AdminSeguranca"));
 const AdminRouter = lazy(() => import("./pages/admin/AdminRouter"));
 const MinhasAvaliacoes = lazy(() => import("./pages/MinhasAvaliacoes"));
 const QRCodePage = lazy(() => import("./pages/QRCodePage"));
@@ -113,6 +114,7 @@ const TenantRoutes = () => (
       <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
+      <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
     </Routes>
   </TenantProvider>
 );
@@ -153,6 +155,7 @@ const SubdomainTenantRoutes = () => (
         <Route path="admin/clientes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminClientes /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
+        <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />

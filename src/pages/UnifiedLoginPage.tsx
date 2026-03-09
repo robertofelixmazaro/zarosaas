@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import zaroLogo from "@/assets/zaro-logo.png";
+import { recordLoginHistory } from "@/lib/loginHistory";
 
 const UnifiedLoginPage = () => {
   const navigate = useNavigate();
@@ -136,6 +137,8 @@ const UnifiedLoginPage = () => {
     }
 
     toast.success("Login realizado com sucesso!");
+    // Record login history (fire-and-forget)
+    recordLoginHistory(currentUser.id).catch(() => {});
     await checkProfileAndRedirect(currentUser.id, roleData?.role ?? null);
     setLoading(false);
   };

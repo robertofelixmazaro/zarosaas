@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle, Clock } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle, Clock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -32,6 +32,7 @@ const getNavItems = (staffLabel: string) => [
   { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
   { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
   { icon: CreditCard, label: "Faturamento", path: "/admin/billing", roles: ["admin"] },
+  { icon: Shield, label: "Segurança", path: "/admin/seguranca", roles: ["admin"] },
   { icon: Settings, label: "Configurações", path: "/admin/config", roles: ["admin"] },
 ];
 
