@@ -173,6 +173,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/explorar" element={<ExploreMarketplace />} />
         <Route path="/login" element={<UnifiedLoginPage />} />
         <Route path="/cadastrar" element={<SaasSignupPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

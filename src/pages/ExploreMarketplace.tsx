@@ -187,7 +187,7 @@ const ExploreMarketplace = () => {
                         </Badge>
                         {listing.avg_rating > 0 && (
                           <div className="flex items-center gap-1 text-sm">
-                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                             <span className="font-medium">{listing.avg_rating}</span>
                           </div>
                         )}
