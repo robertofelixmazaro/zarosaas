@@ -33,9 +33,10 @@ const tourSteps: TourStep[] = [
 
 interface GuidedTourProps {
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-const GuidedTour = ({ onComplete }: GuidedTourProps) => {
+const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [visible, setVisible] = useState(false);
