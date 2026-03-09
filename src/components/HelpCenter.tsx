@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { HelpCircle, X, PlayCircle, BookOpen, Clock, Users, Calendar, Share2, MessageSquare, ChevronRight, ChevronLeft } from "lucide-react";
+import { HelpCircle, X, PlayCircle, BookOpen, Clock, Users, Calendar, Share2, MessageSquare, ChevronRight, ChevronLeft, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
+import { useTenant } from "@/contexts/TenantContext";
 const helpArticles = [
   {
     id: "services",
