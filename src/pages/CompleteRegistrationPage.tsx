@@ -99,10 +99,17 @@ const CompleteRegistrationPage = () => {
       toast.error("CPF inválido");
       return;
     }
-    if (password && password.length < 6) {
+    if (!password) {
+      setPasswordError("Por favor, defina uma senha para continuar.");
+      toast.error("Por favor, defina uma senha para continuar.");
+      return;
+    }
+    if (password.length < 6) {
+      setPasswordError("A senha deve ter pelo menos 6 caracteres");
       toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
+    setPasswordError("");
 
     setSaving(true);
 
