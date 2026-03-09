@@ -24,6 +24,7 @@ const CompleteRegistrationPage = () => {
   const [cpf, setCpf] = useState("");
   const [cpfError, setCpfError] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // If not logged in, redirect to login
   useEffect(() => {
