@@ -34,6 +34,7 @@ const AdminLandingPage = lazy(() => import("./pages/admin/AdminLandingPage"));
 const AdminClientes = lazy(() => import("./pages/admin/AdminClientes"));
 const AdminBilling = lazy(() => import("./pages/admin/AdminBilling"));
 const AdminHorarios = lazy(() => import("./pages/admin/AdminHorarios"));
+const AdminSeguranca = lazy(() => import("./pages/admin/AdminSeguranca"));
 const AdminRouter = lazy(() => import("./pages/admin/AdminRouter"));
 const MinhasAvaliacoes = lazy(() => import("./pages/MinhasAvaliacoes"));
 const QRCodePage = lazy(() => import("./pages/QRCodePage"));
