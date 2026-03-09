@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import zaroLogo from "@/assets/zaro-logo.png";
+import { recordLoginHistory } from "@/lib/loginHistory";
 
 const UnifiedLoginPage = () => {
   const navigate = useNavigate();
