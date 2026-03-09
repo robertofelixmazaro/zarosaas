@@ -43,8 +43,16 @@ const CompleteRegistrationPage = () => {
 
   // If profile is already complete, redirect
   useEffect(() => {
-    if (!authLoading && !roleLoading && user && userRole) {
-      checkProfileComplete();
+    if (!authLoading && !roleLoading && user) {
+      // Super admin should never be on this page
+      if (userRole === "super_admin") {
+        console.log("[CompleteReg] Super admin detected, redirecting");
+        redirectByRole("super_admin");
+        return;
+      }
+      if (userRole) {
+        checkProfileComplete();
+      }
     }
   }, [authLoading, roleLoading, user, userRole]);
 
