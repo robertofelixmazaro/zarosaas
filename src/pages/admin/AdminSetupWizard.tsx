@@ -341,14 +341,60 @@ const AdminSetupWizard = () => {
           )}
 
           {step === 3 && (
-            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <motion.div key="step3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                    <PartyPopper className="h-7 w-7 text-primary" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold mb-1">Sua agenda online está pronta!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Compartilhe o link abaixo com seus clientes
+                </p>
+              </div>
+
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Link da sua loja</p>
+                <p className="text-lg font-semibold text-primary break-all">
+                  {getPublicLink()}
+                </p>
+              </div>
+
+              <div className="grid gap-3">
+                <Button variant="outline" className="w-full h-11" onClick={handleCopyLink}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar link
+                </Button>
+                <Button variant="outline" className="w-full h-11 text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700" onClick={handleShareWhatsApp}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartilhar no WhatsApp
+                </Button>
+                <Button className="w-full h-11" onClick={handleGoToAdmin}>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Ir para painel admin
+                </Button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoToPlans}
+                className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                Ver planos disponíveis →
+              </button>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Crown className="h-6 w-6 text-primary" />
                   <h2 className="text-2xl font-bold">Escolha seu Plano</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Sua loja foi criada! Agora escolha um plano para desbloquear todos os recursos.
+                  Escolha um plano para desbloquear todos os recursos.
                 </p>
               </div>
 
