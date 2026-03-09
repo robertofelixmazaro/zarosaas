@@ -240,10 +240,10 @@ const AdminSetupWizard = () => {
         <div className="rounded-xl border bg-card p-8 shadow-lg space-y-6">
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-2">
-            {[1, 2, 3].map((s, i) => (
+            {[1, 2, 3, 4].map((s, i) => (
               <div key={s} className="flex items-center gap-2">
-                {i > 0 && <div className={cn("w-10 h-0.5", step >= s ? "bg-primary" : "bg-muted")} />}
-                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step >= s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{s}</div>
+                {i > 0 && <div className={cn("w-8 h-0.5", step >= s ? "bg-primary" : "bg-muted")} />}
+                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold", step >= s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{s}</div>
               </div>
             ))}
           </div>
