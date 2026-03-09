@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,32 +11,14 @@ import zaroLogo from "@/assets/zaro-logo.png";
 
 const UnifiedLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, signOut, user, userRole, loading: authLoading, roleLoading, refreshUserRole } = useAuth();
+  const { signIn, user, userRole, loading: authLoading, roleLoading, refreshUserRole } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
 
-  useEffect(() => {
-    if (authLoading || roleLoading || !user || !userRole) return;
-    // Check if profile is complete (has phone) — if not, redirect to complete registration
-    const checkAndRedirect = async () => {
-      const { data: profile } = await supabase
-        .from("profiles" as any)
-        .select("phone")
-        .eq("auth_id", user.id)
-        .maybeSingle();
-      if (!profile || !(profile as any).phone) {
-        navigate("/completar-cadastro", { replace: true });
-        return;
-      }
-      redirectByRole(userRole);
-    };
-    checkAndRedirect();
-  }, [authLoading, roleLoading, user, userRole]);
-
-  const redirectByRole = (role: string) => {
+  const redirectByRole = useCallback((role: string) => {
     switch (role) {
       case "super_admin":
         navigate("/superadmin/dashboard", { replace: true });
@@ -52,7 +34,37 @@ const UnifiedLoginPage = () => {
         navigate("/dashboard", { replace: true });
         break;
     }
-  };
+  }, [navigate]);
+
+  const checkProfileAndRedirect = useCallback(async (userId: string, role: string | null) => {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles" as any)
+      .select("id, phone")
+      .eq("auth_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error("Erro ao verificar perfil:", profileError);
+      toast.error("Não foi possível validar seu perfil agora. Tente novamente.");
+      return;
+    }
+
+    const shouldCompleteRegistration = !role || !profile || (profile as any).phone == null;
+
+    if (shouldCompleteRegistration) {
+      navigate("/completar-cadastro", { replace: true });
+      return;
+    }
+
+    redirectByRole(role);
+  }, [navigate, redirectByRole]);
+
+  useEffect(() => {
+    if (authLoading || roleLoading || !user || loading) return;
+    void checkProfileAndRedirect(user.id, userRole);
+  }, [authLoading, roleLoading, user, userRole, loading, checkProfileAndRedirect]);
 
   // Email confirmation no longer required (auto-confirm enabled)
 
@@ -117,18 +129,14 @@ const UnifiedLoginPage = () => {
       }
     }
 
-    if (!roleData?.role) {
-      await signOut();
-      toast.error("Sua conta ainda não foi provisionada. Tente novamente em instantes.");
-      setLoading(false);
-      return;
+    if (roleData?.role) {
+      await refreshUserRole();
+    } else {
+      toast.warning("Finalize seu cadastro para continuar.");
     }
 
-    // Refresh role in AuthContext
-    await refreshUserRole();
-
     toast.success("Login realizado com sucesso!");
-    redirectByRole(roleData.role);
+    await checkProfileAndRedirect(currentUser.id, roleData?.role ?? null);
     setLoading(false);
   };
 
