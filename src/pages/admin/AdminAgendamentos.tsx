@@ -144,6 +144,10 @@ const AdminAgendamentos = () => {
 
   // Open create dialog, optionally pre-filling date/time
   const openCreateDialog = async (preDate?: string, preTime?: string) => {
+    if (!canCreateAppointment()) {
+      toast.error(`Limite de ${limits.maxAppointments} agendamentos mensais atingido. Faça upgrade do seu plano.`);
+      return;
+    }
     const [s, b, bd] = await Promise.all([
       fetchServices(tenantId || undefined),
       fetchBarbers(tenantId || undefined),
