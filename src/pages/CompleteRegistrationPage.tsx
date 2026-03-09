@@ -275,19 +275,26 @@ const CompleteRegistrationPage = () => {
               </div>
               {cpfError && <p className="text-xs text-destructive mt-1">{cpfError}</p>}
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Definir senha (opcional)"
-                className="pl-10 pr-10"
-                minLength={6}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  placeholder="Criar senha *"
+                  className={`pl-10 pr-10 ${passwordError ? "border-destructive" : ""}`}
+                  minLength={6}
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {passwordError && <p className="text-xs text-destructive mt-1">{passwordError}</p>}
             </div>
 
             <Button type="submit" className="w-full h-11" disabled={saving || !isValid}>
