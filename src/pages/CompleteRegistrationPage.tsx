@@ -24,6 +24,7 @@ const CompleteRegistrationPage = () => {
   const [cpf, setCpf] = useState("");
   const [cpfError, setCpfError] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // If not logged in, redirect to login
   useEffect(() => {
@@ -98,10 +99,17 @@ const CompleteRegistrationPage = () => {
       toast.error("CPF inválido");
       return;
     }
-    if (password && password.length < 6) {
+    if (!password) {
+      setPasswordError("Por favor, defina uma senha para continuar.");
+      toast.error("Por favor, defina uma senha para continuar.");
+      return;
+    }
+    if (password.length < 6) {
+      setPasswordError("A senha deve ter pelo menos 6 caracteres");
       toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
+    setPasswordError("");
 
     setSaving(true);
 
@@ -146,12 +154,13 @@ const CompleteRegistrationPage = () => {
           .insert({ user_id: user.id, role: targetRole } as any);
       }
 
-      // Set password if provided
-      if (password) {
-        const { error: pwError } = await supabase.auth.updateUser({ password });
-        if (pwError) {
-          console.error("Password update error:", pwError);
-        }
+      // Set password (required)
+      const { error: pwError } = await supabase.auth.updateUser({ password });
+      if (pwError) {
+        console.error("Password update error:", pwError);
+        toast.error("Erro ao definir senha");
+        setSaving(false);
+        return;
       }
 
       // If affiliate, create affiliates record
@@ -190,7 +199,7 @@ const CompleteRegistrationPage = () => {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   }
 
-  const isValid = name && phone.replace(/\D/g, "").length >= 10 && !cpfError;
+  const isValid = name && phone.replace(/\D/g, "").length >= 10 && !cpfError && password.length >= 6;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -266,19 +275,26 @@ const CompleteRegistrationPage = () => {
               </div>
               {cpfError && <p className="text-xs text-destructive mt-1">{cpfError}</p>}
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Definir senha (opcional)"
-                className="pl-10 pr-10"
-                minLength={6}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  placeholder="Criar senha *"
+                  className={`pl-10 pr-10 ${passwordError ? "border-destructive" : ""}`}
+                  minLength={6}
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {passwordError && <p className="text-xs text-destructive mt-1">{passwordError}</p>}
             </div>
 
             <Button type="submit" className="w-full h-11" disabled={saving || !isValid}>
