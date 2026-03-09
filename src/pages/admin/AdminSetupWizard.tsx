@@ -366,7 +366,7 @@ const AdminSetupWizard = () => {
                   <Copy className="h-4 w-4 mr-2" />
                   Copiar link
                 </Button>
-                <Button variant="outline" className="w-full h-11 text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700" onClick={handleShareWhatsApp}>
+                <Button variant="outline" className="w-full h-11 text-primary border-primary/30 hover:bg-primary/5 hover:text-primary" onClick={handleShareWhatsApp}>
                   <Share2 className="h-4 w-4 mr-2" />
                   Compartilhar no WhatsApp
                 </Button>
