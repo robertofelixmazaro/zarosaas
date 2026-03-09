@@ -41,10 +41,33 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [visible, setVisible] = useState(false);
 
+  const cleanup = useCallback(() => {
+    document.querySelectorAll("[data-tour]").forEach((el) => {
+      el.classList.remove("ring-2", "ring-primary", "ring-offset-2", "z-[60]", "relative", "rounded-lg");
+    });
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    cleanup();
+    if (onSkip) {
+      onSkip();
+    } else {
+      onComplete();
+    }
+  }, [cleanup, onSkip, onComplete]);
+
   const positionTooltip = useCallback(() => {
     const step = tourSteps[currentStep];
     const el = document.querySelector(step.targetSelector);
-    if (!el) return;
+    if (!el) {
+      // Element not found, skip to next or dismiss
+      if (currentStep < tourSteps.length - 1) {
+        setCurrentStep((s) => s + 1);
+      } else {
+        handleDismiss();
+      }
+      return;
+    }
 
     const rect = el.getBoundingClientRect();
     // Highlight element
@@ -55,7 +78,7 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
 
     setTooltipPos({ top: tooltipTop, left: tooltipLeft });
     setVisible(true);
-  }, [currentStep]);
+  }, [currentStep, handleDismiss]);
 
   useEffect(() => {
     // Clean previous highlights
@@ -66,6 +89,11 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
     const timer = setTimeout(positionTooltip, 200);
     return () => clearTimeout(timer);
   }, [currentStep, positionTooltip]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cleanup();
+  }, [cleanup]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -84,37 +112,27 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
     }
   };
 
-  const cleanup = () => {
-    document.querySelectorAll("[data-tour]").forEach((el) => {
-      el.classList.remove("ring-2", "ring-primary", "ring-offset-2", "z-[60]", "relative", "rounded-lg");
-    });
-  };
-
-  const handleSkip = () => {
-    cleanup();
-    if (onSkip) {
-      onSkip();
-    } else {
-      onComplete();
-    }
-  };
-
   const step = tourSteps[currentStep];
 
   return (
     <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/40 z-[55]" onClick={handleSkip} />
+      {/* Overlay - click to dismiss */}
+      <div 
+        className="fixed inset-0 bg-black/40 z-[55]" 
+        onClick={handleDismiss}
+        style={{ pointerEvents: "auto" }}
+      />
 
       {/* Tooltip */}
       {visible && (
         <div
           className="fixed z-[65] w-80 max-w-[calc(100vw-32px)] bg-card border rounded-xl shadow-2xl p-5 animate-in fade-in-0 zoom-in-95 duration-200"
-          style={{ top: tooltipPos.top, left: tooltipPos.left }}
+          style={{ top: tooltipPos.top, left: tooltipPos.left, pointerEvents: "auto" }}
         >
           <button
-            onClick={handleSkip}
-            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+            onClick={handleDismiss}
+            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Fechar tour"
           >
             <X className="h-4 w-4" />
           </button>
@@ -128,13 +146,16 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
                 {currentStep + 1} de {tourSteps.length}
               </span>
               <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={handleDismiss}>
+                  Ver depois
+                </Button>
                 {currentStep > 0 && (
-                  <Button variant="ghost" size="sm" onClick={handlePrev}>
+                  <Button variant="outline" size="sm" onClick={handlePrev}>
                     Anterior
                   </Button>
                 )}
                 <Button size="sm" onClick={handleNext}>
-                  {currentStep === tourSteps.length - 1 ? "Finalizar tour" : "Próximo"}
+                  {currentStep === tourSteps.length - 1 ? "Finalizar" : "Próximo"}
                 </Button>
               </div>
             </div>

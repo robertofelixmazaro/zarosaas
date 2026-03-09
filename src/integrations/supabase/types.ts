@@ -1124,9 +1124,11 @@ export type Database = {
         Row: {
           active: boolean
           address: string | null
+          city: string | null
           created_at: string | null
           id: string
           logo_url: string | null
+          marketplace_visible: boolean
           mercadopago_access_token: string | null
           mercadopago_public_key: string | null
           name: string
@@ -1145,9 +1147,11 @@ export type Database = {
         Insert: {
           active?: boolean
           address?: string | null
+          city?: string | null
           created_at?: string | null
           id?: string
           logo_url?: string | null
+          marketplace_visible?: boolean
           mercadopago_access_token?: string | null
           mercadopago_public_key?: string | null
           name: string
@@ -1166,9 +1170,11 @@ export type Database = {
         Update: {
           active?: boolean
           address?: string | null
+          city?: string | null
           created_at?: string | null
           id?: string
           logo_url?: string | null
+          marketplace_visible?: boolean
           mercadopago_access_token?: string | null
           mercadopago_public_key?: string | null
           name?: string
@@ -1270,6 +1276,18 @@ export type Database = {
         Returns: {
           appointment_time: string
           duration_minutes: number
+        }[]
+      }
+      get_marketplace_listings: {
+        Args: never
+        Returns: {
+          avg_rating: number
+          city: string
+          id: string
+          logo_url: string
+          name: string
+          niche: string
+          slug: string
         }[]
       }
       get_public_tenant_by_slug: {

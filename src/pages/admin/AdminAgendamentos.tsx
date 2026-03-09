@@ -4,6 +4,7 @@ import { generateRawSlots, filterAvailableSlots, BusinessHours, DEFAULT_BUSINESS
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,6 +31,7 @@ type ViewMode = "day" | "week" | "list";
 const AdminAgendamentos = () => {
   const { user, userRole } = useAuth();
   const { tenantId } = useTenant();
+  const { canCreateAppointment, limits } = usePlanLimits();
   const isAdmin = userRole === "admin";
 
   const [myBarberId, setMyBarberId] = useState<string | undefined>();
@@ -142,6 +144,10 @@ const AdminAgendamentos = () => {
 
   // Open create dialog, optionally pre-filling date/time
   const openCreateDialog = async (preDate?: string, preTime?: string) => {
+    if (!canCreateAppointment()) {
+      toast.error(`Limite de ${limits.maxAppointments} agendamentos mensais atingido. Faça upgrade do seu plano.`);
+      return;
+    }
     const [s, b, bd] = await Promise.all([
       fetchServices(tenantId || undefined),
       fetchBarbers(tenantId || undefined),
