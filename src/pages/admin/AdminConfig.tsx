@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Eye, EyeOff, QrCode, Download, Truck, MessageSquare, CreditCard, Bell } from "lucide-react";
+import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Eye, EyeOff, QrCode, Download, Truck, MessageSquare, CreditCard, Bell, Store } from "lucide-react";
 import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
 import PushNotificationSection from "@/components/admin/PushNotificationSection";
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
@@ -95,6 +95,11 @@ const AdminConfig = () => {
   const [noShowCancelHours, setNoShowCancelHours] = useState("4");
   const [savingNoShow, setSavingNoShow] = useState(false);
 
+  // Marketplace visibility
+  const [marketplaceVisible, setMarketplaceVisible] = useState(false);
+  const [city, setCity] = useState("");
+  const [savingMarketplace, setSavingMarketplace] = useState(false);
+
   const loadData = async () => {
     const [settingsRes] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
@@ -118,10 +123,10 @@ const AdminConfig = () => {
       setMpAccessToken(secretMap.mercadopago_access_token || "");
       setMpPublicKey(secretMap.mercadopago_public_key || "");
     }
-    // Load no-show settings from tenant
+    // Load no-show settings and marketplace settings from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours, marketplace_visible, city")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
@@ -129,6 +134,8 @@ const AdminConfig = () => {
       setNoShowDeposit(String((tenantData as any).no_show_deposit_value || 0));
       setNoShowRetention(String((tenantData as any).no_show_retention_percentage || 100));
       setNoShowCancelHours(String((tenantData as any).no_show_cancel_limit_hours || 4));
+      setMarketplaceVisible((tenantData as any).marketplace_visible || false);
+      setCity((tenantData as any).city || "");
     }
 
     setLoading(false);
@@ -532,6 +539,67 @@ const AdminConfig = () => {
           >
             {savingNoShow ? "Salvando..." : "Salvar Política de No-Show"}
           </Button>
+        </div>
+      </div>
+
+      {/* Marketplace Visibility */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Store className="h-5 w-5" />
+          <h3 className="font-semibold">Marketplace — Visibilidade Pública</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ao ativar, sua empresa aparecerá no catálogo público de empresas do Zaro, permitindo que novos clientes encontrem e agendem com você.
+        </p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Switch checked={marketplaceVisible} onCheckedChange={setMarketplaceVisible} />
+            <span className="text-sm font-medium">Mostrar empresa no marketplace</span>
+          </div>
+          {marketplaceVisible && (
+            <div>
+              <label className="text-sm font-medium mb-1 block">Cidade</label>
+              <Input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ex: São Paulo, SP"
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingMarketplace}
+            onClick={async () => {
+              setSavingMarketplace(true);
+              try {
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({
+                    marketplace_visible: marketplaceVisible,
+                    city: city || null,
+                  } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Configurações do marketplace salvas!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingMarketplace(false);
+            }}
+          >
+            {savingMarketplace ? "Salvando..." : "Salvar Configurações do Marketplace"}
+          </Button>
+          {marketplaceVisible && (
+            <p className="text-xs text-muted-foreground border-t pt-3">
+              💡 Dica: Sua empresa aparecerá em{" "}
+              <a href="/explorar" target="_blank" className="text-primary hover:underline">
+                zarosistemas.com.br/explorar
+              </a>
+            </p>
+          )}
         </div>
       </div>
 

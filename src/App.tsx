@@ -66,6 +66,7 @@ const StaffLayout = lazy(() => import("./components/StaffLayout"));
 const StaffDashboard = lazy(() => import("./pages/staff/StaffDashboard"));
 const StaffAgenda = lazy(() => import("./pages/staff/StaffAgenda"));
 const StaffClientes = lazy(() => import("./pages/staff/StaffClientes"));
+const ExploreMarketplace = lazy(() => import("./pages/ExploreMarketplace"));
 
 const queryClient = new QueryClient();
 
@@ -172,6 +173,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/explorar" element={<ExploreMarketplace />} />
         <Route path="/login" element={<UnifiedLoginPage />} />
         <Route path="/cadastrar" element={<SaasSignupPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
