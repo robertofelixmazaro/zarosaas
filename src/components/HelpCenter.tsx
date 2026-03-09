@@ -81,9 +81,14 @@ const VideoEmbed = ({ url }: { url: string }) => {
   return null;
 };
 
-const HelpCenter = () => {
+interface HelpCenterProps {
+  onRestartTour?: () => void;
+}
+
+const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
   const [open, setOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+  const { tenant } = useTenant();
 
   const { data: helpVideoUrl } = useQuery({
     queryKey: ["help-video-url"],
@@ -98,6 +103,16 @@ const HelpCenter = () => {
   });
 
   const article = helpArticles.find((a) => a.id === selectedArticle);
+
+  const handleRestartTour = () => {
+    if (tenant?.id) {
+      localStorage.removeItem(`zaro_tour_done_${tenant.id}`);
+    }
+    setOpen(false);
+    if (onRestartTour) {
+      onRestartTour();
+    }
+  };
 
   return (
     <>
