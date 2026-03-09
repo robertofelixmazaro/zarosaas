@@ -301,6 +301,21 @@ const CompleteRegistrationPage = () => {
               {saving ? "Salvando..." : "Completar cadastro"}
             </Button>
           </form>
+
+          <div className="flex items-center gap-3 text-muted-foreground text-xs">
+            <div className="flex-1 h-px bg-border" />
+            <span>ou</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          <div className="space-y-2">
+            <Button variant="outline" className="w-full" onClick={() => { navigate("/login"); }}>
+              Voltar para login
+            </Button>
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => { navigate("/redefinir-senha"); }}>
+              Redefinir senha
+            </Button>
+          </div>
         </motion.div>
       </motion.div>
     </div>
