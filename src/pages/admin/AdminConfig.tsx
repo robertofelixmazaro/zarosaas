@@ -123,10 +123,10 @@ const AdminConfig = () => {
       setMpAccessToken(secretMap.mercadopago_access_token || "");
       setMpPublicKey(secretMap.mercadopago_public_key || "");
     }
-    // Load no-show settings from tenant
+    // Load no-show settings and marketplace settings from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours")
+      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours, marketplace_visible, city")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
@@ -134,6 +134,8 @@ const AdminConfig = () => {
       setNoShowDeposit(String((tenantData as any).no_show_deposit_value || 0));
       setNoShowRetention(String((tenantData as any).no_show_retention_percentage || 100));
       setNoShowCancelHours(String((tenantData as any).no_show_cancel_limit_hours || 4));
+      setMarketplaceVisible((tenantData as any).marketplace_visible || false);
+      setCity((tenantData as any).city || "");
     }
 
     setLoading(false);
