@@ -284,14 +284,20 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </main>
 
-      <HelpCenter />
+      <HelpCenter onRestartTour={() => setShowTour(true)} />
 
       {showTour && (
         <GuidedTour
           onComplete={() => {
             setShowTour(false);
             if (tenant?.id) {
-              localStorage.setItem(`zaro_tour_done_${tenant.id}`, "true");
+              localStorage.setItem(`zaro_tour_done_${tenant.id}`, "completed");
+            }
+          }}
+          onSkip={() => {
+            setShowTour(false);
+            if (tenant?.id) {
+              localStorage.setItem(`zaro_tour_done_${tenant.id}`, "skipped");
             }
           }}
         />

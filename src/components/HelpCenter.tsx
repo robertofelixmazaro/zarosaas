@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { HelpCircle, X, PlayCircle, BookOpen, Clock, Users, Calendar, Share2, MessageSquare, ChevronRight, ChevronLeft } from "lucide-react";
+import { HelpCircle, X, PlayCircle, BookOpen, Clock, Users, Calendar, Share2, MessageSquare, ChevronRight, ChevronLeft, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
+import { useTenant } from "@/contexts/TenantContext";
 const helpArticles = [
   {
     id: "services",
@@ -81,9 +81,14 @@ const VideoEmbed = ({ url }: { url: string }) => {
   return null;
 };
 
-const HelpCenter = () => {
+interface HelpCenterProps {
+  onRestartTour?: () => void;
+}
+
+const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
   const [open, setOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+  const { tenant } = useTenant();
 
   const { data: helpVideoUrl } = useQuery({
     queryKey: ["help-video-url"],
@@ -98,6 +103,16 @@ const HelpCenter = () => {
   });
 
   const article = helpArticles.find((a) => a.id === selectedArticle);
+
+  const handleRestartTour = () => {
+    if (tenant?.id) {
+      localStorage.removeItem(`zaro_tour_done_${tenant.id}`);
+    }
+    setOpen(false);
+    if (onRestartTour) {
+      onRestartTour();
+    }
+  };
 
   return (
     <>
@@ -161,6 +176,18 @@ const HelpCenter = () => {
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </button>
                     ))}
+                  </div>
+
+                  {/* Restart tutorial */}
+                  <div className="pt-2 border-t">
+                    <button
+                      onClick={handleRestartTour}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left hover:bg-muted transition-colors group"
+                    >
+                      <span className="text-lg">🎯</span>
+                      <span className="flex-1 text-sm font-medium">Ver tutorial novamente</span>
+                      <RotateCcw className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </button>
                   </div>
 
                   {/* Support */}
