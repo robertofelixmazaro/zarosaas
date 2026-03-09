@@ -18,6 +18,7 @@ const Index = lazy(() => import("./pages/Index"));
 const AgendarPage = lazy(() => import("./pages/AgendarPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminAgendamentos = lazy(() => import("./pages/admin/AdminAgendamentos"));
