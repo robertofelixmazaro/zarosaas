@@ -35,10 +35,10 @@ const ExploreMarketplace = () => {
 
   useEffect(() => {
     const fetchListings = async () => {
-      const { data, error } = await supabase.rpc("get_marketplace_listings");
+      const { data, error } = await supabase.rpc("get_marketplace_listings" as any);
       if (!error && data) {
-        setListings(data as MarketplaceListing[]);
-        setFilteredListings(data as MarketplaceListing[]);
+        setListings(data as unknown as MarketplaceListing[]);
+        setFilteredListings(data as unknown as MarketplaceListing[]);
       }
       setLoading(false);
     };
