@@ -18,6 +18,7 @@ const Index = lazy(() => import("./pages/Index"));
 const AgendarPage = lazy(() => import("./pages/AgendarPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminAgendamentos = lazy(() => import("./pages/admin/AdminAgendamentos"));
@@ -180,6 +181,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<UnifiedLoginPage />} />
         <Route path="/cadastrar" element={<SaasSignupPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/redefinir-senha" element={<ForgotPasswordPage />} />
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
         <Route path="/completar-cadastro" element={<CompleteRegistrationPage />} />
