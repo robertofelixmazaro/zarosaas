@@ -114,12 +114,12 @@ const LandingPage = () => {
             <img src={zaroLogo} alt="Zaro Sistemas" className="h-8 w-8 object-contain" />
             <span className="text-lg font-bold tracking-tight">Zaro Sistemas</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link to="/login">
-              <Button variant="ghost" size="sm">Entrar</Button>
+              <Button variant="outline" size="sm" className="px-3 sm:px-4">Entrar</Button>
             </Link>
-            <Link to="/cadastrar">
+            <Link to="/cadastrar" className="hidden sm:inline-flex">
               <Button size="sm">Cadastrar</Button>
             </Link>
           </div>
