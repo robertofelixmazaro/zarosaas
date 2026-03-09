@@ -284,7 +284,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </main>
 
-      <HelpCenter />
+      <HelpCenter onRestartTour={() => setShowTour(true)} />
 
       {showTour && (
         <GuidedTour

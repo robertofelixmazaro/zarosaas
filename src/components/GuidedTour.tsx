@@ -92,7 +92,11 @@ const GuidedTour = ({ onComplete, onSkip }: GuidedTourProps) => {
 
   const handleSkip = () => {
     cleanup();
-    onComplete();
+    if (onSkip) {
+      onSkip();
+    } else {
+      onComplete();
+    }
   };
 
   const step = tourSteps[currentStep];

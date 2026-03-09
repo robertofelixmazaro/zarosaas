@@ -178,6 +178,18 @@ const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
                     ))}
                   </div>
 
+                  {/* Restart tutorial */}
+                  <div className="pt-2 border-t">
+                    <button
+                      onClick={handleRestartTour}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left hover:bg-muted transition-colors group"
+                    >
+                      <span className="text-lg">🎯</span>
+                      <span className="flex-1 text-sm font-medium">Ver tutorial novamente</span>
+                      <RotateCcw className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </button>
+                  </div>
+
                   {/* Support */}
                   <div className="pt-2 border-t">
                     <button
