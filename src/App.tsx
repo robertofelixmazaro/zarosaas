@@ -181,6 +181,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<UnifiedLoginPage />} />
         <Route path="/cadastrar" element={<SaasSignupPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/redefinir-senha" element={<ForgotPasswordPage />} />
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
         <Route path="/completar-cadastro" element={<CompleteRegistrationPage />} />
