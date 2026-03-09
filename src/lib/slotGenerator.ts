@@ -34,7 +34,7 @@ export const DEFAULT_BUSINESS_HOURS: BusinessHours = {
   lunch: { enabled: true, start: "12:00", end: "13:00" },
 };
 
-const SLOT_INTERVAL = 30; // Generate slots every 30 minutes
+const DEFAULT_SLOT_INTERVAL = 30; // Minimum interval, but actual interval = max(this, serviceDuration)
 
 function timeToMin(t: string): number {
   const [h, m] = t.split(":").map(Number);
@@ -92,7 +92,7 @@ export function generateRawSlots(
     }
 
     slots.push(minToTime(current));
-    current += SLOT_INTERVAL; // Fixed 30-min interval instead of service duration
+    current += Math.max(DEFAULT_SLOT_INTERVAL, serviceDurationMinutes); // Space slots by service duration
   }
 
   return slots;
