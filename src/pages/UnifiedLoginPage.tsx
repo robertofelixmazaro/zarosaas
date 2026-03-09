@@ -38,27 +38,46 @@ const UnifiedLoginPage = () => {
   }, [navigate]);
 
   const checkProfileAndRedirect = useCallback(async (userId: string, role: string | null) => {
+    console.log("[Auth Debug] checkProfileAndRedirect called", { userId, role });
+
+    // Super admin always goes straight to dashboard - no profile check needed
+    if (role === "super_admin") {
+      console.log("[Auth Debug] Super admin detected, redirecting to superadmin dashboard");
+      redirectByRole(role);
+      return;
+    }
+
     const { data: profile, error: profileError } = await supabase
-      .from("profiles" as any)
-      .select("id, phone")
+      .from("profiles")
+      .select("id, phone, name")
       .eq("auth_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
+    console.log("[Auth Debug] Profile query result:", { profile, profileError });
+
     if (profileError) {
-      console.error("Erro ao verificar perfil:", profileError);
+      console.error("[Auth Debug] Erro ao verificar perfil:", profileError);
       toast.error("Não foi possível validar seu perfil agora. Tente novamente.");
       return;
     }
 
-    const shouldCompleteRegistration = !role || !profile || (profile as any).phone == null;
+    // Only require complete registration if there's no role OR no profile OR phone is missing
+    const hasRole = !!role;
+    const hasProfile = !!profile;
+    const hasPhone = hasProfile && (profile as any).phone != null && (profile as any).phone !== "";
+    const shouldCompleteRegistration = !hasRole || !hasProfile || !hasPhone;
+
+    console.log("[Auth Debug] Profile check:", { hasRole, hasProfile, hasPhone, shouldCompleteRegistration });
 
     if (shouldCompleteRegistration) {
+      console.log("[Auth Debug] Redirecting to /completar-cadastro");
       navigate("/completar-cadastro", { replace: true });
       return;
     }
 
+    console.log("[Auth Debug] Profile complete, redirecting by role:", role);
     redirectByRole(role);
   }, [navigate, redirectByRole]);
 
