@@ -349,10 +349,18 @@ const AgendarPage = () => {
             <h2 className="text-2xl font-bold mb-2">Escolha o Horário</h2>
             <p className="text-muted-foreground mb-6">{selectedDate && format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {getAvailableSlots().map((slot) => (
-                <button key={slot} onClick={() => { setSelectedTime(slot); setStep("dados"); }}
-                  className="p-3 rounded-lg border text-center font-medium transition-all hover:shadow-md hover:border-foreground/20">{slot}</button>
-              ))}
+              {getAvailableSlots().map((slot) => {
+                const [h, m] = slot.split(":").map(Number);
+                const endMin = h * 60 + m + (selectedService?.duration_minutes || 30);
+                const endTime = `${Math.floor(endMin / 60).toString().padStart(2, "0")}:${(endMin % 60).toString().padStart(2, "0")}`;
+                return (
+                  <button key={slot} onClick={() => { setSelectedTime(slot); setStep("dados"); }}
+                    className="p-3 rounded-lg border text-center transition-all hover:shadow-md hover:border-foreground/20">
+                    <span className="font-medium">{slot}</span>
+                    <span className="block text-[11px] text-muted-foreground">até {endTime}</span>
+                  </button>
+                );
+              })}
             </div>
             {getAvailableSlots().length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum horário disponível.</p>}
             <Button variant="ghost" className="mt-4" onClick={() => setStep("data")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
