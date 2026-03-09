@@ -154,12 +154,13 @@ const CompleteRegistrationPage = () => {
           .insert({ user_id: user.id, role: targetRole } as any);
       }
 
-      // Set password if provided
-      if (password) {
-        const { error: pwError } = await supabase.auth.updateUser({ password });
-        if (pwError) {
-          console.error("Password update error:", pwError);
-        }
+      // Set password (required)
+      const { error: pwError } = await supabase.auth.updateUser({ password });
+      if (pwError) {
+        console.error("Password update error:", pwError);
+        toast.error("Erro ao definir senha");
+        setSaving(false);
+        return;
       }
 
       // If affiliate, create affiliates record
