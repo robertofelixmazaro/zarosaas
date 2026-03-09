@@ -542,6 +542,67 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* Marketplace Visibility */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Store className="h-5 w-5" />
+          <h3 className="font-semibold">Marketplace — Visibilidade Pública</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ao ativar, sua empresa aparecerá no catálogo público de empresas do Zaro, permitindo que novos clientes encontrem e agendem com você.
+        </p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Switch checked={marketplaceVisible} onCheckedChange={setMarketplaceVisible} />
+            <span className="text-sm font-medium">Mostrar empresa no marketplace</span>
+          </div>
+          {marketplaceVisible && (
+            <div>
+              <label className="text-sm font-medium mb-1 block">Cidade</label>
+              <Input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ex: São Paulo, SP"
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingMarketplace}
+            onClick={async () => {
+              setSavingMarketplace(true);
+              try {
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({
+                    marketplace_visible: marketplaceVisible,
+                    city: city || null,
+                  } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Configurações do marketplace salvas!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingMarketplace(false);
+            }}
+          >
+            {savingMarketplace ? "Salvando..." : "Salvar Configurações do Marketplace"}
+          </Button>
+          {marketplaceVisible && (
+            <p className="text-xs text-muted-foreground border-t pt-3">
+              💡 Dica: Sua empresa aparecerá em{" "}
+              <a href="/explorar" target="_blank" className="text-primary hover:underline">
+                zarosistemas.com.br/explorar
+              </a>
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Reminder Channels */}
       <ReminderChannelConfig />
 
