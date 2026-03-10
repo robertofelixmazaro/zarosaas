@@ -149,15 +149,19 @@ Deno.serve(async (req) => {
       await adminClient.from("tenants").update({ plan_id: testePlan.id }).eq("id", tenantId);
     }
 
-    // 5. Store business settings
-    const settings = [
-      { key: "business_type", value: business_type || "other", tenant_id: tenantId },
-      { key: "shop_name", value: name.trim(), tenant_id: tenantId },
-    ];
-    if (phone) settings.push({ key: "phone", value: phone, tenant_id: tenantId });
-    if (address) settings.push({ key: "address", value: address, tenant_id: tenantId });
+    // 5. Store business settings in landing_page_settings (JSON)
+    const lpSettings: Record<string, string> = {
+      shop_name: name.trim(),
+    };
+    if (phone) lpSettings.phone = phone;
+    if (address) lpSettings.address = address;
+    if (business_type) lpSettings.business_type = business_type;
 
-    await adminClient.from("site_settings").insert(settings);
+    await adminClient.from("landing_page_settings").upsert({
+      tenant_id: tenantId,
+      settings: lpSettings,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "tenant_id" });
 
     return new Response(
       JSON.stringify({ tenant_id: tenantId, slug: tenant.slug }),
