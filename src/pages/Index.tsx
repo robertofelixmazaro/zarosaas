@@ -78,9 +78,19 @@ const Index = () => {
   });
 
   const { data: siteSettings = {} as any } = useQuery({
-    queryKey: ["site_settings", tenantId],
+    queryKey: ["landing_page_settings", tenantId],
     queryFn: async () => {
       if (!tenantId) return {};
+      // Try new landing_page_settings table first
+      const { data: lpData } = await supabase
+        .from("landing_page_settings" as any)
+        .select("settings")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      if (lpData && (lpData as any).settings) {
+        return (lpData as any).settings as Record<string, string>;
+      }
+      // Fallback to legacy site_settings
       const { data } = await supabase.from("site_settings").select("*").eq("tenant_id", tenantId);
       const map: Record<string, string> = {};
       (data || []).forEach((s: any) => { map[s.key] = s.value; });
