@@ -407,7 +407,7 @@ const LandingPage = () => {
                     <span className="inline-flex items-center gap-1.5 text-sm text-primary font-medium">
                       Visitar <ChevronRight className="h-4 w-4" />
                     </span>
-                  </Link>
+                  </a>
                 </motion.div>
               ))}
             </div>
