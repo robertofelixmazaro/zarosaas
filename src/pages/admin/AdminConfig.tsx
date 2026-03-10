@@ -794,7 +794,7 @@ const AdminConfig = () => {
         <div className="flex items-center gap-6">
           <div className="bg-white p-3 rounded-xl">
             <QRCodeSVG
-              value={`${window.location.origin}/t/${tenant?.slug || ""}`}
+              value={getTenantExternalUrl(tenant?.slug || "")}
               size={160}
               level="H"
               includeMargin
