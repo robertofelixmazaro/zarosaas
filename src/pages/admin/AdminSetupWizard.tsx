@@ -205,7 +205,7 @@ const AdminSetupWizard = () => {
   };
 
   const handleSkipPlan = () => {
-    navigate(`/t/${createdTenantSlug}/admin`);
+    window.location.href = getTenantAdminUrl(createdTenantSlug);
   };
 
   const getPublicLink = () => `${createdTenantSlug}.zarosistemas.com.br`;
