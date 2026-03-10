@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Edit, Trash2, Upload, ImageIcon, X, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
 import { z } from "zod";
 
 const serviceSchema = z.object({
@@ -67,15 +68,21 @@ const AdminServicos = () => {
     setDialogOpen(true);
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 5MB)");
-      return;
+    const validation = validateImage(file, "service");
+    if (!validation.valid) { toast.error(validation.error!); return; }
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "service");
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      setImageFile(optimizedFile);
+      setImagePreview(URL.createObjectURL(optimized));
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (serviceId: string): Promise<string | null> => {
@@ -149,14 +156,14 @@ const AdminServicos = () => {
   const quickUploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const handleQuickUpload = async (serviceId: string, file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 5MB)");
-      return;
-    }
+    const validation = validateImage(file, "service");
+    if (!validation.valid) { toast.error(validation.error!); return; }
     try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "service");
       const ext = file.name.split(".").pop();
       const path = `${serviceId}.${ext}`;
-      const { error } = await supabase.storage.from("service-images").upload(path, file, { upsert: true });
+      const { error } = await supabase.storage.from("service-images").upload(path, optimized, { upsert: true });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
       const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
@@ -214,7 +221,7 @@ const AdminServicos = () => {
                 <input
                   ref={(el) => { quickUploadRefs.current[s.id] = el; }}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -274,11 +281,11 @@ const AdminServicos = () => {
                   <div className="flex flex-col items-center gap-2 text-muted-foreground py-2">
                     <Upload className="h-6 w-6" />
                     <span className="text-sm">Clique para enviar uma foto</span>
-                    <span className="text-xs">JPG, PNG (máx 5MB)</span>
+                    <span className="text-xs">{IMAGE_PRESETS.service.hint}</span>
                   </div>
                 )}
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImageSelect} />
             </div>
 
             <div>

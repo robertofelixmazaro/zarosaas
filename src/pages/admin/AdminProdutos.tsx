@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Package, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
+import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
 import { z } from "zod";
 
 const productSchema = z.object({
@@ -54,19 +55,21 @@ const AdminProdutos = () => {
     setDialogOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecione um arquivo de imagem");
-      return;
+    const validation = validateImage(file, "product");
+    if (!validation.valid) { toast.error(validation.error!); return; }
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "product");
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      setImageFile(optimizedFile);
+      setImagePreview(URL.createObjectURL(optimized));
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 5MB");
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (productId: string): Promise<string | null> => {
@@ -186,11 +189,12 @@ const AdminProdutos = () => {
           <div className="space-y-4">
             {/* Image Upload */}
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Imagem do produto</label>
+              <label className="text-sm font-medium mb-1 block">Imagem do produto</label>
+              <p className="text-xs text-muted-foreground mb-1.5">{IMAGE_PRESETS.product.hint}</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />

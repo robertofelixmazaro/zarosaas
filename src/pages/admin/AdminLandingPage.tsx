@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import { toast } from "sonner";
+import { validateImage, optimizeImage, IMAGE_PRESETS, type ImagePresetType } from "@/lib/imageOptimizer";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -91,14 +92,26 @@ const AdminLandingPage = () => {
     })();
   }, [tenantId]);
 
-  const handleFileSelect = (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
+  const handleFileSelect = async (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
     if (!file) return;
-    if (!file.type.match(/^image\/(jpeg|png)$/)) { toast.error("Apenas JPG ou PNG são permitidos"); return; }
-    const maxMB = type === "logo" ? 5 : 10;
-    if (file.size > maxMB * 1024 * 1024) { toast.error(`Máximo ${maxMB}MB`); return; }
-    if (type === "logo") { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-    else if (type === "cover") { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
-    else { setCoverMobileFile(file); setCoverMobilePreview(URL.createObjectURL(file)); }
+    const presetMap: Record<string, ImagePresetType> = { logo: "logo", cover: "cover_desktop", cover_mobile: "cover_mobile" };
+    const presetType = presetMap[type];
+    const validation = validateImage(file, presetType);
+    if (!validation.valid) { toast.error(validation.error!); return; }
+
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, presetType);
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      const previewUrl = URL.createObjectURL(optimized);
+
+      if (type === "logo") { setLogoFile(optimizedFile); setLogoPreview(previewUrl); }
+      else if (type === "cover") { setCoverFile(optimizedFile); setCoverPreview(previewUrl); }
+      else { setCoverMobileFile(optimizedFile); setCoverMobilePreview(previewUrl); }
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
+    }
   };
 
   const uploadFile = async (file: File | null, name: string): Promise<string | null> => {
@@ -168,7 +181,8 @@ const AdminLandingPage = () => {
 
       {/* Logo */}
       <div className="rounded-lg border bg-card p-5">
-        <h3 className="font-semibold mb-4 flex items-center gap-2"><Image className="h-4 w-4" /> Logotipo</h3>
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Logotipo</h3>
+        <p className="text-xs text-muted-foreground mb-4">{IMAGE_PRESETS.logo.hint}</p>
         <div className="flex items-center gap-4">
           {logoPreview ? (
             <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-border">
@@ -187,9 +201,9 @@ const AdminLandingPage = () => {
             <Button variant="outline" size="sm" onClick={() => logoRef.current?.click()}>
               {logoPreview ? "Trocar logo" : "Enviar logo"}
             </Button>
-            <p className="text-xs text-muted-foreground mt-1">JPG ou PNG. Máx 5MB</p>
+            <p className="text-xs text-muted-foreground mt-1">Redimensionamento e compressão automáticos</p>
           </div>
-          <input ref={logoRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
+          <input ref={logoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
         </div>
       </div>
 
@@ -214,7 +228,7 @@ const AdminLandingPage = () => {
         <Button variant="outline" size="sm" onClick={() => coverRef.current?.click()}>
           {coverPreview ? "Trocar capa desktop" : "Enviar capa desktop"}
         </Button>
-        <input ref={coverRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
+        <input ref={coverRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
       </div>
 
       {/* Cover Mobile */}
@@ -238,7 +252,7 @@ const AdminLandingPage = () => {
         <Button variant="outline" size="sm" onClick={() => coverMobileRef.current?.click()}>
           {coverMobilePreview ? "Trocar capa mobile" : "Enviar capa mobile"}
         </Button>
-        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
+        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
       </div>
 
       {/* Business Info */}

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Trash2, Image, Video, Plus } from "lucide-react";
+import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
 
 interface GalleryItem {
   id: string;
@@ -53,11 +54,24 @@ const AdminGaleria = () => {
           continue;
         }
 
+        let uploadFile: File | Blob = file;
+        if (isImage) {
+          const validation = validateImage(file, "gallery");
+          if (!validation.valid) { toast.error(`${file.name}: ${validation.error}`); continue; }
+          try {
+            toast.info(`Otimizando "${file.name}"...`);
+            uploadFile = await optimizeImage(file, "gallery");
+          } catch {
+            toast.error(`Erro ao otimizar "${file.name}"`);
+            continue;
+          }
+        }
+
         const ext = file.name.split(".").pop();
         const fileName = `${tenantId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("gallery-media")
-          .upload(fileName, file);
+          .upload(fileName, uploadFile);
         if (uploadError) {
           toast.error(`Erro ao enviar "${file.name}": ${uploadError.message}`);
           continue;
@@ -119,12 +133,12 @@ const AdminGaleria = () => {
         <div>
           <h2 className="text-2xl font-bold">Galeria</h2>
           <p className="text-muted-foreground">Gerencie fotos e vídeos exibidos na landing page</p>
-          <p className="text-xs text-muted-foreground mt-1">Tamanho recomendado: <strong>1200 × 900 px</strong> · JPG ou PNG</p>
+          <p className="text-xs text-muted-foreground mt-1">{IMAGE_PRESETS.gallery.hint}</p>
         </div>
         <label>
           <input
             type="file"
-            accept="image/*,video/*"
+            accept="image/jpeg,image/png,image/webp,video/*"
             multiple
             className="hidden"
             onChange={handleUpload}
