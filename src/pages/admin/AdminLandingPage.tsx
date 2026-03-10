@@ -51,7 +51,7 @@ interface LandingSettings {
 
 const defaults: LandingSettings = {
   shop_name: "", description: "", phone: "", whatsapp: "", address: "", instagram: "",
-  logo_url: "", cover_image_url: "", primary_color: "", secondary_color: "", button_color: "",
+  logo_url: "", cover_image_url: "", cover_image_mobile_url: "", primary_color: "", secondary_color: "", button_color: "",
   hours_weekday: "", hours_saturday: "", hours_sunday: "",
   hero_btn_primary_text: "", hero_btn_primary_link: "", hero_btn_primary_color: "",
   hero_btn_secondary_text: "", hero_btn_secondary_link: "", hero_btn_secondary_color: "",
