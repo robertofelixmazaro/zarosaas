@@ -4,6 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath, getTenantExternalUrl } from "@/lib/tenantUrl";
 
 const QRCodePage = () => {
   const qrRef = useRef<HTMLDivElement>(null);

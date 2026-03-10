@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import ShareButton from "@/components/ShareButton";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 
 interface PremiumNavbarProps {
   shopName?: string;
