@@ -281,7 +281,7 @@ const AdminServicos = () => {
                   <div className="flex flex-col items-center gap-2 text-muted-foreground py-2">
                     <Upload className="h-6 w-6" />
                     <span className="text-sm">Clique para enviar uma foto</span>
-                    <span className="text-xs">JPG, PNG (máx 5MB)</span>
+                    <span className="text-xs">{IMAGE_PRESETS.service.hint}</span>
                   </div>
                 )}
               </div>
