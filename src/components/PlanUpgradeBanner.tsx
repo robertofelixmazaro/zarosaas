@@ -5,12 +5,14 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 
 const PlanUpgradeBanner = () => {
   const { limits, loading } = usePlanLimits();
   const navigate = useNavigate();
   const { tenantSlug } = useTenant();
-  const billingPath = tenantSlug ? `/t/${tenantSlug}/admin/billing` : "/admin/billing";
+  const basePath = getTenantBasePath(tenantSlug);
+  const billingPath = `${basePath}/admin/billing`;
 
   if (loading) return null;
 

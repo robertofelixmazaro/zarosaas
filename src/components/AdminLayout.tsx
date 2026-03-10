@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { getNicheLabels } from "@/lib/nicheLabels";
+import { getTenantBasePath, getTenantExternalUrl, getTenantAdminUrl } from "@/lib/tenantUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +78,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { tenantSlug, tenant } = useTenant();
   const { limits, loading: limitsLoading } = usePlanLimits();
   const nicheLabels = getNicheLabels(tenant?.niche);
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const role = userRole || "client";
   const allNavItems = getNavItems(nicheLabels.staffTitle);
   const navItems = allNavItems.filter((item) => item.roles.includes(role)).map(item => ({
@@ -188,7 +189,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           onComplete={(newSlug) => {
             setShowOnboarding(false);
             if (newSlug !== tenant.slug) {
-              navigate(`/t/${newSlug}/admin`);
+              window.location.href = getTenantAdminUrl(newSlug);
               window.location.reload();
             }
           }}
@@ -232,7 +233,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
         <div className="p-3 border-t space-y-1">
           {tenantSlug && (
-            <a href={`/t/${tenantSlug}`} target="_blank" rel="noopener noreferrer">
+            <a href={getTenantExternalUrl(tenantSlug)} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="w-full justify-start gap-2 text-muted-foreground" size="sm">
                 <ExternalLink className="h-4 w-4" /> Ver Landing Page
               </Button>

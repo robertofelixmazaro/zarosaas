@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath, getTenantExternalUrl } from "@/lib/tenantUrl";
 import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,13 +33,13 @@ const Index = () => {
 
   // Dynamic OG meta tags (client-side, for SPA navigation)
   const publishedBase = "https://zarosaas.lovable.app";
-  const ogUrl = tenantSlug ? `${publishedBase}/t/${tenantSlug}` : publishedBase;
+  const ogUrl = tenantSlug ? getTenantExternalUrl(tenantSlug) : publishedBase;
 
   // Share URL via edge function for proper OG tags in crawlers
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const currentOrigin = typeof window !== "undefined" ? window.location.origin : publishedBase;
   const ogShareUrl = tenantSlug
-    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}&origin=${encodeURIComponent(`${currentOrigin}/t/${tenantSlug}`)}`
+    ? `${supabaseUrl}/functions/v1/og-tenant?slug=${tenantSlug}&origin=${encodeURIComponent(getTenantExternalUrl(tenantSlug))}`
     : ogUrl;
 
   const { data: barbersList = [] } = useQuery<DbBarber[]>({ queryKey: ["barbers", tenantId], queryFn: () => fetchBarbers(tenantId || undefined), enabled: !!tenantId });
@@ -130,7 +131,7 @@ const Index = () => {
     return <TenantNotFound message={tenantError || undefined} />;
   }
 
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const shopName = siteSettings.shop_name || tenant?.name || "Meu Negócio";
   const primaryColor = siteSettings.primary_color || "";
   const secondaryColor = siteSettings.secondary_color || "";

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { detectTenantSlug } from "@/lib/tenantResolver";
+import { useParams, useLocation } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 
 // Lazy load all pages
@@ -90,6 +91,27 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
+};
+
+const PRODUCTION_DOMAIN = "zarosistemas.com.br";
+
+/**
+ * For /t/:slug/* routes: redirect to subdomain in production, fallback to path-based in dev/preview.
+ */
+const TenantRedirectOrFallback = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const host = window.location.hostname;
+
+  if (slug && (host.endsWith(PRODUCTION_DOMAIN) || host === PRODUCTION_DOMAIN)) {
+    // Redirect to subdomain
+    const remainingPath = location.pathname.replace(`/t/${slug}`, "") || "/";
+    window.location.href = `https://${slug}.${PRODUCTION_DOMAIN}${remainingPath}${location.search}`;
+    return <PageLoader />;
+  }
+
+  // Dev/preview: render tenant routes inline
+  return <TenantRoutes />;
 };
 
 const TenantRoutes = () => (
@@ -227,8 +249,8 @@ const AppRoutes = () => {
         <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
         <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
 
-        {/* Tenant public routes (path-based) */}
-        <Route path="/t/:slug/*" element={<TenantRoutes />} />
+        {/* Tenant path-based routes - redirect to subdomain in production */}
+        <Route path="/t/:slug/*" element={<TenantRedirectOrFallback />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />

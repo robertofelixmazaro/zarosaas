@@ -4,12 +4,13 @@ import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath, getTenantExternalUrl } from "@/lib/tenantUrl";
 
 const QRCodePage = () => {
   const qrRef = useRef<HTMLDivElement>(null);
   const { tenant, tenantSlug } = useTenant();
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
-  const siteUrl = `${window.location.origin}${basePath}`;
+  const basePath = getTenantBasePath(tenantSlug);
+  const siteUrl = tenantSlug ? getTenantExternalUrl(tenantSlug) : window.location.origin;
   const shopName = tenant?.name || "Meu Negócio";
   const logoUrl = tenant?.logo_url || "";
 

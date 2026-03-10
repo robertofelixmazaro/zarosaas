@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import ShareButton from "@/components/ShareButton";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 
 interface PremiumNavbarProps {
   shopName?: string;
@@ -26,7 +27,7 @@ const menuItems = [
 
 const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0", shareUrl }: PremiumNavbarProps) => {
   const { tenantSlug } = useTenant();
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 

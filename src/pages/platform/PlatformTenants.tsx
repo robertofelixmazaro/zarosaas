@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -309,7 +310,7 @@ const PlatformTenants = () => {
                     {tenants.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.name}</TableCell>
-                        <TableCell className="text-muted-foreground">/t/{t.slug}</TableCell>
+                        <TableCell className="text-muted-foreground">{t.slug}.zarosistemas.com.br</TableCell>
                         <TableCell>
                           {plans.find(p => p.id === (subscriptions[t.id]?.plan_id || t.plan_id))?.name || "Sem plano"}
                         </TableCell>
@@ -331,7 +332,7 @@ const PlatformTenants = () => {
                               <CreditCard className="h-4 w-4" />
                             </Button>
                             <Button size="icon" variant="ghost" title="Visualizar" asChild>
-                              <a href={`/t/${t.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={getTenantExternalUrl(t.slug)} target="_blank" rel="noopener noreferrer">
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>

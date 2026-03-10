@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import {
   ChevronRight, Store, Users, Calendar, Shield, Clock, Bell, UserCheck,
   ShoppingBag, BarChart3, Globe, Smartphone, Star, ArrowRight, CheckCircle2,
@@ -387,7 +388,7 @@ const LandingPage = () => {
                   initial="hidden" whileInView="visible" viewport={{ once: true }}
                   variants={fadeUp} transition={{ duration: 0.4, delay: i * 0.08 }}
                 >
-                  <Link to={`/t/${t.slug}`}
+                  <a href={getTenantExternalUrl(t.slug)}
                     className="block p-5 rounded-xl border bg-card hover:shadow-lg hover:border-primary/30 transition-all group"
                   >
                     <div className="flex items-center gap-4 mb-3">
@@ -407,7 +408,7 @@ const LandingPage = () => {
                     <span className="inline-flex items-center gap-1.5 text-sm text-primary font-medium">
                       Visitar <ChevronRight className="h-4 w-4" />
                     </span>
-                  </Link>
+                  </a>
                 </motion.div>
               ))}
             </div>

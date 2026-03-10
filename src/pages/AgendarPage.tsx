@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchServices, fetchBarbers, fetchBarberAvailability, fetchBlockedDates, fetchBookedSlots, createAppointment, DbService, DbBarber, DbAvailability, DbBlockedDate } from "@/lib/api";
 import { generateRawSlots, filterAvailableSlots, isDateBlocked, isDayActive, BusinessHours, DEFAULT_BUSINESS_HOURS } from "@/lib/slotGenerator";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 import { getNicheLabels } from "@/lib/nicheLabels";
 import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ const AgendarPage = () => {
   const navigate = useNavigate();
   const { tenantId, tenantSlug, tenant } = useTenant();
   const nicheLabels = getNicheLabels(tenant?.niche);
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [searchParams] = useSearchParams();
   const preSelectedServiceId = searchParams.get("servico");
   const [step, setStep] = useState<Step>(preSelectedServiceId ? "barbeiro" : "servico");

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Mail, Lock, User, ArrowLeft, Phone, MapPin, CreditCard, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp, user, userRole, loading: authLoading } = useAuth();
   const { tenantId, tenantSlug, tenant } = useTenant();
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [view, setView] = useState<LoginView>("login");
   const isLogin = view === "login";
   const isForgot = view === "forgot";
