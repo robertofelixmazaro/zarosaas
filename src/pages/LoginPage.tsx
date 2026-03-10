@@ -64,6 +64,19 @@ const LoginPage = () => {
   useEffect(() => {
     if (!tenantId) return;
     const loadSettings = async () => {
+      // Try new landing_page_settings first
+      const { data: lpData } = await supabase
+        .from("landing_page_settings" as any)
+        .select("settings")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      if (lpData && (lpData as any).settings) {
+        const s = (lpData as any).settings;
+        if (s.logo_url) setLogoUrl(s.logo_url);
+        if (s.shop_name) setShopName(s.shop_name);
+        return;
+      }
+      // Fallback to legacy site_settings
       const { data } = await supabase.from("site_settings").select("key, value").eq("tenant_id", tenantId).in("key", ["logo_url", "shop_name"]);
       if (data) {
         data.forEach((r: any) => {
