@@ -63,7 +63,7 @@ const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCente
 const PlatformCommissions = lazy(() => import("./pages/platform/PlatformCommissions"));
 const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
-const CompleteRegistrationPage = lazy(() => import("./pages/CompleteRegistrationPage"));
+
 const StaffLayout = lazy(() => import("./components/StaffLayout"));
 const StaffDashboard = lazy(() => import("./pages/staff/StaffDashboard"));
 const StaffAgenda = lazy(() => import("./pages/staff/StaffAgenda"));
@@ -179,7 +179,7 @@ const AppRoutes = () => {
         <Route path="/redefinir-senha" element={<ForgotPasswordPage />} />
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
-        <Route path="/completar-cadastro" element={<CompleteRegistrationPage />} />
+        
         <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
         <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
 
