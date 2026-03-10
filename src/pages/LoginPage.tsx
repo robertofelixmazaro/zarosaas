@@ -29,7 +29,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp, user, userRole, loading: authLoading } = useAuth();
   const { tenantId, tenantSlug, tenant } = useTenant();
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [view, setView] = useState<LoginView>("login");
   const isLogin = view === "login";
   const isForgot = view === "forgot";

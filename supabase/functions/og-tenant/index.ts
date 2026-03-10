@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
 
   // Build redirect URL — prefer subdomain if on zarosistemas.com.br
   const origin = url.searchParams.get("origin");
-  const siteUrl = origin || `https://zarosaas.lovable.app/t/${tenant.slug}`;
+  const siteUrl = origin || `https://${tenant.slug}.zarosistemas.com.br`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
