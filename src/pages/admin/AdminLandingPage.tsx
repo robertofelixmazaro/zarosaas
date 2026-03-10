@@ -19,6 +19,7 @@ interface LandingSettings {
   instagram: string;
   logo_url: string;
   cover_image_url: string;
+  cover_image_mobile_url: string;
   primary_color: string;
   secondary_color: string;
   button_color: string;
@@ -50,7 +51,7 @@ interface LandingSettings {
 
 const defaults: LandingSettings = {
   shop_name: "", description: "", phone: "", whatsapp: "", address: "", instagram: "",
-  logo_url: "", cover_image_url: "", primary_color: "", secondary_color: "", button_color: "",
+  logo_url: "", cover_image_url: "", cover_image_mobile_url: "", primary_color: "", secondary_color: "", button_color: "",
   hours_weekday: "", hours_saturday: "", hours_sunday: "",
   hero_btn_primary_text: "", hero_btn_primary_link: "", hero_btn_primary_color: "",
   hero_btn_secondary_text: "", hero_btn_secondary_link: "", hero_btn_secondary_color: "",
@@ -68,8 +69,11 @@ const AdminLandingPage = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverMobileFile, setCoverMobileFile] = useState<File | null>(null);
+  const [coverMobilePreview, setCoverMobilePreview] = useState<string | null>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
+  const coverMobileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -81,18 +85,20 @@ const AdminLandingPage = () => {
         setSettings((prev) => ({ ...prev, ...map } as LandingSettings));
         if (map.logo_url) setLogoPreview(map.logo_url);
         if (map.cover_image_url) setCoverPreview(map.cover_image_url);
+        if (map.cover_image_mobile_url) setCoverMobilePreview(map.cover_image_mobile_url);
       }
       setLoading(false);
     })();
   }, [tenantId]);
 
-  const handleFileSelect = (file: File | undefined, type: "logo" | "cover") => {
+  const handleFileSelect = (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (!file.type.match(/^image\/(jpeg|png)$/)) { toast.error("Apenas JPG ou PNG são permitidos"); return; }
     const maxMB = type === "logo" ? 5 : 10;
     if (file.size > maxMB * 1024 * 1024) { toast.error(`Máximo ${maxMB}MB`); return; }
     if (type === "logo") { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-    else { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    else if (type === "cover") { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    else { setCoverMobileFile(file); setCoverMobilePreview(URL.createObjectURL(file)); }
   };
 
   const uploadFile = async (file: File | null, name: string): Promise<string | null> => {
@@ -109,12 +115,14 @@ const AdminLandingPage = () => {
     try {
       const logoUrl = await uploadFile(logoFile, "logo");
       const coverUrl = await uploadFile(coverFile, "cover");
+      const coverMobileUrl = await uploadFile(coverMobileFile, "cover-mobile");
       const toSave = { ...settings };
       if (logoUrl) toSave.logo_url = logoUrl;
       if (coverUrl) toSave.cover_image_url = coverUrl;
+      if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
       for (const [key, value] of Object.entries(toSave)) {
-        if (!value && (key === "logo_url" || key === "cover_image_url")) continue;
+        if (!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")) continue;
         const { data: existing } = await supabase.from("site_settings" as any).select("id").eq("key", key).eq("tenant_id", tenantId).maybeSingle();
         if (existing) {
           await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
@@ -124,8 +132,10 @@ const AdminLandingPage = () => {
       }
       if (logoUrl) setSettings((p) => ({ ...p, logo_url: logoUrl }));
       if (coverUrl) setSettings((p) => ({ ...p, cover_image_url: coverUrl }));
+      if (coverMobileUrl) setSettings((p) => ({ ...p, cover_image_mobile_url: coverMobileUrl }));
       setLogoFile(null);
       setCoverFile(null);
+      setCoverMobileFile(null);
       toast.success("Landing page atualizada!");
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
@@ -177,18 +187,19 @@ const AdminLandingPage = () => {
             <Button variant="outline" size="sm" onClick={() => logoRef.current?.click()}>
               {logoPreview ? "Trocar logo" : "Enviar logo"}
             </Button>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG. Máx 5MB</p>
+            <p className="text-xs text-muted-foreground mt-1">JPG ou PNG. Máx 5MB</p>
           </div>
-          <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
+          <input ref={logoRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
         </div>
       </div>
 
-      {/* Cover */}
+      {/* Cover Desktop */}
       <div className="rounded-lg border bg-card p-5">
-        <h3 className="font-semibold mb-4 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa</h3>
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa — Desktop</h3>
+        <p className="text-xs text-muted-foreground mb-4">Tamanho recomendado: <strong>1920 × 800 px</strong> · JPG ou PNG · Máx 10MB</p>
         {coverPreview ? (
           <div className="relative w-full h-40 rounded-lg overflow-hidden border mb-3">
-            <img src={coverPreview} alt="Capa" className="w-full h-full object-cover" />
+            <img src={coverPreview} alt="Capa Desktop" className="w-full h-full object-cover" />
             <button type="button" onClick={() => { setCoverFile(null); setCoverPreview(null); setSettings((s) => ({ ...s, cover_image_url: "" })); }}
               className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
               <X className="h-3 w-3" />
@@ -197,13 +208,37 @@ const AdminLandingPage = () => {
         ) : (
           <div onClick={() => coverRef.current?.click()} className="w-full h-40 rounded-lg bg-muted/30 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors mb-3">
             <Upload className="h-8 w-8 text-muted-foreground/40" />
-            <span className="text-sm text-muted-foreground">Clique para enviar</span>
+            <span className="text-sm text-muted-foreground">Clique para enviar (1920 × 800)</span>
           </div>
         )}
         <Button variant="outline" size="sm" onClick={() => coverRef.current?.click()}>
-          {coverPreview ? "Trocar capa" : "Enviar capa"}
+          {coverPreview ? "Trocar capa desktop" : "Enviar capa desktop"}
         </Button>
-        <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
+        <input ref={coverRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
+      </div>
+
+      {/* Cover Mobile */}
+      <div className="rounded-lg border bg-card p-5">
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa — Mobile</h3>
+        <p className="text-xs text-muted-foreground mb-4">Tamanho recomendado: <strong>1080 × 1350 px</strong> · JPG ou PNG · Máx 10MB</p>
+        {coverMobilePreview ? (
+          <div className="relative w-full max-w-xs h-52 rounded-lg overflow-hidden border mb-3">
+            <img src={coverMobilePreview} alt="Capa Mobile" className="w-full h-full object-cover" />
+            <button type="button" onClick={() => { setCoverMobileFile(null); setCoverMobilePreview(null); setSettings((s) => ({ ...s, cover_image_mobile_url: "" })); }}
+              className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <div onClick={() => coverMobileRef.current?.click()} className="w-full max-w-xs h-52 rounded-lg bg-muted/30 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors mb-3">
+            <Upload className="h-8 w-8 text-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground">Clique para enviar (1080 × 1350)</span>
+          </div>
+        )}
+        <Button variant="outline" size="sm" onClick={() => coverMobileRef.current?.click()}>
+          {coverMobilePreview ? "Trocar capa mobile" : "Enviar capa mobile"}
+        </Button>
+        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
       </div>
 
       {/* Business Info */}
@@ -351,6 +386,7 @@ const AdminLandingPage = () => {
       {/* Service Buttons */}
       <div className="rounded-lg border bg-card p-5 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Serviços</h3>
+        <p className="text-xs text-muted-foreground">Imagens de serviços: tamanho recomendado <strong>800 × 600 px</strong> · JPG ou PNG</p>
         <div>
           <label className="text-sm font-medium mb-1 block">Texto do botão</label>
           <Input value={settings.service_btn_text} onChange={(e) => setSettings({ ...settings, service_btn_text: e.target.value })} placeholder="Agendar" />
@@ -384,6 +420,7 @@ const AdminLandingPage = () => {
       {/* Product Buttons */}
       <div className="rounded-lg border bg-card p-5 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Produtos</h3>
+        <p className="text-xs text-muted-foreground">Imagens de produtos: tamanho recomendado <strong>800 × 800 px</strong> · JPG ou PNG</p>
         <div>
           <label className="text-sm font-medium mb-1 block">Texto do botão</label>
           <Input value={settings.product_btn_text} onChange={(e) => setSettings({ ...settings, product_btn_text: e.target.value })} placeholder="Comprar" />
