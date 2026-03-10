@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { MessageSquare, Save } from "lucide-react";
+import { MessageSquare, Save, HelpCircle, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
@@ -108,9 +109,136 @@ const WhatsAppNotificationConfig = () => {
 
   return (
     <div className="rounded-lg border bg-card p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare className="h-5 w-5" />
-        <h3 className="font-semibold">Notificações WhatsApp Automáticas</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          <h3 className="font-semibold">Notificações WhatsApp Automáticas</h3>
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <HelpCircle className="h-3.5 w-3.5" /> Como configurar?
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" /> Tutorial: Configurar WhatsApp
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-5 text-sm">
+              {/* Step 1 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
+                  Escolher um provedor de API
+                </h4>
+                <p className="text-muted-foreground pl-8">
+                  O sistema utiliza integração com APIs externas como:
+                </p>
+                <ul className="list-disc pl-12 text-muted-foreground space-y-1">
+                  <li><strong>Evolution API</strong></li>
+                  <li><strong>Z-API</strong></li>
+                  <li>Outros provedores compatíveis</li>
+                </ul>
+                <p className="text-muted-foreground pl-8">Escolha um provedor e crie uma conta na plataforma.</p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
+                  Criar uma instância de WhatsApp
+                </h4>
+                <p className="text-muted-foreground pl-8">
+                  Dentro do provedor escolhido, crie uma nova instância. Após criar, você receberá:
+                </p>
+                <ul className="list-disc pl-12 text-muted-foreground space-y-1">
+                  <li>URL da API</li>
+                  <li>API Key / Token</li>
+                  <li>ID da Instância</li>
+                </ul>
+              </div>
+
+              {/* Step 3 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">3</span>
+                  Conectar o WhatsApp no sistema
+                </h4>
+                <p className="text-muted-foreground pl-8">No painel, preencha os campos:</p>
+                <ul className="list-none pl-8 text-muted-foreground space-y-1">
+                  <li><ChevronRight className="inline h-3 w-3" /> <strong>URL da API</strong> → cole a URL fornecida</li>
+                  <li><ChevronRight className="inline h-3 w-3" /> <strong>API Key / Token</strong> → cole sua chave</li>
+                  <li><ChevronRight className="inline h-3 w-3" /> <strong>ID da Instância</strong> → informe o ID</li>
+                </ul>
+                <p className="text-muted-foreground pl-8">Depois clique em <strong>Salvar configurações</strong>.</p>
+              </div>
+
+              {/* Step 4 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">4</span>
+                  Conectar seu celular
+                </h4>
+                <p className="text-muted-foreground pl-8">
+                  Alguns provedores exigem escanear um QR Code. Abra o WhatsApp no celular e conecte o dispositivo.
+                </p>
+              </div>
+
+              {/* Step 5 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">5</span>
+                  Ativar os envios automáticos
+                </h4>
+                <p className="text-muted-foreground pl-8">Após conectar, ative:</p>
+                <ul className="list-disc pl-12 text-muted-foreground space-y-1">
+                  <li>Lembretes automáticos via WhatsApp</li>
+                  <li>Confirmação de presença via WhatsApp</li>
+                </ul>
+              </div>
+
+              {/* Variables */}
+              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+                <h4 className="font-semibold text-sm">Variáveis disponíveis nas mensagens</h4>
+                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                  <code className="bg-background px-2 py-1 rounded">{"{{cliente}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{empresa}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{servico}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{data}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{hora}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{link_confirmacao}}"}</code>
+                  <code className="bg-background px-2 py-1 rounded">{"{{link_cancelamento}}"}</code>
+                </div>
+              </div>
+
+              {/* Example */}
+              <div className="rounded-lg border p-4 space-y-2">
+                <h4 className="font-semibold text-sm">Exemplo de mensagem</h4>
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap bg-muted/50 rounded p-3 leading-relaxed">
+{`Olá {{cliente}} 👋
+
+Este é um lembrete do seu agendamento com {{empresa}}.
+
+Serviço: {{servico}}
+Data: {{data}}
+Horário: {{hora}}
+
+Confirme sua presença:
+{{link_confirmacao}}
+
+Caso precise cancelar:
+{{link_cancelamento}}`}
+                </pre>
+              </div>
+
+              <p className="text-center text-muted-foreground text-xs pt-2">
+                ✅ Pronto! Seu WhatsApp estará conectado e enviando notificações automáticas.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
         Configure o envio automático de lembretes e confirmações via WhatsApp usando API externa (Evolution API, Z-API, etc.)
