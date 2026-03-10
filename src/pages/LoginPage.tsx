@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBasePath } from "@/lib/tenantUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Mail, Lock, User, ArrowLeft, Phone, MapPin, CreditCard, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
