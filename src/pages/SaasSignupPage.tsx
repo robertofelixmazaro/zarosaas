@@ -101,13 +101,16 @@ const SaasSignupPage = () => {
   const errors: Record<string, string> = {};
   if (!name.trim()) errors.name = "Nome completo é obrigatório";
   if (!email.trim()) errors.email = "E-mail é obrigatório";
-  if (!phone.replace(/\D/g, "")) errors.phone = "Telefone é obrigatório";
-  else if (phone.replace(/\D/g, "").length < 10) errors.phone = "Telefone inválido";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Email inválido.";
+
+  const phoneDigits = phone.replace(/\D/g, "");
+  if (!phoneDigits) errors.phone = "Telefone é obrigatório";
+  else if (phoneDigits.length < 10 || phoneDigits.length > 11) errors.phone = "Número de celular inválido.";
 
   const strippedDoc = cpfCnpj.replace(/\D/g, "");
   if (!strippedDoc) errors.cpfCnpj = "CPF ou CNPJ é obrigatório";
   else if (strippedDoc.length !== 11 && strippedDoc.length !== 14) errors.cpfCnpj = "CPF ou CNPJ incompleto";
-  else if (!validateCpfCnpj(strippedDoc)) errors.cpfCnpj = strippedDoc.length === 11 ? "CPF inválido" : "CNPJ inválido";
+  else if (!validateCpfCnpj(strippedDoc)) errors.cpfCnpj = strippedDoc.length === 11 ? "CPF inválido. Por favor insira um CPF válido." : "CNPJ inválido. Por favor insira um CNPJ válido.";
 
   if (accountType === "admin") {
     if (!storeName.trim()) errors.storeName = "Nome da loja é obrigatório";
