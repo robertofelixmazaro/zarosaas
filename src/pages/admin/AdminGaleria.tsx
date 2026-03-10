@@ -133,7 +133,7 @@ const AdminGaleria = () => {
         <div>
           <h2 className="text-2xl font-bold">Galeria</h2>
           <p className="text-muted-foreground">Gerencie fotos e vídeos exibidos na landing page</p>
-          <p className="text-xs text-muted-foreground mt-1">Tamanho recomendado: <strong>1200 × 900 px</strong> · JPG ou PNG</p>
+          <p className="text-xs text-muted-foreground mt-1">{IMAGE_PRESETS.gallery.hint}</p>
         </div>
         <label>
           <input
