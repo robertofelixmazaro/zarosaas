@@ -156,14 +156,14 @@ const AdminServicos = () => {
   const quickUploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const handleQuickUpload = async (serviceId: string, file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 5MB)");
-      return;
-    }
+    const validation = validateImage(file, "service");
+    if (!validation.valid) { toast.error(validation.error!); return; }
     try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "service");
       const ext = file.name.split(".").pop();
       const path = `${serviceId}.${ext}`;
-      const { error } = await supabase.storage.from("service-images").upload(path, file, { upsert: true });
+      const { error } = await supabase.storage.from("service-images").upload(path, optimized, { upsert: true });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
       const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
