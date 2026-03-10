@@ -229,16 +229,24 @@ const Index = () => {
             </p>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to={`${basePath}/agendar`}>
-              <Button size="lg" className="text-base px-8 gap-2" style={btnStyle}>
-                Agendar Horário <ChevronRight className="h-4 w-4" />
+            <Link to={heroPrimaryLink.startsWith("#") ? heroPrimaryLink : heroPrimaryLink}>
+              <Button size="lg" className="text-base px-8 gap-2" style={heroPrimaryStyle}>
+                {heroPrimaryText} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href="#servicos">
-              <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10">
-                Ver Serviços
-              </Button>
-            </a>
+            {heroSecondaryLink.startsWith("#") ? (
+              <a href={heroSecondaryLink}>
+                <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10" style={heroSecondaryStyle}>
+                  {heroSecondaryText}
+                </Button>
+              </a>
+            ) : (
+              <Link to={heroSecondaryLink}>
+                <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10" style={heroSecondaryStyle}>
+                  {heroSecondaryText}
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
