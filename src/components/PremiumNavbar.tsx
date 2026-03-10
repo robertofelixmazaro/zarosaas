@@ -26,7 +26,7 @@ const menuItems = [
 
 const PremiumNavbar = ({ shopName = "Meu Negócio", logoUrl, avgRating = "5.0", shareUrl }: PremiumNavbarProps) => {
   const { tenantSlug } = useTenant();
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 

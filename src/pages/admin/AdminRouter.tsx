@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getTenantAdminUrl } from "@/lib/tenantUrl";
 import AdminLayout from "@/components/AdminLayout";
 import AdminSetupWizard from "@/pages/admin/AdminSetupWizard";
 import { TenantProvider } from "@/contexts/TenantContext";

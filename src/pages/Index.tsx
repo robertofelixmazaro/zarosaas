@@ -130,7 +130,7 @@ const Index = () => {
     return <TenantNotFound message={tenantError || undefined} />;
   }
 
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const shopName = siteSettings.shop_name || tenant?.name || "Meu Negócio";
   const primaryColor = siteSettings.primary_color || "";
   const secondaryColor = siteSettings.secondary_color || "";

@@ -19,7 +19,7 @@ const AgendarPage = () => {
   const navigate = useNavigate();
   const { tenantId, tenantSlug, tenant } = useTenant();
   const nicheLabels = getNicheLabels(tenant?.niche);
-  const basePath = tenantSlug ? `/t/${tenantSlug}` : "";
+  const basePath = getTenantBasePath(tenantSlug);
   const [searchParams] = useSearchParams();
   const preSelectedServiceId = searchParams.get("servico");
   const [step, setStep] = useState<Step>(preSelectedServiceId ? "barbeiro" : "servico");
