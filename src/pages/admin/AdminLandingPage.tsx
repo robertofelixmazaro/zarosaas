@@ -115,9 +115,11 @@ const AdminLandingPage = () => {
     try {
       const logoUrl = await uploadFile(logoFile, "logo");
       const coverUrl = await uploadFile(coverFile, "cover");
+      const coverMobileUrl = await uploadFile(coverMobileFile, "cover-mobile");
       const toSave = { ...settings };
       if (logoUrl) toSave.logo_url = logoUrl;
       if (coverUrl) toSave.cover_image_url = coverUrl;
+      if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
       for (const [key, value] of Object.entries(toSave)) {
         if (!value && (key === "logo_url" || key === "cover_image_url")) continue;
