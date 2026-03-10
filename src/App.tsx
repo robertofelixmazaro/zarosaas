@@ -179,7 +179,7 @@ const AppRoutes = () => {
         <Route path="/redefinir-senha" element={<ForgotPasswordPage />} />
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
-        <Route path="/completar-cadastro" element={<CompleteRegistrationPage />} />
+        
         <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
         <Route path="/cancelar-agendamento/:id" element={<CancelAppointmentPage />} />
 

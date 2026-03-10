@@ -63,22 +63,10 @@ const UnifiedLoginPage = () => {
       return;
     }
 
-    // Only require complete registration if there's no role OR no profile OR phone is missing
-    const hasRole = !!role;
-    const hasProfile = !!profile;
-    const hasPhone = hasProfile && (profile as any).phone != null && (profile as any).phone !== "";
-    const shouldCompleteRegistration = !hasRole || !hasProfile || !hasPhone;
+    console.log("[Auth Debug] Profile check:", { role, profile });
 
-    console.log("[Auth Debug] Profile check:", { hasRole, hasProfile, hasPhone, shouldCompleteRegistration });
-
-    if (shouldCompleteRegistration) {
-      console.log("[Auth Debug] Redirecting to /completar-cadastro");
-      navigate("/completar-cadastro", { replace: true });
-      return;
-    }
-
-    console.log("[Auth Debug] Profile complete, redirecting by role:", role);
-    redirectByRole(role);
+    // Redirect directly by role — all data is collected at signup
+    redirectByRole(role || "admin");
   }, [navigate, redirectByRole]);
 
   useEffect(() => {
