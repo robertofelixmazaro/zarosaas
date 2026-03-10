@@ -227,8 +227,8 @@ const AppRoutes = () => {
         <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
         <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
 
-        {/* Tenant public routes (path-based) */}
-        <Route path="/t/:slug/*" element={<TenantRoutes />} />
+        {/* Tenant path-based routes - redirect to subdomain in production */}
+        <Route path="/t/:slug/*" element={<TenantRedirectOrFallback />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
