@@ -431,8 +431,8 @@ const Index = () => {
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{p.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-bold">R$ {Number(p.price).toFixed(0)}</span>
-                      <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0} style={btnStyle}>
-                        {p.stock > 0 ? "Comprar" : "Esgotado"}
+                      <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0} style={productBtnStyle}>
+                        {p.stock > 0 ? productBtnText : "Esgotado"}
                       </Button>
                     </div>
                   </div>
