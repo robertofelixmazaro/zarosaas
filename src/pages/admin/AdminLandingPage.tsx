@@ -137,12 +137,12 @@ const AdminLandingPage = () => {
       if (coverUrl) toSave.cover_image_url = coverUrl;
       if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
-      // Save as single JSON document
-      const settingsJson = { ...toSave };
-      // Remove empty image URLs to avoid overwriting
-      if (!settingsJson.logo_url) delete (settingsJson as any).logo_url;
-      if (!settingsJson.cover_image_url) delete (settingsJson as any).cover_image_url;
-      if (!settingsJson.cover_image_mobile_url) delete (settingsJson as any).cover_image_mobile_url;
+      // Save as single JSON document — keep all fields, only skip truly empty image fields
+      // that weren't already loaded from the DB
+      const settingsJson: Record<string, string> = {};
+      for (const [key, value] of Object.entries(toSave)) {
+        if (value) settingsJson[key] = value;
+      }
 
       const { error: upsertErr } = await supabase
         .from("landing_page_settings" as any)
