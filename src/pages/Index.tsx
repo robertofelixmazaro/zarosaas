@@ -202,7 +202,14 @@ const Index = () => {
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           {coverImage ? (
-            <img src={coverImage} alt={shopName} className="w-full h-full object-cover" />
+            <>
+              {/* Desktop cover */}
+              <img src={coverImage} alt={shopName} className={cn("w-full h-full object-cover", coverImageMobile && "hidden md:block")} />
+              {/* Mobile cover */}
+              {coverImageMobile && (
+                <img src={coverImageMobile} alt={shopName} className="w-full h-full object-cover md:hidden" />
+              )}
+            </>
           ) : (
             <div className="w-full h-full" style={{ backgroundColor: primaryColor || "hsl(var(--primary))" }} />
           )}
