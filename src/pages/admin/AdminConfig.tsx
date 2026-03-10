@@ -609,7 +609,83 @@ const AdminConfig = () => {
         </div>
       </div>
 
-      {/* Reminder Channels */}
+      {/* Custom Domain */}
+      <div className="rounded-lg border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="h-5 w-5" />
+          <h3 className="font-semibold">Domínio Personalizado</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Conecte um domínio próprio para que seus clientes acessem sua página de agendamento diretamente.
+          Exemplo: <code className="bg-muted px-1.5 py-0.5 rounded text-xs">agenda.meudominio.com.br</code>
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Domínio</label>
+            <Input
+              value={customDomain}
+              onChange={(e) => setCustomDomain(e.target.value.toLowerCase().trim())}
+              placeholder="agenda.meudominio.com.br"
+              className="max-w-md"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Configure um registro CNAME apontando seu domínio para <code className="bg-muted px-1 py-0.5 rounded">zarosistemas.com.br</code>
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={savingDomain}
+            onClick={async () => {
+              setSavingDomain(true);
+              try {
+                // Check uniqueness if domain is set
+                if (customDomain) {
+                  const { data: existing } = await supabase
+                    .from("tenants" as any)
+                    .select("id")
+                    .eq("custom_domain", customDomain)
+                    .neq("id", tenantId)
+                    .maybeSingle();
+                  if (existing) {
+                    toast.error("Este domínio já está em uso por outra empresa.");
+                    setSavingDomain(false);
+                    return;
+                  }
+                }
+                const { error } = await supabase
+                  .from("tenants" as any)
+                  .update({ custom_domain: customDomain || null } as any)
+                  .eq("id", tenantId);
+                if (error) throw error;
+                toast.success("Domínio personalizado salvo!");
+              } catch (err: any) {
+                toast.error("Erro ao salvar", { description: err.message });
+              }
+              setSavingDomain(false);
+            }}
+          >
+            {savingDomain ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Salvando...</> : "Salvar Domínio"}
+          </Button>
+          {customDomain && (
+            <div className="p-3 rounded-lg border bg-muted/30">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Configuração DNS necessária:</p>
+              <div className="space-y-1 text-xs font-mono">
+                <p><span className="text-muted-foreground">Tipo:</span> CNAME</p>
+                <p><span className="text-muted-foreground">Nome:</span> {customDomain.split('.')[0]}</p>
+                <p><span className="text-muted-foreground">Valor:</span> zarosistemas.com.br</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Após configurar o DNS, seu site estará acessível em{" "}
+                <a href={`https://${customDomain}`} target="_blank" className="text-primary hover:underline">
+                  {customDomain}
+                </a>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <ReminderChannelConfig />
 
       {/* WhatsApp Notifications */}
