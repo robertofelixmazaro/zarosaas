@@ -201,7 +201,7 @@ const AdminLandingPage = () => {
             <Button variant="outline" size="sm" onClick={() => logoRef.current?.click()}>
               {logoPreview ? "Trocar logo" : "Enviar logo"}
             </Button>
-            <p className="text-xs text-muted-foreground mt-1">JPG ou PNG. Máx 5MB</p>
+            <p className="text-xs text-muted-foreground mt-1">Redimensionamento e compressão automáticos</p>
           </div>
           <input ref={logoRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
         </div>
