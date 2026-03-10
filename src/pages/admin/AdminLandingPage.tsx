@@ -91,13 +91,14 @@ const AdminLandingPage = () => {
     })();
   }, [tenantId]);
 
-  const handleFileSelect = (file: File | undefined, type: "logo" | "cover") => {
+  const handleFileSelect = (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (!file.type.match(/^image\/(jpeg|png)$/)) { toast.error("Apenas JPG ou PNG são permitidos"); return; }
     const maxMB = type === "logo" ? 5 : 10;
     if (file.size > maxMB * 1024 * 1024) { toast.error(`Máximo ${maxMB}MB`); return; }
     if (type === "logo") { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-    else { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    else if (type === "cover") { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    else { setCoverMobileFile(file); setCoverMobilePreview(URL.createObjectURL(file)); }
   };
 
   const uploadFile = async (file: File | null, name: string): Promise<string | null> => {
