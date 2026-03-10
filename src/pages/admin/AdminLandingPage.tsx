@@ -286,6 +286,179 @@ const AdminLandingPage = () => {
         )}
       </div>
 
+      {/* Hero Buttons */}
+      <div className="rounded-lg border bg-card p-5 space-y-4">
+        <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões do Topo (Hero)</h3>
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">Botão Principal</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Texto</label>
+              <Input value={settings.hero_btn_primary_text} onChange={(e) => setSettings({ ...settings, hero_btn_primary_text: e.target.value })} placeholder="Agendar agora" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Link</label>
+              <Input value={settings.hero_btn_primary_link} onChange={(e) => setSettings({ ...settings, hero_btn_primary_link: e.target.value })} placeholder="#agendar" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.hero_btn_primary_color || "#000000"} onChange={(e) => setSettings({ ...settings, hero_btn_primary_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.hero_btn_primary_color} onChange={(e) => setSettings({ ...settings, hero_btn_primary_color: e.target.value })} placeholder="#000000" className="flex-1" />
+            </div>
+          </div>
+        </div>
+        <div className="border-t pt-3 space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">Botão Secundário</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Texto</label>
+              <Input value={settings.hero_btn_secondary_text} onChange={(e) => setSettings({ ...settings, hero_btn_secondary_text: e.target.value })} placeholder="Saiba mais" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Link</label>
+              <Input value={settings.hero_btn_secondary_link} onChange={(e) => setSettings({ ...settings, hero_btn_secondary_link: e.target.value })} placeholder="#sobre" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.hero_btn_secondary_color || "#666666"} onChange={(e) => setSettings({ ...settings, hero_btn_secondary_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.hero_btn_secondary_color} onChange={(e) => setSettings({ ...settings, hero_btn_secondary_color: e.target.value })} placeholder="#666666" className="flex-1" />
+            </div>
+          </div>
+        </div>
+        {(settings.hero_btn_primary_text || settings.hero_btn_secondary_text) && (
+          <div className="mt-3 p-3 rounded-lg border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+            <div className="flex items-center gap-3">
+              {settings.hero_btn_primary_text && (
+                <button className="px-4 py-2 rounded-md text-sm font-medium text-white" style={{ backgroundColor: settings.hero_btn_primary_color || '#000' }}>
+                  {settings.hero_btn_primary_text}
+                </button>
+              )}
+              {settings.hero_btn_secondary_text && (
+                <button className="px-4 py-2 rounded-md text-sm font-medium text-white" style={{ backgroundColor: settings.hero_btn_secondary_color || '#666' }}>
+                  {settings.hero_btn_secondary_text}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Service Buttons */}
+      <div className="rounded-lg border bg-card p-5 space-y-3">
+        <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Serviços</h3>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Texto do botão</label>
+          <Input value={settings.service_btn_text} onChange={(e) => setSettings({ ...settings, service_btn_text: e.target.value })} placeholder="Agendar" />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do botão</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.service_btn_color || "#000000"} onChange={(e) => setSettings({ ...settings, service_btn_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.service_btn_color} onChange={(e) => setSettings({ ...settings, service_btn_color: e.target.value })} placeholder="#000000" className="flex-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do texto</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.service_btn_text_color || "#FFFFFF"} onChange={(e) => setSettings({ ...settings, service_btn_text_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.service_btn_text_color} onChange={(e) => setSettings({ ...settings, service_btn_text_color: e.target.value })} placeholder="#FFFFFF" className="flex-1" />
+            </div>
+          </div>
+        </div>
+        {settings.service_btn_text && (
+          <div className="mt-2 p-3 rounded-lg border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+            <button className="px-4 py-2 rounded-md text-sm font-medium" style={{ backgroundColor: settings.service_btn_color || '#000', color: settings.service_btn_text_color || '#fff' }}>
+              {settings.service_btn_text}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Product Buttons */}
+      <div className="rounded-lg border bg-card p-5 space-y-3">
+        <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Produtos</h3>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Texto do botão</label>
+          <Input value={settings.product_btn_text} onChange={(e) => setSettings({ ...settings, product_btn_text: e.target.value })} placeholder="Comprar" />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do botão</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.product_btn_color || "#000000"} onChange={(e) => setSettings({ ...settings, product_btn_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.product_btn_color} onChange={(e) => setSettings({ ...settings, product_btn_color: e.target.value })} placeholder="#000000" className="flex-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do texto</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.product_btn_text_color || "#FFFFFF"} onChange={(e) => setSettings({ ...settings, product_btn_text_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.product_btn_text_color} onChange={(e) => setSettings({ ...settings, product_btn_text_color: e.target.value })} placeholder="#FFFFFF" className="flex-1" />
+            </div>
+          </div>
+        </div>
+        {settings.product_btn_text && (
+          <div className="mt-2 p-3 rounded-lg border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+            <button className="px-4 py-2 rounded-md text-sm font-medium" style={{ backgroundColor: settings.product_btn_color || '#000', color: settings.product_btn_text_color || '#fff' }}>
+              {settings.product_btn_text}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* CTA Section */}
+      <div className="rounded-lg border bg-card p-5 space-y-3">
+        <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Chamada Final (CTA)</h3>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Título da seção</label>
+          <Input value={settings.cta_title} onChange={(e) => setSettings({ ...settings, cta_title: e.target.value })} placeholder="Pronto para agendar?" />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Subtítulo</label>
+          <Input value={settings.cta_subtitle} onChange={(e) => setSettings({ ...settings, cta_subtitle: e.target.value })} placeholder="Entre em contato e agende seu horário" />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Texto do botão</label>
+          <Input value={settings.cta_btn_text} onChange={(e) => setSettings({ ...settings, cta_btn_text: e.target.value })} placeholder="Agendar agora" />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do botão</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.cta_btn_color || "#000000"} onChange={(e) => setSettings({ ...settings, cta_btn_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.cta_btn_color} onChange={(e) => setSettings({ ...settings, cta_btn_color: e.target.value })} placeholder="#000000" className="flex-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cor do fundo</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={settings.cta_bg_color || "#F3F4F6"} onChange={(e) => setSettings({ ...settings, cta_bg_color: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+              <Input value={settings.cta_bg_color} onChange={(e) => setSettings({ ...settings, cta_bg_color: e.target.value })} placeholder="#F3F4F6" className="flex-1" />
+            </div>
+          </div>
+        </div>
+        {(settings.cta_title || settings.cta_btn_text) && (
+          <div className="mt-2 p-4 rounded-lg border" style={{ backgroundColor: settings.cta_bg_color || '#F3F4F6' }}>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+            {settings.cta_title && <p className="font-bold text-lg mb-1">{settings.cta_title}</p>}
+            {settings.cta_subtitle && <p className="text-sm text-muted-foreground mb-3">{settings.cta_subtitle}</p>}
+            {settings.cta_btn_text && (
+              <button className="px-5 py-2 rounded-md text-sm font-medium text-white" style={{ backgroundColor: settings.cta_btn_color || '#000' }}>
+                {settings.cta_btn_text}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Save */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
