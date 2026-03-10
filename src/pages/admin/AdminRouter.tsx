@@ -79,7 +79,8 @@ const AdminRouter = () => {
 
   // User has tenant → redirect to tenant admin
   if (hasTenant && tenantSlug) {
-    return <Navigate to={`/t/${tenantSlug}/admin`} replace />;
+    window.location.href = getTenantAdminUrl(tenantSlug);
+    return null;
   }
 
   // No tenant yet → show setup wizard
