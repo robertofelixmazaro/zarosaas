@@ -3,14 +3,14 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users, Globe, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { formatCpf, validateCpf, formatPhone } from "@/lib/cpfValidator";
+import { formatCpfCnpj, validateCpfCnpj, formatPhone, generateSlug } from "@/lib/cpfValidator";
 import zaroLogo from "@/assets/zaro-logo.png";
 
 type AccountType = "admin" | "affiliate";
@@ -54,6 +54,12 @@ const AccountTypeSelector = ({ value, onChange }: { value: AccountType; onChange
   </div>
 );
 
+interface FieldErrorProps {
+  error?: string;
+}
+const FieldError = ({ error }: FieldErrorProps) =>
+  error ? <p className="text-xs text-destructive mt-1">{error}</p> : null;
+
 const SaasSignupPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -63,109 +69,101 @@ const SaasSignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>("admin");
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [signupEmail, setSignupEmail] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Capture referral code from URL or localStorage
   const refCode = searchParams.get("ref") || localStorage.getItem("zaro_ref_code") || "";
 
   useEffect(() => {
-    if (refCode) {
-      localStorage.setItem("zaro_ref_code", refCode);
-    }
+    if (refCode) localStorage.setItem("zaro_ref_code", refCode);
   }, [refCode]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [cpfError, setCpfError] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
-  const handleCpfChange = (value: string) => {
-    const formatted = formatCpf(value);
-    setCpf(formatted);
-    const stripped = value.replace(/\D/g, "");
-    if (stripped.length === 11) {
-      setCpfError(validateCpf(stripped) ? "" : "CPF inválido");
-    } else {
-      setCpfError("");
+  // Auto-generate slug from store name
+  useEffect(() => {
+    if (accountType === "admin" && !slugManuallyEdited && storeName) {
+      setSlug(generateSlug(storeName));
     }
-  };
+  }, [storeName, accountType, slugManuallyEdited]);
+
+  const markTouched = (field: string) => setTouched((p) => ({ ...p, [field]: true }));
+
+  // Validation
+  const errors: Record<string, string> = {};
+  if (!name.trim()) errors.name = "Nome completo é obrigatório";
+  if (!email.trim()) errors.email = "E-mail é obrigatório";
+  if (!phone.replace(/\D/g, "")) errors.phone = "Telefone é obrigatório";
+  else if (phone.replace(/\D/g, "").length < 10) errors.phone = "Telefone inválido";
+
+  const strippedDoc = cpfCnpj.replace(/\D/g, "");
+  if (!strippedDoc) errors.cpfCnpj = "CPF ou CNPJ é obrigatório";
+  else if (strippedDoc.length !== 11 && strippedDoc.length !== 14) errors.cpfCnpj = "CPF ou CNPJ incompleto";
+  else if (!validateCpfCnpj(strippedDoc)) errors.cpfCnpj = strippedDoc.length === 11 ? "CPF inválido" : "CNPJ inválido";
+
+  if (accountType === "admin") {
+    if (!storeName.trim()) errors.storeName = "Nome da loja é obrigatório";
+    if (!slug.trim()) errors.slug = "Slug é obrigatório";
+    else if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(slug)) errors.slug = "Slug inválido (use letras, números e hífens)";
+  }
+
+  if (!password) errors.password = "Senha é obrigatória";
+  else if (password.length < 6) errors.password = "A senha deve ter pelo menos 6 caracteres";
+  if (!confirmPassword) errors.confirmPassword = "Confirme sua senha";
+  else if (password !== confirmPassword) errors.confirmPassword = "As senhas não coincidem";
+  if (!acceptTerms) errors.acceptTerms = "Você deve aceitar os termos de uso";
+
+  const isValid = Object.keys(errors).length === 0;
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
-      const redirectPath = accountType === "affiliate" ? "/affiliate/dashboard" : "/admin";
-    const { error } = await lovable.auth.signInWithOAuth("google", {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/completar-cadastro`,
       });
-      if (error) {
-        toast.error("Erro ao entrar com Google: " + (error as Error).message);
-      }
+      if (error) toast.error("Erro ao entrar com Google: " + (error as Error).message);
     } catch (err: any) {
       toast.error("Erro inesperado: " + err.message);
     }
     setGoogleLoading(false);
   };
 
-  const resendConfirmationEmail = async (targetEmail: string) => {
-    const { error } = await supabase.auth.resend({ type: "signup", email: targetEmail });
-    if (error) {
-      toast.error("Erro ao reenviar email: " + error.message);
-      return false;
-    }
-    return true;
-  };
-
-  const handleConfirmNow = async () => {
-    const sent = await resendConfirmationEmail(signupEmail);
-    if (!sent) return;
-
-    if (signupEmail.toLowerCase().endsWith("@gmail.com")) {
-      window.open("https://mail.google.com", "_blank", "noopener,noreferrer");
-    }
-
-    toast.success("Verifique sua caixa de entrada para confirmar seu email.");
-    setConfirmDialogOpen(false);
-    navigate("/login", { replace: true });
-  };
-
-  const handleConfirmLater = () => {
-    setConfirmDialogOpen(false);
-    toast.warning("Você pode confirmar seu email depois para ativar sua conta.");
-    navigate("/login", { replace: true });
-  };
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
-      return;
-    }
-    const strippedCpf = cpf.replace(/\D/g, "");
-    if (strippedCpf.length > 0 && !validateCpf(strippedCpf)) {
-      toast.error("CPF inválido");
+    // Mark all fields as touched to show errors
+    const allFields = ["name", "email", "phone", "cpfCnpj", "storeName", "slug", "password", "confirmPassword", "acceptTerms"];
+    const allTouched: Record<string, boolean> = {};
+    allFields.forEach((f) => (allTouched[f] = true));
+    setTouched(allTouched);
+
+    if (!isValid) {
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
       return;
     }
 
     setLoading(true);
+
     const metadata: Record<string, string> = {
-      name,
-      cpf: strippedCpf,
+      name: name.trim(),
+      cpf: strippedDoc,
       phone: phone.replace(/\D/g, ""),
-      whatsapp: whatsapp.replace(/\D/g, ""),
+      whatsapp: phone.replace(/\D/g, ""),
       account_type: accountType,
     };
-    if (refCode) {
-      metadata.ref_code = refCode;
+    if (refCode) metadata.ref_code = refCode;
+    if (accountType === "admin") {
+      metadata.store_name = storeName.trim();
+      metadata.store_slug = slug.trim().toLowerCase();
     }
 
     const { error: signupErr } = await signUp(email, password, metadata);
@@ -176,30 +174,53 @@ const SaasSignupPage = () => {
       return;
     }
 
-    // Auto-confirm is enabled, so user is automatically logged in
-    // Wait a moment for the trigger to create profile and role
+    // Wait for trigger to create profile/role
     await new Promise((r) => setTimeout(r, 1500));
 
-    // Try provisioning as fallback
+    // Provision fallback
     try {
       await supabase.functions.invoke("provision-user");
     } catch (err) {
       console.error("Provision fallback:", err);
     }
 
-    toast.success("Conta criada com sucesso!");
+    // If admin, auto-create the store
+    if (accountType === "admin") {
+      try {
+        const { data, error: storeErr } = await supabase.functions.invoke("setup-tenant", {
+          body: {
+            name: storeName.trim(),
+            slug: slug.trim().toLowerCase(),
+            phone: phone.replace(/\D/g, ""),
+          },
+        });
 
-    // Redirect based on account type
-    if (accountType === "affiliate") {
-      navigate("/affiliate/dashboard", { replace: true });
+        if (storeErr) {
+          console.error("Store creation error:", storeErr);
+          toast.error("Conta criada, mas houve erro ao criar a loja. Configure no painel.");
+          navigate("/dashboard", { replace: true });
+          setLoading(false);
+          return;
+        }
+
+        const tenantSlug = data?.slug || slug.trim().toLowerCase();
+        toast.success("Conta e loja criadas com sucesso!");
+        navigate(`/t/${tenantSlug}/admin`, { replace: true });
+      } catch (err) {
+        console.error("Store creation error:", err);
+        toast.error("Conta criada, mas houve erro ao criar a loja.");
+        navigate("/dashboard", { replace: true });
+      }
     } else {
-      navigate("/dashboard", { replace: true });
+      // Affiliate
+      toast.success("Conta criada com sucesso!");
+      navigate("/affiliate/dashboard", { replace: true });
     }
+
     setLoading(false);
   };
 
-  const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
-  const isValid = name && email && password && confirmPassword && password === confirmPassword && password.length >= 6 && !cpfError;
+  const showAdminFields = accountType === "admin";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -226,7 +247,7 @@ const SaasSignupPage = () => {
               <h2 className="text-xl font-bold">Crie sua conta</h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Escolha como deseja usar a plataforma
+              Preencha todos os campos para criar sua conta
             </p>
           </div>
 
@@ -254,44 +275,129 @@ const SaasSignupPage = () => {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-3">
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className="pl-10" required />
+            {/* Nome completo */}
+            <div>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => markTouched("name")}
+                  placeholder="Nome completo *"
+                  className={`pl-10 ${touched.name && errors.name ? "border-destructive" : ""}`}
+                />
+              </div>
+              {touched.name && <FieldError error={errors.name} />}
             </div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" className="pl-10" required />
+
+            {/* Email */}
+            <div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => markTouched("email")}
+                  placeholder="E-mail *"
+                  className={`pl-10 ${touched.email && errors.email ? "border-destructive" : ""}`}
+                />
+              </div>
+              {touched.email && <FieldError error={errors.email} />}
             </div>
+
+            {/* Telefone */}
+            <div>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                  onBlur={() => markTouched("phone")}
+                  placeholder="Telefone / WhatsApp *"
+                  className={`pl-10 ${touched.phone && errors.phone ? "border-destructive" : ""}`}
+                />
+              </div>
+              {touched.phone && <FieldError error={errors.phone} />}
+            </div>
+
+            {/* CPF ou CNPJ */}
             <div>
               <div className="relative">
                 <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input value={cpf} onChange={(e) => handleCpfChange(e.target.value)} placeholder="CPF (opcional)" className="pl-10" />
+                <Input
+                  value={cpfCnpj}
+                  onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
+                  onBlur={() => markTouched("cpfCnpj")}
+                  placeholder="CPF ou CNPJ *"
+                  className={`pl-10 ${touched.cpfCnpj && errors.cpfCnpj ? "border-destructive" : ""}`}
+                />
               </div>
-              {cpfError && <p className="text-xs text-destructive mt-1">{cpfError}</p>}
+              {touched.cpfCnpj && <FieldError error={errors.cpfCnpj} />}
             </div>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} placeholder="Telefone" className="pl-10" />
+
+            {/* Store fields - only for admin */}
+            {showAdminFields && (
+              <>
+                <div>
+                  <div className="relative">
+                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      onBlur={() => markTouched("storeName")}
+                      placeholder="Nome da empresa ou loja *"
+                      className={`pl-10 ${touched.storeName && errors.storeName ? "border-destructive" : ""}`}
+                    />
+                  </div>
+                  {touched.storeName && <FieldError error={errors.storeName} />}
+                </div>
+
+                <div>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={slug}
+                      onChange={(e) => {
+                        setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+                        setSlugManuallyEdited(true);
+                      }}
+                      onBlur={() => markTouched("slug")}
+                      placeholder="slug-da-loja *"
+                      className={`pl-10 ${touched.slug && errors.slug ? "border-destructive" : ""}`}
+                    />
+                  </div>
+                  {slug && !errors.slug && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      URL: zarosistemas.com.br/t/{slug}
+                    </p>
+                  )}
+                  {touched.slug && <FieldError error={errors.slug} />}
+                </div>
+              </>
+            )}
+
+            {/* Senha */}
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => markTouched("password")}
+                  placeholder="Senha (mín. 6 caracteres) *"
+                  className={`pl-10 pr-10 ${touched.password && errors.password ? "border-destructive" : ""}`}
+                  minLength={6}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {touched.password && <FieldError error={errors.password} />}
             </div>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={whatsapp} onChange={(e) => setWhatsapp(formatPhone(e.target.value))} placeholder="WhatsApp" className="pl-10" />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha (mín. 6 caracteres)"
-                className="pl-10 pr-10"
-                required
-                minLength={6}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
+
+            {/* Confirmar senha */}
             <div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -299,18 +405,40 @@ const SaasSignupPage = () => {
                   type={showConfirm ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirmar senha"
-                  className="pl-10 pr-10"
-                  required
+                  onBlur={() => markTouched("confirmPassword")}
+                  placeholder="Confirmar senha *"
+                  className={`pl-10 pr-10 ${touched.confirmPassword && errors.confirmPassword ? "border-destructive" : ""}`}
                 />
                 <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {!passwordsMatch && <p className="text-xs text-destructive mt-1">As senhas não coincidem</p>}
+              {touched.confirmPassword && <FieldError error={errors.confirmPassword} />}
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={loading || !isValid}>
+            {/* Aceite de termos */}
+            <div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="terms"
+                  checked={acceptTerms}
+                  onCheckedChange={(v) => {
+                    setAcceptTerms(v === true);
+                    markTouched("acceptTerms");
+                  }}
+                  className="mt-0.5"
+                />
+                <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight cursor-pointer">
+                  Li e aceito os{" "}
+                  <span className="text-primary font-medium hover:underline">termos de uso</span>{" "}
+                  e a{" "}
+                  <span className="text-primary font-medium hover:underline">política de privacidade</span>
+                </label>
+              </div>
+              {touched.acceptTerms && <FieldError error={errors.acceptTerms} />}
+            </div>
+
+            <Button type="submit" className="w-full h-11" disabled={loading}>
               {loading ? "Criando conta..." : accountType === "affiliate" ? "Criar conta de afiliado" : "Criar minha loja"}
             </Button>
           </form>
@@ -329,8 +457,6 @@ const SaasSignupPage = () => {
           </Link>
         </div>
       </motion.div>
-
-      {/* Email confirmation dialog removed - auto-confirm enabled */}
     </div>
   );
 };
