@@ -65,39 +65,36 @@ const AdminBilling = () => {
     if (!tenantId) return;
     setUpgrading(true);
     try {
-      // Record payment
-      await supabase.from("payments" as any).insert({
-        tenant_id: tenantId,
-        plan_id: plan.id,
-        amount: plan.price,
-        status: "approved",
-        payment_method: "manual",
-      } as any);
-
-      // Update subscription
-      if (subscription) {
-        await supabase.from("subscriptions" as any).update({
-          plan_id: plan.id,
-          status: "active",
-          trial_ends_at: null,
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        } as any).eq("id", subscription.id);
-      } else {
-        await supabase.from("subscriptions" as any).insert({
-          tenant_id: tenantId,
-          plan_id: plan.id,
-          status: "active",
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        } as any);
+      // Get current user email/name for checkout
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast.error("Não foi possível identificar seu email. Faça login novamente.");
+        setUpgrading(false);
+        return;
       }
 
-      toast.success(`Plano atualizado para ${plan.name}!`);
-      setUpgradeOpen(false);
-      loadData();
+      // Create Mercado Pago checkout session
+      const { data, error } = await supabase.functions.invoke("mp-create-checkout", {
+        body: {
+          plan_id: plan.id,
+          plan_name: plan.name,
+          plan_price: plan.price,
+          client_email: user.email,
+          client_name: user.user_metadata?.name || user.email,
+          tenant_id: tenantId,
+        },
+      });
+
+      if (error || data?.error) {
+        toast.error(data?.error || "Erro ao criar sessão de pagamento");
+        setUpgrading(false);
+        return;
+      }
+
+      // Redirect to Mercado Pago checkout
+      window.location.href = data.checkout_url;
     } catch (err) {
-      toast.error("Erro ao atualizar plano");
+      toast.error("Erro ao processar pagamento");
     } finally {
       setUpgrading(false);
     }
