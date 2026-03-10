@@ -540,6 +540,35 @@ export type Database = {
           },
         ]
       }
+      landing_page_settings: {
+        Row: {
+          id: string
+          settings: Json
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          settings?: Json
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          settings?: Json
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_page_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_history: {
         Row: {
           browser: string | null
