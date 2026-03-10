@@ -137,13 +137,56 @@ const Index = () => {
   const secondaryColor = siteSettings.secondary_color || "";
   const buttonColor = siteSettings.button_color || "";
   const coverImage = siteSettings.cover_image_url || "";
+  const coverImageMobile = siteSettings.cover_image_mobile_url || "";
   const logoUrl = siteSettings.logo_url || tenant?.logo_url || "";
   const description = siteSettings.description || "";
   const whatsapp = siteSettings.whatsapp || tenant?.phone || "";
 
-  // Dynamic style overrides
-  const dynamicStyles: React.CSSProperties = {};
+  // Dynamic style overrides per section
   const btnStyle: React.CSSProperties = buttonColor ? { backgroundColor: buttonColor, borderColor: buttonColor, color: "#fff" } : {};
+
+  // Hero buttons
+  const heroPrimaryColor = siteSettings.hero_btn_primary_color || "";
+  const heroPrimaryText = siteSettings.hero_btn_primary_text || "Agendar Horário";
+  const heroPrimaryLink = siteSettings.hero_btn_primary_link || `${basePath}/agendar`;
+  const heroSecondaryColor = siteSettings.hero_btn_secondary_color || "";
+  const heroSecondaryText = siteSettings.hero_btn_secondary_text || "Ver Serviços";
+  const heroSecondaryLink = siteSettings.hero_btn_secondary_link || "#servicos";
+  const heroPrimaryStyle: React.CSSProperties = heroPrimaryColor
+    ? { backgroundColor: heroPrimaryColor, borderColor: heroPrimaryColor, color: "#fff" }
+    : btnStyle;
+  const heroSecondaryStyle: React.CSSProperties = heroSecondaryColor
+    ? { backgroundColor: heroSecondaryColor, borderColor: heroSecondaryColor, color: "#fff" }
+    : {};
+
+  // Service buttons
+  const serviceBtnText = siteSettings.service_btn_text || "Agendar";
+  const serviceBtnColor = siteSettings.service_btn_color || "";
+  const serviceBtnTextColor = siteSettings.service_btn_text_color || "#fff";
+  const serviceBtnStyle: React.CSSProperties = serviceBtnColor
+    ? { backgroundColor: serviceBtnColor, borderColor: serviceBtnColor, color: serviceBtnTextColor }
+    : btnStyle;
+
+  // Product buttons
+  const productBtnText = siteSettings.product_btn_text || "Comprar";
+  const productBtnColor = siteSettings.product_btn_color || "";
+  const productBtnTextColor = siteSettings.product_btn_text_color || "#fff";
+  const productBtnStyle: React.CSSProperties = productBtnColor
+    ? { backgroundColor: productBtnColor, borderColor: productBtnColor, color: productBtnTextColor }
+    : btnStyle;
+
+  // CTA section
+  const ctaTitle = siteSettings.cta_title || "Pronto para agendar?";
+  const ctaSubtitle = siteSettings.cta_subtitle || "Agende agora e garanta seu horário com os melhores profissionais.";
+  const ctaBtnText = siteSettings.cta_btn_text || "Agendar Horário";
+  const ctaBtnColor = siteSettings.cta_btn_color || "";
+  const ctaBgColor = siteSettings.cta_bg_color || "";
+  const ctaBtnStyle: React.CSSProperties = ctaBtnColor
+    ? { backgroundColor: ctaBtnColor, borderColor: ctaBtnColor, color: "#fff" }
+    : {};
+  const ctaSectionStyle: React.CSSProperties = ctaBgColor
+    ? { backgroundColor: ctaBgColor, color: "#fff" }
+    : primaryColor ? { backgroundColor: primaryColor, color: "#fff" } : {};
 
   return (
     <div className="min-h-screen bg-background">
