@@ -122,7 +122,7 @@ const AdminLandingPage = () => {
       if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
       for (const [key, value] of Object.entries(toSave)) {
-        if (!value && (key === "logo_url" || key === "cover_image_url")) continue;
+        if (!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")) continue;
         const { data: existing } = await supabase.from("site_settings" as any).select("id").eq("key", key).eq("tenant_id", tenantId).maybeSingle();
         if (existing) {
           await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
