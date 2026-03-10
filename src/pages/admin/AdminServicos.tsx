@@ -68,15 +68,21 @@ const AdminServicos = () => {
     setDialogOpen(true);
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 5MB)");
-      return;
+    const validation = validateImage(file, "service");
+    if (!validation.valid) { toast.error(validation.error!); return; }
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "service");
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      setImageFile(optimizedFile);
+      setImagePreview(URL.createObjectURL(optimized));
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (serviceId: string): Promise<string | null> => {

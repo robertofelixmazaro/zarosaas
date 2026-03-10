@@ -55,19 +55,21 @@ const AdminProdutos = () => {
     setDialogOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecione um arquivo de imagem");
-      return;
+    const validation = validateImage(file, "product");
+    if (!validation.valid) { toast.error(validation.error!); return; }
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, "product");
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      setImageFile(optimizedFile);
+      setImagePreview(URL.createObjectURL(optimized));
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 5MB");
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (productId: string): Promise<string | null> => {

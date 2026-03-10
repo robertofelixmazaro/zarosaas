@@ -54,11 +54,24 @@ const AdminGaleria = () => {
           continue;
         }
 
+        let uploadFile: File | Blob = file;
+        if (isImage) {
+          const validation = validateImage(file, "gallery");
+          if (!validation.valid) { toast.error(`${file.name}: ${validation.error}`); continue; }
+          try {
+            toast.info(`Otimizando "${file.name}"...`);
+            uploadFile = await optimizeImage(file, "gallery");
+          } catch {
+            toast.error(`Erro ao otimizar "${file.name}"`);
+            continue;
+          }
+        }
+
         const ext = file.name.split(".").pop();
         const fileName = `${tenantId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("gallery-media")
-          .upload(fileName, file);
+          .upload(fileName, uploadFile);
         if (uploadError) {
           toast.error(`Erro ao enviar "${file.name}": ${uploadError.message}`);
           continue;

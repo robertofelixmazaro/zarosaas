@@ -252,7 +252,7 @@ const AdminLandingPage = () => {
         <Button variant="outline" size="sm" onClick={() => coverMobileRef.current?.click()}>
           {coverMobilePreview ? "Trocar capa mobile" : "Enviar capa mobile"}
         </Button>
-        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
+        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
       </div>
 
       {/* Business Info */}
