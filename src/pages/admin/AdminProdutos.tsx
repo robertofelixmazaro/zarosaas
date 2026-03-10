@@ -189,11 +189,12 @@ const AdminProdutos = () => {
           <div className="space-y-4">
             {/* Image Upload */}
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Imagem do produto</label>
+              <label className="text-sm font-medium mb-1 block">Imagem do produto</label>
+              <p className="text-xs text-muted-foreground mb-1.5">{IMAGE_PRESETS.product.hint}</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />
