@@ -1156,6 +1156,7 @@ export type Database = {
           address: string | null
           city: string | null
           created_at: string | null
+          custom_domain: string | null
           id: string
           logo_url: string | null
           marketplace_visible: boolean
@@ -1179,6 +1180,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           id?: string
           logo_url?: string | null
           marketplace_visible?: boolean
@@ -1202,6 +1204,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           id?: string
           logo_url?: string | null
           marketplace_visible?: boolean
