@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { getNicheLabels } from "@/lib/nicheLabels";
+import { getTenantBasePath, getTenantExternalUrl, getTenantAdminUrl } from "@/lib/tenantUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
