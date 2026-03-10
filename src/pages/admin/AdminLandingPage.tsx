@@ -136,11 +136,14 @@ const AdminLandingPage = () => {
 
       for (const [key, value] of Object.entries(toSave)) {
         if (!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")) continue;
-        const { data: existing } = await supabase.from("site_settings" as any).select("id").eq("key", key).eq("tenant_id", tenantId).maybeSingle();
+        const { data: existing, error: selectErr } = await supabase.from("site_settings" as any).select("id").eq("key", key).eq("tenant_id", tenantId).maybeSingle();
+        if (selectErr) throw new Error(`Erro ao buscar "${key}": ${selectErr.message}`);
         if (existing) {
-          await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
+          const { error: updateErr } = await supabase.from("site_settings" as any).update({ value: String(value), updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
+          if (updateErr) throw new Error(`Erro ao atualizar "${key}": ${updateErr.message}`);
         } else {
-          await supabase.from("site_settings" as any).insert({ key, value, tenant_id: tenantId } as any);
+          const { error: insertErr } = await supabase.from("site_settings" as any).insert({ key, value: String(value), tenant_id: tenantId } as any);
+          if (insertErr) throw new Error(`Erro ao inserir "${key}": ${insertErr.message}`);
         }
       }
       if (logoUrl) setSettings((p) => ({ ...p, logo_url: logoUrl }));
