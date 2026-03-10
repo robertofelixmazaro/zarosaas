@@ -312,7 +312,7 @@ const Index = () => {
           </div>
           <div className="text-center mt-10">
             <Link to={`${basePath}/agendar`}>
-              <Button size="lg" className="gap-2" style={btnStyle}>
+              <Button size="lg" className="gap-2" style={serviceBtnStyle}>
                 Ver Todos os Horários <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
