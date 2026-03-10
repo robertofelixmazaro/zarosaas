@@ -134,18 +134,19 @@ const AdminLandingPage = () => {
       if (coverUrl) toSave.cover_image_url = coverUrl;
       if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
-      for (const [key, value] of Object.entries(toSave)) {
-        if (!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")) continue;
-        const { data: existing, error: selectErr } = await supabase.from("site_settings" as any).select("id").eq("key", key).eq("tenant_id", tenantId).maybeSingle();
-        if (selectErr) throw new Error(`Erro ao buscar "${key}": ${selectErr.message}`);
-        if (existing) {
-          const { error: updateErr } = await supabase.from("site_settings" as any).update({ value: String(value), updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
-          if (updateErr) throw new Error(`Erro ao atualizar "${key}": ${updateErr.message}`);
-        } else {
-          const { error: insertErr } = await supabase.from("site_settings" as any).insert({ key, value: String(value), tenant_id: tenantId } as any);
-          if (insertErr) throw new Error(`Erro ao inserir "${key}": ${insertErr.message}`);
-        }
-      }
+      const rows = Object.entries(toSave)
+        .filter(([key, value]) => !(!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")))
+        .map(([key, value]) => ({
+          key,
+          value: String(value),
+          tenant_id: tenantId,
+          updated_at: new Date().toISOString(),
+        }));
+
+      const { error: upsertErr } = await supabase
+        .from("site_settings" as any)
+        .upsert(rows as any, { onConflict: "key,tenant_id" });
+      if (upsertErr) throw new Error(`Erro ao salvar configurações: ${upsertErr.message}`);
       if (logoUrl) setSettings((p) => ({ ...p, logo_url: logoUrl }));
       if (coverUrl) setSettings((p) => ({ ...p, cover_image_url: coverUrl }));
       if (coverMobileUrl) setSettings((p) => ({ ...p, cover_image_mobile_url: coverMobileUrl }));
