@@ -342,10 +342,61 @@ Caso precise cancelar:
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={saving} variant="outline" size="sm">
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Salvando..." : "Salvar Configurações WhatsApp"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleSave} disabled={saving} variant="outline" size="sm">
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? "Salvando..." : "Salvar Configurações WhatsApp"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={testing}
+            onClick={async () => {
+              if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) {
+                toast.error("Preencha todas as informações da API antes de testar a conexão.");
+                return;
+              }
+              setTesting(true);
+              setTestResult(null);
+              try {
+                const url = settings.wa_api_url.replace(/\/+$/, "");
+                const res = await fetch(`${url}/instance/connectionState/${settings.wa_instance_id}`, {
+                  headers: { apikey: settings.wa_api_key },
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  const state = data?.instance?.state || data?.state || data?.status;
+                  if (state === "open" || state === "connected") {
+                    setTestResult("success");
+                    toast.success("Conexão bem-sucedida! WhatsApp conectado.");
+                  } else {
+                    setTestResult("success");
+                    toast.success(`API respondeu. Estado: ${state || "desconhecido"}. Verifique se o QR Code foi escaneado.`);
+                  }
+                } else {
+                  setTestResult("error");
+                  const text = await res.text().catch(() => "");
+                  toast.error(`Erro na conexão (${res.status})`, { description: text.slice(0, 150) || "Verifique a URL e API Key." });
+                }
+              } catch (err: any) {
+                setTestResult("error");
+                toast.error("Falha ao conectar", { description: "Verifique a URL da API e tente novamente." });
+              }
+              setTesting(false);
+            }}
+          >
+            {testing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : testResult === "success" ? (
+              <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+            ) : testResult === "error" ? (
+              <XCircle className="h-4 w-4 mr-2 text-destructive" />
+            ) : (
+              <Wifi className="h-4 w-4 mr-2" />
+            )}
+            {testing ? "Testando..." : "Testar Conexão"}
+          </Button>
+        </div>
       </div>
     </div>
   );
