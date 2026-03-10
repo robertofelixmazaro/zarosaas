@@ -85,6 +85,7 @@ const AdminLandingPage = () => {
         setSettings((prev) => ({ ...prev, ...map } as LandingSettings));
         if (map.logo_url) setLogoPreview(map.logo_url);
         if (map.cover_image_url) setCoverPreview(map.cover_image_url);
+        if (map.cover_image_mobile_url) setCoverMobilePreview(map.cover_image_mobile_url);
       }
       setLoading(false);
     })();
