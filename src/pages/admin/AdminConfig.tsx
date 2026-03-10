@@ -194,20 +194,19 @@ const AdminConfig = () => {
       if (logoUrl) settingsToSave.logo_url = logoUrl;
       if (coverUrl) settingsToSave.cover_image_url = coverUrl;
 
-      for (const [key, value] of Object.entries(settingsToSave)) {
-        if (!value && (key === "logo_url" || key === "cover_image_url")) continue;
-        const { data: existing } = await supabase
-          .from("site_settings" as any)
-          .select("id")
-          .eq("key", key)
-          .eq("tenant_id", tenantId)
-          .maybeSingle();
-        if (existing) {
-          await supabase.from("site_settings" as any).update({ value, updated_at: new Date().toISOString() } as any).eq("id", (existing as any).id);
-        } else {
-          await supabase.from("site_settings" as any).insert({ key, value, tenant_id: tenantId } as any);
-        }
-      }
+      const rows = Object.entries(settingsToSave)
+        .filter(([key, value]) => !(!value && (key === "logo_url" || key === "cover_image_url")))
+        .map(([key, value]) => ({
+          key,
+          value: String(value),
+          tenant_id: tenantId,
+          updated_at: new Date().toISOString(),
+        }));
+
+      const { error: upsertErr } = await supabase
+        .from("site_settings" as any)
+        .upsert(rows as any, { onConflict: "key,tenant_id" });
+      if (upsertErr) throw new Error(`Erro ao salvar: ${upsertErr.message}`);
       if (logoUrl) setSettings((prev) => ({ ...prev, logo_url: logoUrl }));
       toast.success("Configurações salvas!");
     } catch (err: any) {
