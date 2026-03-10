@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Trash2, Image, Video, Plus } from "lucide-react";
+import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
 
 interface GalleryItem {
   id: string;
