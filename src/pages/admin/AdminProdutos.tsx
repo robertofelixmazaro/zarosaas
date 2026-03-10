@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Package, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
+import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
 import { z } from "zod";
 
 const productSchema = z.object({
