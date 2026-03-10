@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Save, Upload, X, Image, ExternalLink } from "lucide-react";
+import { Save, Upload, X, Image, ExternalLink, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
