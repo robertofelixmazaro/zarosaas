@@ -25,12 +25,38 @@ interface LandingSettings {
   hours_weekday: string;
   hours_saturday: string;
   hours_sunday: string;
+  // Hero buttons
+  hero_btn_primary_text: string;
+  hero_btn_primary_link: string;
+  hero_btn_primary_color: string;
+  hero_btn_secondary_text: string;
+  hero_btn_secondary_link: string;
+  hero_btn_secondary_color: string;
+  // Service buttons
+  service_btn_text: string;
+  service_btn_color: string;
+  service_btn_text_color: string;
+  // Product buttons
+  product_btn_text: string;
+  product_btn_color: string;
+  product_btn_text_color: string;
+  // CTA section
+  cta_title: string;
+  cta_subtitle: string;
+  cta_btn_text: string;
+  cta_btn_color: string;
+  cta_bg_color: string;
 }
 
 const defaults: LandingSettings = {
   shop_name: "", description: "", phone: "", whatsapp: "", address: "", instagram: "",
   logo_url: "", cover_image_url: "", primary_color: "", secondary_color: "", button_color: "",
   hours_weekday: "", hours_saturday: "", hours_sunday: "",
+  hero_btn_primary_text: "", hero_btn_primary_link: "", hero_btn_primary_color: "",
+  hero_btn_secondary_text: "", hero_btn_secondary_link: "", hero_btn_secondary_color: "",
+  service_btn_text: "", service_btn_color: "", service_btn_text_color: "",
+  product_btn_text: "", product_btn_color: "", product_btn_text_color: "",
+  cta_title: "", cta_subtitle: "", cta_btn_text: "", cta_btn_color: "", cta_bg_color: "",
 };
 
 const AdminLandingPage = () => {
