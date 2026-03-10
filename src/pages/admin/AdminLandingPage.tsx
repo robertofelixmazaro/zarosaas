@@ -19,6 +19,7 @@ interface LandingSettings {
   instagram: string;
   logo_url: string;
   cover_image_url: string;
+  cover_image_mobile_url: string;
   primary_color: string;
   secondary_color: string;
   button_color: string;
