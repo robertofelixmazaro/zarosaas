@@ -181,7 +181,8 @@ const AdminLandingPage = () => {
 
       {/* Logo */}
       <div className="rounded-lg border bg-card p-5">
-        <h3 className="font-semibold mb-4 flex items-center gap-2"><Image className="h-4 w-4" /> Logotipo</h3>
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Logotipo</h3>
+        <p className="text-xs text-muted-foreground mb-4">{IMAGE_PRESETS.logo.hint}</p>
         <div className="flex items-center gap-4">
           {logoPreview ? (
             <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-border">
