@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import { toast } from "sonner";
+import { validateImage, optimizeImage, IMAGE_PRESETS, type ImagePresetType } from "@/lib/imageOptimizer";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
