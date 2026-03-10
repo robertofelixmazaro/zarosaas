@@ -193,12 +193,13 @@ const AdminLandingPage = () => {
         </div>
       </div>
 
-      {/* Cover */}
+      {/* Cover Desktop */}
       <div className="rounded-lg border bg-card p-5">
-        <h3 className="font-semibold mb-4 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa</h3>
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa — Desktop</h3>
+        <p className="text-xs text-muted-foreground mb-4">Tamanho recomendado: <strong>1920 × 800 px</strong> · JPG ou PNG · Máx 10MB</p>
         {coverPreview ? (
           <div className="relative w-full h-40 rounded-lg overflow-hidden border mb-3">
-            <img src={coverPreview} alt="Capa" className="w-full h-full object-cover" />
+            <img src={coverPreview} alt="Capa Desktop" className="w-full h-full object-cover" />
             <button type="button" onClick={() => { setCoverFile(null); setCoverPreview(null); setSettings((s) => ({ ...s, cover_image_url: "" })); }}
               className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
               <X className="h-3 w-3" />
@@ -207,13 +208,38 @@ const AdminLandingPage = () => {
         ) : (
           <div onClick={() => coverRef.current?.click()} className="w-full h-40 rounded-lg bg-muted/30 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors mb-3">
             <Upload className="h-8 w-8 text-muted-foreground/40" />
-            <span className="text-sm text-muted-foreground">Clique para enviar</span>
+            <span className="text-sm text-muted-foreground">Clique para enviar (1920 × 800)</span>
           </div>
         )}
         <Button variant="outline" size="sm" onClick={() => coverRef.current?.click()}>
-          {coverPreview ? "Trocar capa" : "Enviar capa"}
+          {coverPreview ? "Trocar capa desktop" : "Enviar capa desktop"}
         </Button>
-        <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
+        <input ref={coverRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover")} />
+      </div>
+
+      {/* Cover Mobile */}
+      <div className="rounded-lg border bg-card p-5">
+        <h3 className="font-semibold mb-1 flex items-center gap-2"><Image className="h-4 w-4" /> Imagem de Capa — Mobile</h3>
+        <p className="text-xs text-muted-foreground mb-4">Tamanho recomendado: <strong>1080 × 1350 px</strong> · JPG ou PNG · Máx 10MB</p>
+        {coverMobilePreview ? (
+          <div className="relative w-full max-w-xs h-52 rounded-lg overflow-hidden border mb-3">
+            <img src={coverMobilePreview} alt="Capa Mobile" className="w-full h-full object-cover" />
+            <button type="button" onClick={() => { setCoverMobileFile(null); setCoverMobilePreview(null); setSettings((s) => ({ ...s, cover_image_mobile_url: "" })); }}
+              className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <div onClick={() => coverMobileRef.current?.click()} className="w-full max-w-xs h-52 rounded-lg bg-muted/30 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors mb-3">
+            <Upload className="h-8 w-8 text-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground">Clique para enviar (1080 × 1350)</span>
+          </div>
+        )}
+        <Button variant="outline" size="sm" onClick={() => coverMobileRef.current?.click()}>
+          {coverMobilePreview ? "Trocar capa mobile" : "Enviar capa mobile"}
+        </Button>
+        <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
+      </div>
       </div>
 
       {/* Business Info */}
