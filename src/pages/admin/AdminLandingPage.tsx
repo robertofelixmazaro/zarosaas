@@ -69,8 +69,11 @@ const AdminLandingPage = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverMobileFile, setCoverMobileFile] = useState<File | null>(null);
+  const [coverMobilePreview, setCoverMobilePreview] = useState<string | null>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
+  const coverMobileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!tenantId) return;
