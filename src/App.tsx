@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { detectTenantSlug } from "@/lib/tenantResolver";
+import { useParams, useLocation } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 
 // Lazy load all pages
