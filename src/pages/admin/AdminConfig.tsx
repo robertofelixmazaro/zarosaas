@@ -141,6 +141,7 @@ const AdminConfig = () => {
       setNoShowCancelHours(String((tenantData as any).no_show_cancel_limit_hours || 4));
       setMarketplaceVisible((tenantData as any).marketplace_visible || false);
       setCity((tenantData as any).city || "");
+      setCustomDomain((tenantData as any).custom_domain || "");
     }
 
     setLoading(false);
