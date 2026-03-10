@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   // Fetch tenant data
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, name, slug, logo_url, niche")
+    .select("id, name, slug, logo_url, niche, custom_domain")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
@@ -47,12 +47,13 @@ Deno.serve(async (req) => {
   const description = settingsMap.description || `Agende seu horário em ${tenant.name} de forma rápida e fácil.`;
   const coverImage = settingsMap.cover_image_url || "";
   const logoImage = settingsMap.logo_url || tenant.logo_url || "";
-  // Prefer cover image for OG (larger, better preview), fallback to logo
   const image = coverImage || logoImage;
 
-  // Build redirect URL — prefer subdomain if on zarosistemas.com.br
+  // Build URL — use custom domain if available, otherwise path-based
   const origin = url.searchParams.get("origin");
-  const siteUrl = origin || `https://${tenant.slug}.zarosistemas.com.br`;
+  const siteUrl = tenant.custom_domain
+    ? `https://${tenant.custom_domain}`
+    : origin || `https://zarosistemas.com.br/t/${tenant.slug}`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">

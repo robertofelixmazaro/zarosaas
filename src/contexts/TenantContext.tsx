@@ -15,6 +15,7 @@ export interface Tenant {
   created_at: string;
   active?: boolean;
   niche?: string | null;
+  custom_domain?: string | null;
 }
 
 interface TenantContextType {
@@ -23,8 +24,6 @@ interface TenantContextType {
   tenantSlug: string | null;
   loading: boolean;
   error: string | null;
-  /** Whether tenant was resolved from subdomain */
-  isSubdomain: boolean;
 }
 
 const TenantContext = createContext<TenantContextType>({
@@ -33,11 +32,10 @@ const TenantContext = createContext<TenantContextType>({
   tenantSlug: null,
   loading: true,
   error: null,
-  isSubdomain: false,
 });
 
-// Detect once at module level so it's stable across renders
-const subdomainResolution = detectTenantSlug();
+// Detect once at module level
+const detection = detectTenantSlug();
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const { slug: routeSlug } = useParams<{ slug: string }>();
@@ -46,19 +44,18 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Effective slug: route param > subdomain/query detection
-  const effectiveSlug = routeSlug || subdomainResolution.slug;
-  const isSubdomain = !routeSlug && subdomainResolution.source === "subdomain";
+  // Effective slug: route param > query param detection
+  const effectiveSlug = routeSlug || detection.slug;
+  const isCustomDomain = !routeSlug && !detection.slug && detection.source === "custom_domain";
 
   useEffect(() => {
-    // Wait for role to load before deciding
     if (roleLoading) return;
 
     const loadTenant = async () => {
       setLoading(true);
       setError(null);
 
-      // Public route with slug (from URL param or subdomain): resolve by slug
+      // 1. Resolve by slug (from URL path or query param)
       if (effectiveSlug) {
         const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_slug", { _slug: effectiveSlug });
         const row = Array.isArray(data) ? data[0] : data;
@@ -80,11 +77,41 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             created_at: "",
           });
         }
-      } else if (userRole === "super_admin") {
-        // Super admins without slug don't need a tenant
+      }
+      // 2. Custom domain lookup
+      else if (isCustomDomain && detection.customDomainHost) {
+        const { data, error: err } = await supabase
+          .from("tenants" as any)
+          .select("id, name, slug, logo_url, active, niche, custom_domain")
+          .eq("custom_domain", detection.customDomainHost)
+          .eq("active", true)
+          .maybeSingle();
+        if (err) {
+          setError("Erro ao carregar negócio.");
+        } else if (!data) {
+          setError("Empresa não encontrada para este domínio.");
+        } else {
+          setTenant({
+            id: (data as any).id,
+            name: (data as any).name,
+            slug: (data as any).slug,
+            logo_url: (data as any).logo_url,
+            active: (data as any).active,
+            niche: (data as any).niche || null,
+            custom_domain: (data as any).custom_domain,
+            owner_user_id: null,
+            phone: null,
+            address: null,
+            created_at: "",
+          });
+        }
+      }
+      // 3. Super admins without slug don't need a tenant
+      else if (userRole === "super_admin") {
         setTenant(null);
-      } else if (user) {
-        // Admin route without slug: resolve from user profile
+      }
+      // 4. Admin route without slug: resolve from user profile
+      else if (user) {
         const { data: profile } = await supabase
           .from("profiles" as any)
           .select("tenant_id")
@@ -102,7 +129,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     };
     loadTenant();
-  }, [effectiveSlug, user, userRole, roleLoading]);
+  }, [effectiveSlug, isCustomDomain, user, userRole, roleLoading]);
 
   return (
     <TenantContext.Provider
@@ -112,7 +139,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         tenantSlug: tenant?.slug || effectiveSlug || null,
         loading,
         error,
-        isSubdomain,
       }}
     >
       {children}
