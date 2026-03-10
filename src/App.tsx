@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { detectTenantSlug } from "@/lib/tenantResolver";
-import { useParams, useLocation } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 
 // Lazy load all pages
@@ -79,7 +78,7 @@ const PageLoader = () => (
   </div>
 );
 
-// Route guard: redirects to /login if not authenticated
+// Route guard
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
   const { user, loading, roleLoading, userRole } = useAuth();
   if (loading || roleLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
@@ -93,27 +92,6 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
   return <>{children}</>;
 };
 
-const PRODUCTION_DOMAIN = "zarosistemas.com.br";
-
-/**
- * For /t/:slug/* routes: redirect to subdomain in production, fallback to path-based in dev/preview.
- */
-const TenantRedirectOrFallback = () => {
-  const { slug } = useParams<{ slug: string }>();
-  const location = useLocation();
-  const host = window.location.hostname;
-
-  if (slug && (host.endsWith(PRODUCTION_DOMAIN) || host === PRODUCTION_DOMAIN)) {
-    // Redirect to subdomain
-    const remainingPath = location.pathname.replace(`/t/${slug}`, "") || "/";
-    window.location.href = `https://${slug}.${PRODUCTION_DOMAIN}${remainingPath}${location.search}`;
-    return <PageLoader />;
-  }
-
-  // Dev/preview: render tenant routes inline
-  return <TenantRoutes />;
-};
-
 const TenantRoutes = () => (
   <TenantProvider>
     <Routes>
@@ -122,6 +100,7 @@ const TenantRoutes = () => (
       <Route path="login" element={<LoginPage />} />
       <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
       <Route path="qrcode" element={<QRCodePage />} />
+      <Route path="comprar" element={<ComprarPage />} />
       <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/agendamentos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
       <Route path="admin/servicos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
@@ -142,27 +121,23 @@ const TenantRoutes = () => (
   </TenantProvider>
 );
 
-// Detect subdomain tenant once
-const subdomainDetection = detectTenantSlug();
-const isSubdomainAccess = subdomainDetection.slug !== null;
+// Detect custom domain access once
+const detection = detectTenantSlug();
+const isCustomDomainAccess = detection.source === "custom_domain";
 
 /**
- * When accessed via subdomain (e.g. vcclimatizacao.usaruistemas.com.br),
- * all root routes become tenant routes automatically.
+ * When accessed via custom domain, render tenant routes at root level.
  */
-const SubdomainTenantRoutes = () => (
+const CustomDomainTenantRoutes = () => (
   <TenantProvider>
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Tenant public pages at root */}
         <Route index element={<Index />} />
         <Route path="agendar" element={<AgendarPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
         <Route path="qrcode" element={<QRCodePage />} />
         <Route path="comprar" element={<ComprarPage />} />
-
-        {/* Tenant admin routes */}
         <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/agendamentos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminAgendamentos /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/servicos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminServicos /></AdminLayout></ProtectedRoute>} />
@@ -179,8 +154,6 @@ const SubdomainTenantRoutes = () => (
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
-
-        {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
@@ -188,9 +161,9 @@ const SubdomainTenantRoutes = () => (
 );
 
 const AppRoutes = () => {
-  // If accessed via subdomain, render tenant routes at root level
-  if (isSubdomainAccess) {
-    return <SubdomainTenantRoutes />;
+  // If accessed via custom domain, render tenant routes at root
+  if (isCustomDomainAccess) {
+    return <CustomDomainTenantRoutes />;
   }
 
   // Standard path-based routing
@@ -249,8 +222,8 @@ const AppRoutes = () => {
         <Route path="/staff-dashboard/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
         <Route path="/staff-dashboard/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
 
-        {/* Tenant path-based routes - redirect to subdomain in production */}
-        <Route path="/t/:slug/*" element={<TenantRedirectOrFallback />} />
+        {/* Tenant path-based routes */}
+        <Route path="/t/:slug/*" element={<TenantRoutes />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
