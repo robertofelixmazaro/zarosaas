@@ -240,7 +240,6 @@ const AdminLandingPage = () => {
         </Button>
         <input ref={coverMobileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "cover_mobile")} />
       </div>
-      </div>
 
       {/* Business Info */}
       <div className="rounded-lg border bg-card p-5 space-y-3">
