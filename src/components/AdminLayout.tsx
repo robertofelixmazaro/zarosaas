@@ -189,7 +189,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           onComplete={(newSlug) => {
             setShowOnboarding(false);
             if (newSlug !== tenant.slug) {
-              navigate(`/t/${newSlug}/admin`);
+              window.location.href = getTenantAdminUrl(newSlug);
               window.location.reload();
             }
           }}
