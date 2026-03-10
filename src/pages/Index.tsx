@@ -137,13 +137,56 @@ const Index = () => {
   const secondaryColor = siteSettings.secondary_color || "";
   const buttonColor = siteSettings.button_color || "";
   const coverImage = siteSettings.cover_image_url || "";
+  const coverImageMobile = siteSettings.cover_image_mobile_url || "";
   const logoUrl = siteSettings.logo_url || tenant?.logo_url || "";
   const description = siteSettings.description || "";
   const whatsapp = siteSettings.whatsapp || tenant?.phone || "";
 
-  // Dynamic style overrides
-  const dynamicStyles: React.CSSProperties = {};
+  // Dynamic style overrides per section
   const btnStyle: React.CSSProperties = buttonColor ? { backgroundColor: buttonColor, borderColor: buttonColor, color: "#fff" } : {};
+
+  // Hero buttons
+  const heroPrimaryColor = siteSettings.hero_btn_primary_color || "";
+  const heroPrimaryText = siteSettings.hero_btn_primary_text || "Agendar Horário";
+  const heroPrimaryLink = siteSettings.hero_btn_primary_link || `${basePath}/agendar`;
+  const heroSecondaryColor = siteSettings.hero_btn_secondary_color || "";
+  const heroSecondaryText = siteSettings.hero_btn_secondary_text || "Ver Serviços";
+  const heroSecondaryLink = siteSettings.hero_btn_secondary_link || "#servicos";
+  const heroPrimaryStyle: React.CSSProperties = heroPrimaryColor
+    ? { backgroundColor: heroPrimaryColor, borderColor: heroPrimaryColor, color: "#fff" }
+    : btnStyle;
+  const heroSecondaryStyle: React.CSSProperties = heroSecondaryColor
+    ? { backgroundColor: heroSecondaryColor, borderColor: heroSecondaryColor, color: "#fff" }
+    : {};
+
+  // Service buttons
+  const serviceBtnText = siteSettings.service_btn_text || "Agendar";
+  const serviceBtnColor = siteSettings.service_btn_color || "";
+  const serviceBtnTextColor = siteSettings.service_btn_text_color || "#fff";
+  const serviceBtnStyle: React.CSSProperties = serviceBtnColor
+    ? { backgroundColor: serviceBtnColor, borderColor: serviceBtnColor, color: serviceBtnTextColor }
+    : btnStyle;
+
+  // Product buttons
+  const productBtnText = siteSettings.product_btn_text || "Comprar";
+  const productBtnColor = siteSettings.product_btn_color || "";
+  const productBtnTextColor = siteSettings.product_btn_text_color || "#fff";
+  const productBtnStyle: React.CSSProperties = productBtnColor
+    ? { backgroundColor: productBtnColor, borderColor: productBtnColor, color: productBtnTextColor }
+    : btnStyle;
+
+  // CTA section
+  const ctaTitle = siteSettings.cta_title || "Pronto para agendar?";
+  const ctaSubtitle = siteSettings.cta_subtitle || "Agende agora e garanta seu horário com os melhores profissionais.";
+  const ctaBtnText = siteSettings.cta_btn_text || "Agendar Horário";
+  const ctaBtnColor = siteSettings.cta_btn_color || "";
+  const ctaBgColor = siteSettings.cta_bg_color || "";
+  const ctaBtnStyle: React.CSSProperties = ctaBtnColor
+    ? { backgroundColor: ctaBtnColor, borderColor: ctaBtnColor, color: "#fff" }
+    : {};
+  const ctaSectionStyle: React.CSSProperties = ctaBgColor
+    ? { backgroundColor: ctaBgColor, color: "#fff" }
+    : primaryColor ? { backgroundColor: primaryColor, color: "#fff" } : {};
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,7 +202,14 @@ const Index = () => {
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           {coverImage ? (
-            <img src={coverImage} alt={shopName} className="w-full h-full object-cover" />
+            <>
+              {/* Desktop cover */}
+              <img src={coverImage} alt={shopName} className={cn("w-full h-full object-cover", coverImageMobile && "hidden md:block")} />
+              {/* Mobile cover */}
+              {coverImageMobile && (
+                <img src={coverImageMobile} alt={shopName} className="w-full h-full object-cover md:hidden" />
+              )}
+            </>
           ) : (
             <div className="w-full h-full" style={{ backgroundColor: primaryColor || "hsl(var(--primary))" }} />
           )}
@@ -186,16 +236,24 @@ const Index = () => {
             </p>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to={`${basePath}/agendar`}>
-              <Button size="lg" className="text-base px-8 gap-2" style={btnStyle}>
-                Agendar Horário <ChevronRight className="h-4 w-4" />
+            <Link to={heroPrimaryLink.startsWith("#") ? heroPrimaryLink : heroPrimaryLink}>
+              <Button size="lg" className="text-base px-8 gap-2" style={heroPrimaryStyle}>
+                {heroPrimaryText} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href="#servicos">
-              <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10">
-                Ver Serviços
-              </Button>
-            </a>
+            {heroSecondaryLink.startsWith("#") ? (
+              <a href={heroSecondaryLink}>
+                <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10" style={heroSecondaryStyle}>
+                  {heroSecondaryText}
+                </Button>
+              </a>
+            ) : (
+              <Link to={heroSecondaryLink}>
+                <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10" style={heroSecondaryStyle}>
+                  {heroSecondaryText}
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -251,8 +309,8 @@ const Index = () => {
                     </span>
                   </div>
                   <Link to={`${basePath}/agendar?servico=${s.id}`}>
-                    <Button className="w-full gap-2" style={btnStyle}>
-                      Agendar <ChevronRight className="h-4 w-4" />
+                    <Button className="w-full gap-2" style={serviceBtnStyle}>
+                      {serviceBtnText} <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
@@ -261,7 +319,7 @@ const Index = () => {
           </div>
           <div className="text-center mt-10">
             <Link to={`${basePath}/agendar`}>
-              <Button size="lg" className="gap-2" style={btnStyle}>
+              <Button size="lg" className="gap-2" style={serviceBtnStyle}>
                 Ver Todos os Horários <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -380,8 +438,8 @@ const Index = () => {
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{p.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-bold">R$ {Number(p.price).toFixed(0)}</span>
-                      <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0} style={btnStyle}>
-                        {p.stock > 0 ? "Comprar" : "Esgotado"}
+                      <Button size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0} style={productBtnStyle}>
+                        {p.stock > 0 ? productBtnText : "Esgotado"}
                       </Button>
                     </div>
                   </div>
@@ -444,14 +502,14 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div
-            className={cn("rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto", !primaryColor && "bg-primary text-primary-foreground")}
-            style={primaryColor ? { backgroundColor: primaryColor, color: "#fff" } : {}}
+            className={cn("rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto", !ctaBgColor && !primaryColor && "bg-primary text-primary-foreground")}
+            style={ctaSectionStyle}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para agendar?</h2>
-            <p className="opacity-70 mb-8 max-w-md mx-auto">Agende agora e garanta seu horário com os melhores profissionais.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{ctaTitle}</h2>
+            <p className="opacity-70 mb-8 max-w-md mx-auto">{ctaSubtitle}</p>
             <Link to={`${basePath}/agendar`}>
-              <Button size="lg" variant="secondary" className="text-base px-10 gap-2">
-                Agendar Horário <ChevronRight className="h-4 w-4" />
+              <Button size="lg" variant="secondary" className="text-base px-10 gap-2" style={ctaBtnStyle}>
+                {ctaBtnText} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
