@@ -101,6 +101,10 @@ const AdminConfig = () => {
   const [city, setCity] = useState("");
   const [savingMarketplace, setSavingMarketplace] = useState(false);
 
+  // Custom domain
+  const [customDomain, setCustomDomain] = useState("");
+  const [savingDomain, setSavingDomain] = useState(false);
+
   const loadData = async () => {
     const [settingsRes] = await Promise.all([
       supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId),
