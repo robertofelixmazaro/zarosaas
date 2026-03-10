@@ -92,14 +92,26 @@ const AdminLandingPage = () => {
     })();
   }, [tenantId]);
 
-  const handleFileSelect = (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
+  const handleFileSelect = async (file: File | undefined, type: "logo" | "cover" | "cover_mobile") => {
     if (!file) return;
-    if (!file.type.match(/^image\/(jpeg|png)$/)) { toast.error("Apenas JPG ou PNG são permitidos"); return; }
-    const maxMB = type === "logo" ? 5 : 10;
-    if (file.size > maxMB * 1024 * 1024) { toast.error(`Máximo ${maxMB}MB`); return; }
-    if (type === "logo") { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-    else if (type === "cover") { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
-    else { setCoverMobileFile(file); setCoverMobilePreview(URL.createObjectURL(file)); }
+    const presetMap: Record<string, ImagePresetType> = { logo: "logo", cover: "cover_desktop", cover_mobile: "cover_mobile" };
+    const presetType = presetMap[type];
+    const validation = validateImage(file, presetType);
+    if (!validation.valid) { toast.error(validation.error!); return; }
+
+    try {
+      toast.info("Otimizando imagem...");
+      const optimized = await optimizeImage(file, presetType);
+      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
+      const previewUrl = URL.createObjectURL(optimized);
+
+      if (type === "logo") { setLogoFile(optimizedFile); setLogoPreview(previewUrl); }
+      else if (type === "cover") { setCoverFile(optimizedFile); setCoverPreview(previewUrl); }
+      else { setCoverMobileFile(optimizedFile); setCoverMobilePreview(previewUrl); }
+      toast.success("Imagem otimizada!");
+    } catch {
+      toast.error("Erro ao otimizar imagem");
+    }
   };
 
   const uploadFile = async (file: File | null, name: string): Promise<string | null> => {
