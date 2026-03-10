@@ -495,14 +495,14 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div
-            className={cn("rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto", !primaryColor && "bg-primary text-primary-foreground")}
-            style={primaryColor ? { backgroundColor: primaryColor, color: "#fff" } : {}}
+            className={cn("rounded-2xl p-10 md:p-16 text-center max-w-4xl mx-auto", !ctaBgColor && !primaryColor && "bg-primary text-primary-foreground")}
+            style={ctaSectionStyle}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para agendar?</h2>
-            <p className="opacity-70 mb-8 max-w-md mx-auto">Agende agora e garanta seu horário com os melhores profissionais.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{ctaTitle}</h2>
+            <p className="opacity-70 mb-8 max-w-md mx-auto">{ctaSubtitle}</p>
             <Link to={`${basePath}/agendar`}>
-              <Button size="lg" variant="secondary" className="text-base px-10 gap-2">
-                Agendar Horário <ChevronRight className="h-4 w-4" />
+              <Button size="lg" variant="secondary" className="text-base px-10 gap-2" style={ctaBtnStyle}>
+                {ctaBtnText} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
