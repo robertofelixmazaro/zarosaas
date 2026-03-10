@@ -111,7 +111,7 @@ const PlatformUserDetail = () => {
               {tenant ? (
                 <>
                   <div><span className="text-sm text-muted-foreground">Nome</span><p className="font-medium">{tenant.name}</p></div>
-                  <div><span className="text-sm text-muted-foreground">Slug</span><p className="text-sm font-mono">/t/{tenant.slug}</p></div>
+                  <div><span className="text-sm text-muted-foreground">Slug</span><p className="text-sm font-mono">{tenant.slug}.zarosistemas.com.br</p></div>
                   <div><span className="text-sm text-muted-foreground">Status</span><Badge variant={tenant.active ? "default" : "destructive"}>{tenant.active ? "Ativa" : "Inativa"}</Badge></div>
                 </>
               ) : <p className="text-muted-foreground">Nenhuma loja associada</p>}

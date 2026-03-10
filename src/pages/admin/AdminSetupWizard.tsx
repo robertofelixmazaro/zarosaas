@@ -221,7 +221,7 @@ const AdminSetupWizard = () => {
   };
 
   const handleGoToAdmin = () => {
-    navigate(`/t/${createdTenantSlug}/admin`);
+    window.location.href = getTenantAdminUrl(createdTenantSlug);
   };
 
   const handleGoToPlans = () => {

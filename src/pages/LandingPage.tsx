@@ -387,7 +387,7 @@ const LandingPage = () => {
                   initial="hidden" whileInView="visible" viewport={{ once: true }}
                   variants={fadeUp} transition={{ duration: 0.4, delay: i * 0.08 }}
                 >
-                  <Link to={`/t/${t.slug}`}
+                  <a href={getTenantExternalUrl(t.slug)}
                     className="block p-5 rounded-xl border bg-card hover:shadow-lg hover:border-primary/30 transition-all group"
                   >
                     <div className="flex items-center gap-4 mb-3">

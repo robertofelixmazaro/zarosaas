@@ -822,7 +822,7 @@ const AdminConfig = () => {
         </div>
         <div id="admin-qr-wrapper" className="hidden">
           <QRCodeSVG
-            value={`${window.location.origin}/t/${tenant?.slug || ""}`}
+            value={getTenantExternalUrl(tenant?.slug || "")}
             size={1024}
             level="H"
             includeMargin

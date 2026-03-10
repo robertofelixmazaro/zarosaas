@@ -331,7 +331,7 @@ const PlatformTenants = () => {
                               <CreditCard className="h-4 w-4" />
                             </Button>
                             <Button size="icon" variant="ghost" title="Visualizar" asChild>
-                              <a href={`/t/${t.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={getTenantExternalUrl(t.slug)} target="_blank" rel="noopener noreferrer">
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>

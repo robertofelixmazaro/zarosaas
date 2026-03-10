@@ -362,7 +362,7 @@ const PlatformStores = () => {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button size="icon" variant="ghost" title="Ver loja" asChild>
-                              <a href={`/t/${s.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={getTenantExternalUrl(s.slug)} target="_blank" rel="noopener noreferrer">
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>

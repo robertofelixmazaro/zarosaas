@@ -300,7 +300,7 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copied ? "Copiado!" : "Copiar link"}
                 </Button>
-                <a href={`/t/${finalSlug}`} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <a href={getTenantExternalUrl(finalSlug)} target="_blank" rel="noopener noreferrer" className="flex-1">
                   <Button variant="outline" className="w-full gap-2">
                     <ExternalLink className="h-4 w-4" /> Abrir página
                   </Button>
