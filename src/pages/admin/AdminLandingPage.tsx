@@ -203,7 +203,7 @@ const AdminLandingPage = () => {
             </Button>
             <p className="text-xs text-muted-foreground mt-1">Redimensionamento e compressão automáticos</p>
           </div>
-          <input ref={logoRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
+          <input ref={logoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0], "logo")} />
         </div>
       </div>
 
