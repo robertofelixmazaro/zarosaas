@@ -132,8 +132,10 @@ const AdminLandingPage = () => {
       }
       if (logoUrl) setSettings((p) => ({ ...p, logo_url: logoUrl }));
       if (coverUrl) setSettings((p) => ({ ...p, cover_image_url: coverUrl }));
+      if (coverMobileUrl) setSettings((p) => ({ ...p, cover_image_mobile_url: coverMobileUrl }));
       setLogoFile(null);
       setCoverFile(null);
+      setCoverMobileFile(null);
       toast.success("Landing page atualizada!");
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
