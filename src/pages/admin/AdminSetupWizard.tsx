@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getTenantAdminUrl } from "@/lib/tenantUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { Store, Phone, MapPin, Building2, Scissors, Sparkles, Stethoscope, Briefcase, LayoutGrid, Check, Zap, Crown, Copy, Share2, ArrowRight, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";

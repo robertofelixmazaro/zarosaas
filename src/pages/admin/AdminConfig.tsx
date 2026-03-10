@@ -5,6 +5,7 @@ import PushNotificationSection from "@/components/admin/PushNotificationSection"
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
+import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";

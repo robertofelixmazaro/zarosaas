@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import {
   ChevronRight, Store, Users, Calendar, Shield, Clock, Bell, UserCheck,
   ShoppingBag, BarChart3, Globe, Smartphone, Star, ArrowRight, CheckCircle2,
