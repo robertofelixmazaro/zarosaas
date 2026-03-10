@@ -156,6 +156,23 @@ const SaasSignupPage = () => {
 
     setLoading(true);
 
+    // Check for duplicate CPF before creating the account
+    try {
+      const { data: existingCpf } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("cpf", strippedDoc)
+        .maybeSingle();
+
+      if (existingCpf) {
+        toast.error("Já existe uma conta com este CPF.");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("CPF check error:", err);
+    }
+
     const metadata: Record<string, string> = {
       name: name.trim(),
       cpf: strippedDoc,
@@ -172,7 +189,10 @@ const SaasSignupPage = () => {
     const { error: signupErr } = await signUp(email, password, metadata);
 
     if (signupErr) {
-      toast.error("Erro ao criar conta: " + signupErr.message);
+      const msg = signupErr.message?.includes("already been registered")
+        ? "Já existe uma conta com este email."
+        : "Erro ao criar conta: " + signupErr.message;
+      toast.error(msg);
       setLoading(false);
       return;
     }
