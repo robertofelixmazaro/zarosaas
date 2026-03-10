@@ -420,6 +420,7 @@ const AdminLandingPage = () => {
       {/* Product Buttons */}
       <div className="rounded-lg border bg-card p-5 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Produtos</h3>
+        <p className="text-xs text-muted-foreground">Imagens de produtos: tamanho recomendado <strong>800 × 800 px</strong> · JPG ou PNG</p>
         <div>
           <label className="text-sm font-medium mb-1 block">Texto do botão</label>
           <Input value={settings.product_btn_text} onChange={(e) => setSettings({ ...settings, product_btn_text: e.target.value })} placeholder="Comprar" />
