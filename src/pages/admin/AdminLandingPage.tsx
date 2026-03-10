@@ -79,14 +79,17 @@ const AdminLandingPage = () => {
   useEffect(() => {
     if (!tenantId) return;
     (async () => {
-      const { data } = await supabase.from("site_settings" as any).select("key, value").eq("tenant_id", tenantId);
-      if (data) {
-        const map: Record<string, string> = {};
-        (data as any[]).forEach((r) => { map[r.key] = r.value; });
-        setSettings((prev) => ({ ...prev, ...map } as LandingSettings));
-        if (map.logo_url) setLogoPreview(map.logo_url);
-        if (map.cover_image_url) setCoverPreview(map.cover_image_url);
-        if (map.cover_image_mobile_url) setCoverMobilePreview(map.cover_image_mobile_url);
+      const { data } = await supabase
+        .from("landing_page_settings" as any)
+        .select("settings")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      if (data && (data as any).settings) {
+        const saved = (data as any).settings as Record<string, string>;
+        setSettings((prev) => ({ ...prev, ...saved } as LandingSettings));
+        if (saved.logo_url) setLogoPreview(saved.logo_url);
+        if (saved.cover_image_url) setCoverPreview(saved.cover_image_url);
+        if (saved.cover_image_mobile_url) setCoverMobilePreview(saved.cover_image_mobile_url);
       }
       setLoading(false);
     })();
