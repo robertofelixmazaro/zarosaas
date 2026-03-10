@@ -386,6 +386,7 @@ const AdminLandingPage = () => {
       {/* Service Buttons */}
       <div className="rounded-lg border bg-card p-5 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><MousePointerClick className="h-4 w-4" /> Botões dos Serviços</h3>
+        <p className="text-xs text-muted-foreground">Imagens de serviços: tamanho recomendado <strong>800 × 600 px</strong> · JPG ou PNG</p>
         <div>
           <label className="text-sm font-medium mb-1 block">Texto do botão</label>
           <Input value={settings.service_btn_text} onChange={(e) => setSettings({ ...settings, service_btn_text: e.target.value })} placeholder="Agendar" />
