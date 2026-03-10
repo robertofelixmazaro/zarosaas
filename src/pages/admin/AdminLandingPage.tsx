@@ -137,18 +137,20 @@ const AdminLandingPage = () => {
       if (coverUrl) toSave.cover_image_url = coverUrl;
       if (coverMobileUrl) toSave.cover_image_mobile_url = coverMobileUrl;
 
-      const rows = Object.entries(toSave)
-        .filter(([key, value]) => !(!value && (key === "logo_url" || key === "cover_image_url" || key === "cover_image_mobile_url")))
-        .map(([key, value]) => ({
-          key,
-          value: String(value),
-          tenant_id: tenantId,
-          updated_at: new Date().toISOString(),
-        }));
+      // Save as single JSON document
+      const settingsJson = { ...toSave };
+      // Remove empty image URLs to avoid overwriting
+      if (!settingsJson.logo_url) delete (settingsJson as any).logo_url;
+      if (!settingsJson.cover_image_url) delete (settingsJson as any).cover_image_url;
+      if (!settingsJson.cover_image_mobile_url) delete (settingsJson as any).cover_image_mobile_url;
 
       const { error: upsertErr } = await supabase
-        .from("site_settings" as any)
-        .upsert(rows as any, { onConflict: "key,tenant_id" });
+        .from("landing_page_settings" as any)
+        .upsert({
+          tenant_id: tenantId,
+          settings: settingsJson,
+          updated_at: new Date().toISOString(),
+        } as any, { onConflict: "tenant_id" });
       if (upsertErr) throw new Error(`Erro ao salvar configurações: ${upsertErr.message}`);
       if (logoUrl) setSettings((p) => ({ ...p, logo_url: logoUrl }));
       if (coverUrl) setSettings((p) => ({ ...p, cover_image_url: coverUrl }));
