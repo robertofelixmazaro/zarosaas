@@ -302,8 +302,8 @@ const Index = () => {
                     </span>
                   </div>
                   <Link to={`${basePath}/agendar?servico=${s.id}`}>
-                    <Button className="w-full gap-2" style={btnStyle}>
-                      Agendar <ChevronRight className="h-4 w-4" />
+                    <Button className="w-full gap-2" style={serviceBtnStyle}>
+                      {serviceBtnText} <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
