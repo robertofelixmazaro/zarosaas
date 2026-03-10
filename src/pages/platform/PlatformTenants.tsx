@@ -309,7 +309,7 @@ const PlatformTenants = () => {
                     {tenants.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.name}</TableCell>
-                        <TableCell className="text-muted-foreground">/t/{t.slug}</TableCell>
+                        <TableCell className="text-muted-foreground">{t.slug}.zarosistemas.com.br</TableCell>
                         <TableCell>
                           {plans.find(p => p.id === (subscriptions[t.id]?.plan_id || t.plan_id))?.name || "Sem plano"}
                         </TableCell>
