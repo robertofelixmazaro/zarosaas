@@ -102,6 +102,18 @@ const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
     },
   });
 
+  const { data: supportWhatsapp } = useQuery({
+    queryKey: ["help-support-whatsapp"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "help_support_whatsapp")
+        .maybeSingle();
+      return data?.value || "";
+    },
+  });
+
   const article = helpArticles.find((a) => a.id === selectedArticle);
 
   const handleRestartTour = () => {
@@ -192,16 +204,22 @@ const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
 
                   {/* Support */}
                   <div className="pt-2 border-t">
-                    <button
-                      onClick={() => {
-                        window.open("https://wa.me/5500000000000?text=Preciso de ajuda com o Zaro", "_blank");
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left hover:bg-muted transition-colors group"
-                    >
-                      <span className="text-lg">💬</span>
-                      <span className="flex-1 text-sm font-medium">Suporte via WhatsApp</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </button>
+                    {supportWhatsapp ? (
+                      <button
+                        onClick={() => {
+                          window.open(`https://api.whatsapp.com/send?phone=${supportWhatsapp}&text=Preciso de ajuda com o Zaro`, "_blank");
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left hover:bg-muted transition-colors group"
+                      >
+                        <span className="text-lg">💬</span>
+                        <span className="flex-1 text-sm font-medium">Suporte via WhatsApp</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </button>
+                    ) : (
+                      <div className="px-3 py-3 text-sm text-muted-foreground">
+                        Suporte indisponível no momento.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
