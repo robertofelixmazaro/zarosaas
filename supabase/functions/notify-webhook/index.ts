@@ -32,6 +32,30 @@ async function logEmail(supabase: any, data: {
   }
 }
 
+async function getCustomTemplate(supabase: any, tenantId: string, type: string): Promise<{ subject: string; body: string } | null> {
+  try {
+    const { data } = await supabase
+      .from("message_templates")
+      .select("subject, body")
+      .eq("tenant_id", tenantId)
+      .eq("type", type)
+      .maybeSingle();
+    return data || null;
+  } catch { return null; }
+}
+
+function replaceVariables(text: string, vars: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  }
+  return result;
+}
+
+function textToHtml(text: string): string {
+  return escapeHtml(text).replace(/\n/g, "<br>");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
