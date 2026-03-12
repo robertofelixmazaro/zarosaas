@@ -259,11 +259,11 @@ const AdminServicos = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingId ? "Editar Serviço" : "Novo Serviço"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             {/* Image upload */}
             <div>
               <label className="text-sm font-medium mb-1 block">Imagem do Serviço</label>
@@ -330,12 +330,12 @@ const AdminServicos = () => {
               <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} id="active" className="rounded" />
               <label htmlFor="active" className="text-sm">Serviço ativo</label>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={saving || uploading}>
-                {saving || uploading ? "Salvando..." : "Salvar"}
-              </Button>
-            </div>
+          </div>
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving || uploading}>
+              {saving || uploading ? "Salvando..." : "Salvar"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
