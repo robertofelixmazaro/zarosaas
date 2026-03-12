@@ -164,14 +164,23 @@ const PlatformLandingPage = () => {
   };
 
   // === Client Logos ===
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!newLogoName.trim()) return toast.error("Informe o nome da empresa antes de enviar o logo");
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleAddLogo = async () => {
+    if (!newLogoName.trim()) return toast.error("Informe o nome da empresa");
+    if (!logoFile) return toast.error("Selecione uma imagem para o logo");
     setUploadingLogo(true);
-    const ext = file.name.split(".").pop();
+    const ext = logoFile.name.split(".").pop();
     const fileName = `client-logo-${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, logoFile, { upsert: true });
     if (uploadError) {
       toast.error("Erro no upload: " + uploadError.message);
       setUploadingLogo(false);
@@ -180,10 +189,11 @@ const PlatformLandingPage = () => {
     const url = supabase.storage.from("landing-assets").getPublicUrl(fileName).data.publicUrl;
     await supabase.from("landing_clients_logos" as any).insert({ logo_url: url, empresa_nome: newLogoName.trim() } as any);
     setNewLogoName("");
+    setLogoFile(null);
+    setLogoPreview(null);
     toast.success("Logo adicionado!");
     await loadClientLogos();
     setUploadingLogo(false);
-    e.target.value = "";
   };
 
   const handleDeleteLogo = async (id: string) => {
