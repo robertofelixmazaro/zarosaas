@@ -102,6 +102,18 @@ const HelpCenter = ({ onRestartTour }: HelpCenterProps) => {
     },
   });
 
+  const { data: supportWhatsapp } = useQuery({
+    queryKey: ["help-support-whatsapp"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "help_support_whatsapp")
+        .maybeSingle();
+      return data?.value || "";
+    },
+  });
+
   const article = helpArticles.find((a) => a.id === selectedArticle);
 
   const handleRestartTour = () => {
