@@ -206,20 +206,7 @@ Deno.serve(async (req) => {
           from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [email_cliente],
           subject: clientSubject,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 10px;">✂️ Agendamento Confirmado!</h1>
-              <p>Olá <strong>${safeNome}</strong>,</p>
-              <p>Seu agendamento foi confirmado com sucesso:</p>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeServico}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Data</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(dateFormatted)}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(hora_agendamento)}</td></tr>
-              </table>
-              <p>Estamos te esperando! 😄</p>
-              <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
-            </div>
-          `,
+          html: clientBodyHtml,
         });
         console.log(`Client email sent to ${email_cliente}`);
         await logEmail(supabase, {
