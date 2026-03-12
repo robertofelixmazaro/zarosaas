@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ExternalLink, Video, Globe, Type, Image, Upload, Trash2, Loader2 } from "lucide-react";
+import { Save, ExternalLink, Video, Globe, Type, Upload, Trash2, Loader2, Image, Building2, GripVertical, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const SETTING_KEYS = [
@@ -24,13 +24,29 @@ const PlatformLandingPage = () => {
   const [settings, setSettings] = useState<SettingsMap>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [images, setImages] = useState<{ name: string; url: string }[]>([]);
+
+  // Gallery images
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Gallery videos
+  const [galleryVideos, setGalleryVideos] = useState<any[]>([]);
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newVideoTitle, setNewVideoTitle] = useState("");
+
+  // Client logos
+  const [clientLogos, setClientLogos] = useState<any[]>([]);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [newLogoName, setNewLogoName] = useState("");
 
   useEffect(() => {
-    loadSettings();
-    loadImages();
+    loadAll();
   }, []);
+
+  const loadAll = async () => {
+    await Promise.all([loadSettings(), loadGalleryImages(), loadGalleryVideos(), loadClientLogos()]);
+    setLoading(false);
+  };
 
   const loadSettings = async () => {
     const { data } = await supabase
@@ -40,28 +56,37 @@ const PlatformLandingPage = () => {
     const map: SettingsMap = {};
     data?.forEach((row) => { map[row.key] = row.value; });
     setSettings(map);
-    setLoading(false);
   };
 
-  const loadImages = async () => {
-    const { data } = await supabase.storage.from("landing-assets").list("", { limit: 50 });
-    if (data) {
-      setImages(
-        data
-          .filter((f) => !f.name.startsWith("."))
-          .map((f) => ({
-            name: f.name,
-            url: supabase.storage.from("landing-assets").getPublicUrl(f.name).data.publicUrl,
-          }))
-      );
-    }
+  const loadGalleryImages = async () => {
+    const { data } = await supabase
+      .from("landing_gallery_images" as any)
+      .select("*")
+      .order("ordem", { ascending: true });
+    setGalleryImages((data as any[]) || []);
+  };
+
+  const loadGalleryVideos = async () => {
+    const { data } = await supabase
+      .from("landing_gallery_videos" as any)
+      .select("*")
+      .order("created_at", { ascending: true });
+    setGalleryVideos((data as any[]) || []);
+  };
+
+  const loadClientLogos = async () => {
+    const { data } = await supabase
+      .from("landing_clients_logos" as any)
+      .select("*")
+      .order("created_at", { ascending: true });
+    setClientLogos((data as any[]) || []);
   };
 
   const updateSetting = (key: string, value: string) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => {
+  const handleSaveSettings = async () => {
     setSaving(true);
     try {
       for (const key of SETTING_KEYS) {
@@ -71,55 +96,61 @@ const PlatformLandingPage = () => {
           .select("id")
           .eq("key", key)
           .maybeSingle();
-
         if (existing) {
-          await supabase
-            .from("platform_settings")
-            .update({ value, updated_at: new Date().toISOString() })
-            .eq("id", existing.id);
+          await supabase.from("platform_settings").update({ value, updated_at: new Date().toISOString() }).eq("id", existing.id);
         } else if (value) {
-          await supabase
-            .from("platform_settings")
-            .insert({ key, value });
+          await supabase.from("platform_settings").insert({ key, value });
         }
       }
-      toast.success("Configurações salvas com sucesso!");
+      toast.success("Configurações salvas!");
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
     }
     setSaving(false);
   };
 
+  // === Gallery Images ===
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const fileName = `${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("landing-assets").upload(fileName, file, { upsert: true });
-    if (error) {
-      toast.error("Erro no upload: " + error.message);
-    } else {
-      toast.success("Imagem enviada!");
-      await loadImages();
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingImage(true);
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const fileName = `gallery-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, file, { upsert: true });
+      if (uploadError) {
+        toast.error("Erro no upload: " + uploadError.message);
+        continue;
+      }
+      const url = supabase.storage.from("landing-assets").getPublicUrl(fileName).data.publicUrl;
+      await supabase.from("landing_gallery_images" as any).insert({ image_url: url, ordem: galleryImages.length } as any);
     }
-    setUploading(false);
+    toast.success("Imagens enviadas!");
+    await loadGalleryImages();
+    setUploadingImage(false);
     e.target.value = "";
   };
 
-  const handleDeleteImage = async (name: string) => {
-    const { error } = await supabase.storage.from("landing-assets").remove([name]);
-    if (error) {
-      toast.error("Erro ao excluir: " + error.message);
-    } else {
-      toast.success("Imagem excluída!");
-      setImages((prev) => prev.filter((img) => img.name !== name));
-    }
+  const handleDeleteGalleryImage = async (id: string) => {
+    await supabase.from("landing_gallery_images" as any).delete().eq("id", id);
+    setGalleryImages((prev) => prev.filter((img) => img.id !== id));
+    toast.success("Imagem removida!");
   };
 
-  const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast.success("URL copiada!");
+  // === Gallery Videos ===
+  const handleAddVideo = async () => {
+    if (!newVideoUrl.trim()) return toast.error("Informe a URL do vídeo");
+    await supabase.from("landing_gallery_videos" as any).insert({ video_url: newVideoUrl.trim(), titulo: newVideoTitle.trim() || null } as any);
+    setNewVideoUrl("");
+    setNewVideoTitle("");
+    toast.success("Vídeo adicionado!");
+    await loadGalleryVideos();
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    await supabase.from("landing_gallery_videos" as any).delete().eq("id", id);
+    setGalleryVideos((prev) => prev.filter((v) => v.id !== id));
+    toast.success("Vídeo removido!");
   };
 
   const getEmbedPreview = (url: string) => {
@@ -132,7 +163,34 @@ const PlatformLandingPage = () => {
     return null;
   };
 
-  const embedUrl = getEmbedPreview(settings.landing_video_url || "");
+  // === Client Logos ===
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!newLogoName.trim()) return toast.error("Informe o nome da empresa antes de enviar o logo");
+    setUploadingLogo(true);
+    const ext = file.name.split(".").pop();
+    const fileName = `client-logo-${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, file, { upsert: true });
+    if (uploadError) {
+      toast.error("Erro no upload: " + uploadError.message);
+      setUploadingLogo(false);
+      return;
+    }
+    const url = supabase.storage.from("landing-assets").getPublicUrl(fileName).data.publicUrl;
+    await supabase.from("landing_clients_logos" as any).insert({ logo_url: url, empresa_nome: newLogoName.trim() } as any);
+    setNewLogoName("");
+    toast.success("Logo adicionado!");
+    await loadClientLogos();
+    setUploadingLogo(false);
+    e.target.value = "";
+  };
+
+  const handleDeleteLogo = async (id: string) => {
+    await supabase.from("landing_clients_logos" as any).delete().eq("id", id);
+    setClientLogos((prev) => prev.filter((l) => l.id !== id));
+    toast.success("Logo removido!");
+  };
 
   if (loading) {
     return (
@@ -148,7 +206,7 @@ const PlatformLandingPage = () => {
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Globe className="h-5 w-5" /> Gerenciamento da Landing Page
         </h2>
-        <p className="text-sm text-muted-foreground">Edite o conteúdo e mídia da página principal do SaaS</p>
+        <p className="text-sm text-muted-foreground">Edite o conteúdo, mídia e seções da página principal do SaaS</p>
       </div>
 
       {/* Ver Landing */}
@@ -172,148 +230,177 @@ const PlatformLandingPage = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Título Principal (Hero)</Label>
-            <Input
-              value={settings.landing_hero_title || ""}
-              onChange={(e) => updateSetting("landing_hero_title", e.target.value)}
-              placeholder="Automatize os agendamentos do seu negócio..."
-            />
+            <Input value={settings.landing_hero_title || ""} onChange={(e) => updateSetting("landing_hero_title", e.target.value)} placeholder="Automatize os agendamentos do seu negócio..." />
           </div>
           <div className="space-y-2">
             <Label>Subtítulo (Hero)</Label>
-            <Textarea
-              value={settings.landing_hero_subtitle || ""}
-              onChange={(e) => updateSetting("landing_hero_subtitle", e.target.value)}
-              placeholder="Sistema completo para barbearias, clínicas..."
-              rows={2}
-            />
+            <Textarea value={settings.landing_hero_subtitle || ""} onChange={(e) => updateSetting("landing_hero_subtitle", e.target.value)} placeholder="Sistema completo para barbearias, clínicas..." rows={2} />
           </div>
           <div className="space-y-2">
             <Label>Título da Seção de Benefícios</Label>
-            <Input
-              value={settings.landing_benefits_title || ""}
-              onChange={(e) => updateSetting("landing_benefits_title", e.target.value)}
-              placeholder="Tudo que você precisa para organizar e crescer seu negócio"
-            />
+            <Input value={settings.landing_benefits_title || ""} onChange={(e) => updateSetting("landing_benefits_title", e.target.value)} placeholder="Tudo que você precisa para organizar e crescer" />
           </div>
           <div className="space-y-2">
             <Label>Título da Chamada Final</Label>
-            <Input
-              value={settings.landing_cta_title || ""}
-              onChange={(e) => updateSetting("landing_cta_title", e.target.value)}
-              placeholder="Pronto para organizar seu negócio?"
-            />
+            <Input value={settings.landing_cta_title || ""} onChange={(e) => updateSetting("landing_cta_title", e.target.value)} placeholder="Pronto para organizar seu negócio?" />
           </div>
           <div className="space-y-2">
             <Label>Subtítulo da Chamada Final</Label>
-            <Textarea
-              value={settings.landing_cta_subtitle || ""}
-              onChange={(e) => updateSetting("landing_cta_subtitle", e.target.value)}
-              placeholder="Crie sua página de agendamento e comece a receber clientes hoje mesmo."
-              rows={2}
-            />
+            <Textarea value={settings.landing_cta_subtitle || ""} onChange={(e) => updateSetting("landing_cta_subtitle", e.target.value)} placeholder="Crie sua página de agendamento..." rows={2} />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Vídeo Explicativo */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Video className="h-4 w-4" /> Vídeo Explicativo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>URL do Vídeo</Label>
-            <Input
-              value={settings.landing_video_url || ""}
-              onChange={(e) => updateSetting("landing_video_url", e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
-            />
-            <p className="text-xs text-muted-foreground">
-              YouTube, Vimeo ou URL direta MP4. Deixe vazio para ocultar.
-            </p>
-          </div>
-          {embedUrl && (
-            <div className="rounded-lg overflow-hidden border aspect-video bg-muted">
-              {embedUrl.endsWith(".mp4") ? (
-                <video src={embedUrl} controls className="w-full h-full object-contain" />
-              ) : (
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="Preview do vídeo"
-                />
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Banco de Imagens */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Image className="h-4 w-4" /> Banco de Imagens
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>URL da Imagem do Hero</Label>
-            <Input
-              value={settings.landing_hero_image_url || ""}
-              onChange={(e) => updateSetting("landing_hero_image_url", e.target.value)}
-              placeholder="Cole a URL de uma imagem ou faça upload abaixo"
-            />
-            <p className="text-xs text-muted-foreground">
-              Imagem exibida na seção principal da landing page.
-            </p>
+            <Input value={settings.landing_hero_image_url || ""} onChange={(e) => updateSetting("landing_hero_image_url", e.target.value)} placeholder="https://..." />
           </div>
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleSaveSettings} disabled={saving} className="gap-2">
+              <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar conteúdo"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-          <div className="border-t pt-4">
-            <Label className="mb-2 block">Upload de Imagens</Label>
+      {/* ===== GALERIA DE IMAGENS ===== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Image className="h-4 w-4" /> Galeria de Imagens
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">Imagens exibidas em formato de galeria na landing page.</p>
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer">
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+              <Button variant="outline" size="sm" className="gap-2" asChild>
+                <span>
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {uploadingImage ? "Enviando..." : "Enviar imagens"}
+                </span>
+              </Button>
+            </label>
+          </div>
+          {galleryImages.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+              {galleryImages.map((img) => (
+                <div key={img.id} className="relative group rounded-lg overflow-hidden border bg-muted">
+                  <img src={img.image_url} alt="Galeria" className="w-full h-28 object-cover" />
+                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeleteGalleryImage(img.id)} title="Excluir">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {galleryImages.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma imagem na galeria.</p>}
+        </CardContent>
+      </Card>
+
+      {/* ===== GALERIA DE VÍDEOS ===== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Video className="h-4 w-4" /> Galeria de Vídeos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">Vídeos de demonstração exibidos na landing page. YouTube, Vimeo ou MP4.</p>
+          <div className="grid gap-3">
+            <div className="space-y-2">
+              <Label>Título do vídeo (opcional)</Label>
+              <Input value={newVideoTitle} onChange={(e) => setNewVideoTitle(e.target.value)} placeholder="Ex: Como funciona o Zaro" />
+            </div>
+            <div className="space-y-2">
+              <Label>URL do Vídeo</Label>
+              <div className="flex gap-2">
+                <Input value={newVideoUrl} onChange={(e) => setNewVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className="flex-1" />
+                <Button onClick={handleAddVideo} size="sm" className="gap-1.5">
+                  <Plus className="h-4 w-4" /> Adicionar
+                </Button>
+              </div>
+            </div>
+          </div>
+          {galleryVideos.length > 0 && (
+            <div className="space-y-3 pt-2">
+              {galleryVideos.map((v) => {
+                const embed = getEmbedPreview(v.video_url);
+                return (
+                  <div key={v.id} className="rounded-lg border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{v.titulo || "Sem título"}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-xs">{v.video_url}</p>
+                      </div>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDeleteVideo(v.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {embed && (
+                      <div className="rounded overflow-hidden border aspect-video bg-muted">
+                        {embed.endsWith(".mp4") ? (
+                          <video src={embed} controls className="w-full h-full object-contain" />
+                        ) : (
+                          <iframe src={embed} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title="Preview" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {galleryVideos.length === 0 && <p className="text-sm text-muted-foreground">Nenhum vídeo adicionado.</p>}
+        </CardContent>
+      </Card>
+
+      {/* ===== CLIENTES ATIVOS (LOGOS) ===== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Building2 className="h-4 w-4" /> Clientes Ativos (Logos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">Logos exibidos na seção "Empresas que confiam no Zaro" da landing page.</p>
+          <div className="grid gap-3">
+            <div className="space-y-2">
+              <Label>Nome da empresa</Label>
+              <Input value={newLogoName} onChange={(e) => setNewLogoName(e.target.value)} placeholder="Ex: Barbearia Elite" />
+            </div>
             <div className="flex items-center gap-3">
               <label className="cursor-pointer">
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                 <Button variant="outline" size="sm" className="gap-2" asChild>
                   <span>
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {uploading ? "Enviando..." : "Enviar imagem"}
+                    {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {uploadingLogo ? "Enviando..." : "Enviar logo"}
                   </span>
                 </Button>
               </label>
             </div>
           </div>
-
-          {images.length > 0 && (
+          {clientLogos.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-              {images.map((img) => (
-                <div key={img.name} className="relative group rounded-lg overflow-hidden border bg-muted">
-                  <img src={img.url} alt={img.name} className="w-full h-28 object-cover" />
-                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => copyUrl(img.url)} title="Copiar URL">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeleteImage(img.name)} title="Excluir">
+              {clientLogos.map((logo) => (
+                <div key={logo.id} className="relative group rounded-lg overflow-hidden border bg-muted p-3 flex flex-col items-center gap-2">
+                  <img src={logo.logo_url} alt={logo.empresa_nome} className="w-16 h-16 object-contain" />
+                  <p className="text-xs font-medium text-center truncate w-full">{logo.empresa_nome}</p>
+                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeleteLogo(logo.id)} title="Excluir">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground truncate px-2 py-1">{img.name}</p>
                 </div>
               ))}
             </div>
           )}
+          {clientLogos.length === 0 && <p className="text-sm text-muted-foreground">Nenhum logo adicionado.</p>}
         </CardContent>
       </Card>
 
-      {/* Salvar */}
-      <div className="flex justify-end pb-6">
-        <Button onClick={handleSave} disabled={saving} className="gap-2" size="lg">
-          <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar todas as configurações"}
-        </Button>
-      </div>
+      <div className="pb-6" />
     </div>
   );
 };
