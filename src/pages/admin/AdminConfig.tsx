@@ -3,6 +3,7 @@ import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Ey
 import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
 import PushNotificationSection from "@/components/admin/PushNotificationSection";
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
+import EmailTemplatesEditor from "@/components/admin/EmailTemplatesEditor";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
@@ -913,6 +914,9 @@ const AdminConfig = () => {
           />
         </div>
       </div>
+
+      {/* Email Templates */}
+      <EmailTemplatesEditor />
 
       <Button onClick={handleSave} disabled={saving} className="gap-2">
         <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Alterações"}
