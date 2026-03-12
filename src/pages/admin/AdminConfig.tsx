@@ -915,6 +915,9 @@ const AdminConfig = () => {
         </div>
       </div>
 
+      {/* Email Templates */}
+      <EmailTemplatesEditor />
+
       <Button onClick={handleSave} disabled={saving} className="gap-2">
         <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Alterações"}
       </Button>
