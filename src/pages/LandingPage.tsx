@@ -523,7 +523,7 @@ const LandingPage = () => {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Empresas que confiam no Zaro</h2>
               <p className="text-muted-foreground">Negócios de diversos segmentos já utilizam nossa plataforma.</p>
             </motion.div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 max-w-5xl mx-auto items-center">
               {clientLogos.map((logo: any, i: number) => (
                 <motion.div key={logo.id}
                   initial="hidden" whileInView="visible" viewport={{ once: true }}

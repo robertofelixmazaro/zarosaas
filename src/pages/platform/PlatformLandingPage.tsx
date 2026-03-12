@@ -379,17 +379,27 @@ const PlatformLandingPage = () => {
               <Label>Nome da empresa</Label>
               <Input value={newLogoName} onChange={(e) => setNewLogoName(e.target.value)} placeholder="Ex: Barbearia Elite" />
             </div>
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer">
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                <Button variant="outline" size="sm" className="gap-2" asChild>
-                  <span>
-                    {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {uploadingLogo ? "Enviando..." : "Enviar logo"}
-                  </span>
-                </Button>
-              </label>
+            <div className="space-y-2">
+              <Label>Logo da empresa</Label>
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoFileSelect} />
+                  <Button variant="outline" size="sm" className="gap-2" asChild>
+                    <span>
+                      <Upload className="h-4 w-4" />
+                      {logoFile ? logoFile.name : "Selecionar imagem"}
+                    </span>
+                  </Button>
+                </label>
+                {logoPreview && (
+                  <img src={logoPreview} alt="Preview" className="h-10 w-10 object-contain rounded border" />
+                )}
+              </div>
             </div>
+            <Button onClick={handleAddLogo} disabled={uploadingLogo} className="gap-2 w-fit">
+              {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {uploadingLogo ? "Salvando..." : "Adicionar Logo"}
+            </Button>
           </div>
           {clientLogos.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
