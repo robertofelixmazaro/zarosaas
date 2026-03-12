@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Edit, Trash2, Upload, ImageIcon, X, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
+import { validateImage } from "@/lib/imageOptimizer";
 import { z } from "zod";
 
 const serviceSchema = z.object({
@@ -56,6 +56,7 @@ const AdminServicos = () => {
     setErrors({});
     setImageFile(null);
     setImagePreview(null);
+    setAspectWarning(false);
     setDialogOpen(true);
   };
 
@@ -65,24 +66,30 @@ const AdminServicos = () => {
     setErrors({});
     setImageFile(null);
     setImagePreview(s.image_url || null);
+    setAspectWarning(false);
     setDialogOpen(true);
   };
+
+  const [aspectWarning, setAspectWarning] = useState(false);
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const validation = validateImage(file, "service");
     if (!validation.valid) { toast.error(validation.error!); return; }
-    try {
-      toast.info("Otimizando imagem...");
-      const optimized = await optimizeImage(file, "service");
-      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
-      setImageFile(optimizedFile);
-      setImagePreview(URL.createObjectURL(optimized));
-      toast.success("Imagem otimizada!");
-    } catch {
-      toast.error("Erro ao otimizar imagem");
-    }
+
+    // Check aspect ratio
+    const img = new Image();
+    img.onload = () => {
+      const ratio = img.naturalWidth / img.naturalHeight;
+      const is16by9 = Math.abs(ratio - 16 / 9) < 0.1;
+      setAspectWarning(!is16by9);
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (serviceId: string): Promise<string | null> => {
@@ -159,11 +166,9 @@ const AdminServicos = () => {
     const validation = validateImage(file, "service");
     if (!validation.valid) { toast.error(validation.error!); return; }
     try {
-      toast.info("Otimizando imagem...");
-      const optimized = await optimizeImage(file, "service");
       const ext = file.name.split(".").pop();
       const path = `${serviceId}.${ext}`;
-      const { error } = await supabase.storage.from("service-images").upload(path, optimized, { upsert: true });
+      const { error } = await supabase.storage.from("service-images").upload(path, file, { upsert: true });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
       const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
@@ -261,18 +266,19 @@ const AdminServicos = () => {
           <div className="space-y-4">
             {/* Image upload */}
             <div>
-              <label className="text-sm font-medium mb-1 block">Foto do Serviço</label>
+              <label className="text-sm font-medium mb-1 block">Imagem do Serviço</label>
+              <p className="text-xs text-muted-foreground mb-2">Tamanho recomendado da imagem: 1200 × 700 pixels (proporção 16:9)</p>
               <div
                 className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
                   <div className="relative">
-                    <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded" />
+                    <img src={imagePreview} alt="Preview" className="w-full rounded" />
                     <button
                       type="button"
                       className="absolute top-1 right-1 bg-background/80 backdrop-blur-sm rounded-full p-1"
-                      onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); }}
+                      onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); setAspectWarning(false); }}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -281,10 +287,13 @@ const AdminServicos = () => {
                   <div className="flex flex-col items-center gap-2 text-muted-foreground py-2">
                     <Upload className="h-6 w-6" />
                     <span className="text-sm">Clique para enviar uma foto</span>
-                    <span className="text-xs">{IMAGE_PRESETS.service.hint}</span>
+                    <span className="text-xs">Formatos: JPG, PNG ou WEBP | Máx: 5MB</span>
                   </div>
                 )}
               </div>
+              {aspectWarning && (
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">⚠️ Recomendamos usar imagem na proporção 16:9 para melhor visualização.</p>
+              )}
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImageSelect} />
             </div>
 
