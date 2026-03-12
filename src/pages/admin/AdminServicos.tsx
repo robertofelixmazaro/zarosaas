@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Edit, Trash2, Upload, ImageIcon, X, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
+import { validateImage } from "@/lib/imageOptimizer";
 import { z } from "zod";
 
 const serviceSchema = z.object({
