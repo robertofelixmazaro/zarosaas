@@ -54,7 +54,7 @@ async function sendReminderEmail(
       Authorization: `Bearer ${resendKey}`,
     },
     body: JSON.stringify({
-      from: "Zaro Agendamentos <onboarding@resend.dev>",
+      from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
       to: [to],
       subject,
       html,

@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     if (adminEmail) {
       try {
         await resend.emails.send({
-          from: "Zaro Agendamentos <onboarding@resend.dev>",
+          from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [adminEmail],
           subject: adminSubject,
           html: `
