@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const resend = new Resend(Deno.env.get("RESEND_API_KEY")!);
@@ -137,7 +138,7 @@ Deno.serve(async (req) => {
     if (email_cliente) {
       try {
         await resend.emails.send({
-          from: "Zaro Agendamentos <onboarding@resend.dev>",
+          from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [email_cliente],
           subject: clientSubject,
           html: `
@@ -210,7 +211,7 @@ Deno.serve(async (req) => {
     if (adminEmail) {
       try {
         await resend.emails.send({
-          from: "Zaro Agendamentos <onboarding@resend.dev>",
+          from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [adminEmail],
           subject: adminSubject,
           html: `
