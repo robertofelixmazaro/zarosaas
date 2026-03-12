@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
     const nome_cliente = appointment.client_name;
     const telefone_cliente = appointment.client_phone;
     const servico = (appointment.services as any)?.name || "Serviço";
+    const barberName = (appointment.barbers as any)?.name || "Profissional";
     const data_agendamento = appointment.appointment_date;
     const hora_agendamento = appointment.appointment_time?.slice(0, 5) || "";
 
@@ -148,6 +149,7 @@ Deno.serve(async (req) => {
     // Escape all values for HTML
     const safeNome = escapeHtml(nome_cliente);
     const safeServico = escapeHtml(servico);
+    const safeBarber = escapeHtml(barberName);
     const safeTelefone = escapeHtml(telefone_cliente || "Não informado");
     const safeEmail = escapeHtml(email_cliente || "Não informado");
 
@@ -155,7 +157,46 @@ Deno.serve(async (req) => {
       ? String(data_agendamento).split("-").reverse().join("/")
       : "";
 
-    const clientSubject = "Confirmação de Agendamento – Zaro Agendamentos";
+    const templateVars = {
+      cliente_nome: nome_cliente,
+      servico,
+      profissional: barberName,
+      data: dateFormatted,
+      hora: hora_agendamento,
+    };
+
+    // Load custom template if available
+    let clientSubject = "✂️ Agendamento Confirmado!";
+    let clientBodyHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 10px;">✂️ Agendamento Confirmado!</h1>
+        <p>Olá <strong>${safeNome}</strong>,</p>
+        <p>Seu agendamento foi confirmado com sucesso:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeServico}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Profissional</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeBarber}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Data</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(dateFormatted)}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(hora_agendamento)}</td></tr>
+        </table>
+        <p>Estamos te esperando! 😄</p>
+        <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
+      </div>
+    `;
+
+    if (appointment.tenant_id) {
+      const customTpl = await getCustomTemplate(supabase, appointment.tenant_id, "confirmacao_agendamento");
+      if (customTpl) {
+        clientSubject = replaceVariables(customTpl.subject, templateVars);
+        const bodyText = replaceVariables(customTpl.body, templateVars);
+        clientBodyHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="white-space: pre-wrap; color: #334155; font-size: 15px; line-height: 1.6;">${textToHtml(bodyText)}</div>
+            <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
+          </div>
+        `;
+      }
+    }
+
     const adminSubject = "Novo Agendamento Recebido";
 
     // Send confirmation email to client
