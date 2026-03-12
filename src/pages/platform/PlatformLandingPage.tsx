@@ -164,14 +164,23 @@ const PlatformLandingPage = () => {
   };
 
   // === Client Logos ===
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!newLogoName.trim()) return toast.error("Informe o nome da empresa antes de enviar o logo");
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleAddLogo = async () => {
+    if (!newLogoName.trim()) return toast.error("Informe o nome da empresa");
+    if (!logoFile) return toast.error("Selecione uma imagem para o logo");
     setUploadingLogo(true);
-    const ext = file.name.split(".").pop();
+    const ext = logoFile.name.split(".").pop();
     const fileName = `client-logo-${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage.from("landing-assets").upload(fileName, logoFile, { upsert: true });
     if (uploadError) {
       toast.error("Erro no upload: " + uploadError.message);
       setUploadingLogo(false);
@@ -180,10 +189,11 @@ const PlatformLandingPage = () => {
     const url = supabase.storage.from("landing-assets").getPublicUrl(fileName).data.publicUrl;
     await supabase.from("landing_clients_logos" as any).insert({ logo_url: url, empresa_nome: newLogoName.trim() } as any);
     setNewLogoName("");
+    setLogoFile(null);
+    setLogoPreview(null);
     toast.success("Logo adicionado!");
     await loadClientLogos();
     setUploadingLogo(false);
-    e.target.value = "";
   };
 
   const handleDeleteLogo = async (id: string) => {
@@ -369,17 +379,27 @@ const PlatformLandingPage = () => {
               <Label>Nome da empresa</Label>
               <Input value={newLogoName} onChange={(e) => setNewLogoName(e.target.value)} placeholder="Ex: Barbearia Elite" />
             </div>
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer">
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                <Button variant="outline" size="sm" className="gap-2" asChild>
-                  <span>
-                    {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {uploadingLogo ? "Enviando..." : "Enviar logo"}
-                  </span>
-                </Button>
-              </label>
+            <div className="space-y-2">
+              <Label>Logo da empresa</Label>
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoFileSelect} />
+                  <Button variant="outline" size="sm" className="gap-2" asChild>
+                    <span>
+                      <Upload className="h-4 w-4" />
+                      {logoFile ? logoFile.name : "Selecionar imagem"}
+                    </span>
+                  </Button>
+                </label>
+                {logoPreview && (
+                  <img src={logoPreview} alt="Preview" className="h-10 w-10 object-contain rounded border" />
+                )}
+              </div>
             </div>
+            <Button onClick={handleAddLogo} disabled={uploadingLogo} className="gap-2 w-fit">
+              {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {uploadingLogo ? "Salvando..." : "Adicionar Logo"}
+            </Button>
           </div>
           {clientLogos.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
