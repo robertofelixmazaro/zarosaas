@@ -41,6 +41,30 @@ async function getTenantChannelSettings(supabase: any, tenantId: string): Promis
   return { ...defaults, ...map } as TenantChannelSettings;
 }
 
+async function getCustomTemplate(supabase: any, tenantId: string, type: string): Promise<{ subject: string; body: string } | null> {
+  try {
+    const { data } = await supabase
+      .from("message_templates")
+      .select("subject, body")
+      .eq("tenant_id", tenantId)
+      .eq("type", type)
+      .maybeSingle();
+    return data || null;
+  } catch { return null; }
+}
+
+function replaceTemplateVariables(text: string, vars: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  }
+  return result;
+}
+
+function templateTextToHtml(text: string): string {
+  return escapeHtml(text).replace(/\n/g, "<br>");
+}
+
 async function sendReminderEmail(
   resendKey: string,
   to: string,
