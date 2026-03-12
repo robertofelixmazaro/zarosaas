@@ -247,8 +247,66 @@ const PlatformSettings = () => {
             </div>
           </CardContent>
         </Card>
+        {/* Test Email */}
+        <TestEmailCard />
       </main>
     </div>
+  );
+};
+
+const TestEmailCard = () => {
+  const [testEmail, setTestEmail] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes("@")) {
+      toast.error("Informe um email válido");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Sessão expirada"); return; }
+
+      const { data, error } = await supabase.functions.invoke("send-test-email", {
+        body: { to: testEmail },
+      });
+
+      if (error) throw error;
+      toast.success(data?.message || "Email de teste enviado!");
+    } catch (err: any) {
+      toast.error("Erro ao enviar email de teste", { description: err.message });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Mail className="h-5 w-5" />
+          Teste de Email
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-4">
+          Envie um email de teste para verificar se o sistema de envio está funcionando corretamente com o domínio <strong>zarosistemas.com.br</strong>.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            type="email"
+            placeholder="Digite o email de destino"
+            value={testEmail}
+            onChange={e => setTestEmail(e.target.value)}
+          />
+          <Button onClick={handleSendTestEmail} disabled={sending}>
+            <Send className="h-4 w-4 mr-2" />
+            {sending ? "Enviando..." : "Enviar Teste"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
