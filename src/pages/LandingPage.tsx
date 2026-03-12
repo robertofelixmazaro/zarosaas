@@ -89,6 +89,39 @@ const LandingPage = () => {
     },
   });
 
+  const { data: galleryImages = [] } = useQuery({
+    queryKey: ["landing-gallery-images"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_gallery_images" as any)
+        .select("*")
+        .order("ordem", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
+  const { data: galleryVideos = [] } = useQuery({
+    queryKey: ["landing-gallery-videos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_gallery_videos" as any)
+        .select("*")
+        .order("created_at", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
+  const { data: clientLogos = [] } = useQuery({
+    queryKey: ["landing-client-logos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_clients_logos" as any)
+        .select("*")
+        .order("created_at", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
