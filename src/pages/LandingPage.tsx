@@ -5,7 +5,7 @@ import { getTenantExternalUrl } from "@/lib/tenantUrl";
 import {
   ChevronRight, Store, Users, Calendar, Shield, Clock, Bell, UserCheck,
   ShoppingBag, BarChart3, Globe, Smartphone, Star, ArrowRight, CheckCircle2,
-  MessageSquare, TrendingUp
+  MessageSquare, TrendingUp, Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
