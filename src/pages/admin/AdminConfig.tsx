@@ -3,6 +3,7 @@ import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Ey
 import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
 import PushNotificationSection from "@/components/admin/PushNotificationSection";
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
+import EmailTemplatesEditor from "@/components/admin/EmailTemplatesEditor";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
