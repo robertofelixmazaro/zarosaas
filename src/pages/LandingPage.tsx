@@ -523,14 +523,14 @@ const LandingPage = () => {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Empresas que confiam no Zaro</h2>
               <p className="text-muted-foreground">Negócios de diversos segmentos já utilizam nossa plataforma.</p>
             </motion.div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-5xl mx-auto items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto items-center">
               {clientLogos.map((logo: any, i: number) => (
                 <motion.div key={logo.id}
                   initial="hidden" whileInView="visible" viewport={{ once: true }}
                   variants={fadeUp} transition={{ duration: 0.4, delay: i * 0.06 }}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl border bg-card hover:shadow-md transition-shadow"
+                  className="flex flex-col items-center gap-3 p-5 rounded-xl border bg-card hover:shadow-md transition-shadow"
                 >
-                  <img src={logo.logo_url} alt={logo.empresa_nome} className="w-16 h-16 object-contain" />
+                  <img src={logo.logo_url} alt={logo.empresa_nome} className="w-auto object-contain" style={{ height: '60px' }} />
                   <p className="text-xs font-medium text-muted-foreground text-center truncate w-full">{logo.empresa_nome}</p>
                 </motion.div>
               ))}

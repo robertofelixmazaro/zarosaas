@@ -540,6 +540,69 @@ export type Database = {
           },
         ]
       }
+      landing_clients_logos: {
+        Row: {
+          created_at: string | null
+          empresa_nome: string
+          id: string
+          logo_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          empresa_nome: string
+          id?: string
+          logo_url: string
+        }
+        Update: {
+          created_at?: string | null
+          empresa_nome?: string
+          id?: string
+          logo_url?: string
+        }
+        Relationships: []
+      }
+      landing_gallery_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      landing_gallery_videos: {
+        Row: {
+          created_at: string | null
+          id: string
+          titulo: string | null
+          video_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          titulo?: string | null
+          video_url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          titulo?: string | null
+          video_url?: string
+        }
+        Relationships: []
+      }
       landing_page_settings: {
         Row: {
           id: string
