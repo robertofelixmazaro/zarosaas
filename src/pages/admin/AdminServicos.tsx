@@ -68,21 +68,26 @@ const AdminServicos = () => {
     setDialogOpen(true);
   };
 
+  const [aspectWarning, setAspectWarning] = useState(false);
+
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const validation = validateImage(file, "service");
     if (!validation.valid) { toast.error(validation.error!); return; }
-    try {
-      toast.info("Otimizando imagem...");
-      const optimized = await optimizeImage(file, "service");
-      const optimizedFile = new File([optimized], file.name, { type: optimized.type });
-      setImageFile(optimizedFile);
-      setImagePreview(URL.createObjectURL(optimized));
-      toast.success("Imagem otimizada!");
-    } catch {
-      toast.error("Erro ao otimizar imagem");
-    }
+
+    // Check aspect ratio
+    const img = new Image();
+    img.onload = () => {
+      const ratio = img.naturalWidth / img.naturalHeight;
+      const is16by9 = Math.abs(ratio - 16 / 9) < 0.1;
+      setAspectWarning(!is16by9);
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const uploadImage = async (serviceId: string): Promise<string | null> => {
