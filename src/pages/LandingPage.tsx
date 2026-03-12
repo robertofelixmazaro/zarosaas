@@ -178,18 +178,20 @@ const LandingPage = () => {
               <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
                 {landingContent?.landing_hero_subtitle || "Sistema completo para barbearias, clínicas, salões e prestadores de serviço organizarem agenda, clientes e equipe."}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/cadastrar">
-                  <Button size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
-                    Começar agora <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link to="/explorar">
-                  <Button variant="outline" size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
-                    <Search className="h-4 w-4" /> Explorar Marketplace
-                  </Button>
-                </Link>
-                <a href="#como-funciona">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link to="/cadastrar">
+                    <Button size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                      Começar agora <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/explorar">
+                    <Button variant="outline" size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                      <Search className="h-4 w-4" /> Explorar Marketplace
+                    </Button>
+                  </Link>
+                </div>
+                <a href="#como-funciona" className="sm:text-center">
                   <Button variant="ghost" size="lg" className="text-base px-8 w-full sm:w-auto">
                     Ver como funciona
                   </Button>
