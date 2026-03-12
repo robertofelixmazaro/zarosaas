@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Save, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Save, ShieldAlert, Mail, Send } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { toast } from "sonner";
 
