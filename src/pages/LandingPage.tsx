@@ -184,8 +184,13 @@ const LandingPage = () => {
                     Começar agora <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
+                <Link to="/explorar">
+                  <Button variant="outline" size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                    <Search className="h-4 w-4" /> Explorar Marketplace
+                  </Button>
+                </Link>
                 <a href="#como-funciona">
-                  <Button variant="outline" size="lg" className="text-base px-8 w-full sm:w-auto">
+                  <Button variant="ghost" size="lg" className="text-base px-8 w-full sm:w-auto">
                     Ver como funciona
                   </Button>
                 </a>
