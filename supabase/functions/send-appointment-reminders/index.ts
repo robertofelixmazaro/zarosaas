@@ -283,11 +283,23 @@ Deno.serve(async (req) => {
         }
 
         if (clientEmail) {
-          const subject = reminderType === "24h"
+          let subject = reminderType === "24h"
             ? `📅 Lembrete: Seu agendamento amanhã em ${businessName}`
             : `⏰ Lembrete: Seu agendamento é em breve!`;
 
-          const html = buildReminderHtml({ clientName: escapeHtml(appt.client_name), businessName, serviceName, staffName, date: dateStr, time: timeStr, reminderType });
+          let html = buildReminderHtml({ clientName: escapeHtml(appt.client_name), businessName, serviceName, staffName, date: dateStr, time: timeStr, reminderType });
+
+          // Use custom template if available
+          if (tenantId) {
+            const tplType = reminderType === "24h" ? "lembrete_24h" : "lembrete_2h";
+            const customTpl = await getCustomTemplate(supabase, tenantId, tplType);
+            if (customTpl) {
+              const vars = { cliente_nome: appt.client_name, servico: serviceName, profissional: staffName, data: dateStr, hora: timeStr };
+              subject = replaceTemplateVariables(customTpl.subject, vars);
+              const bodyText = replaceTemplateVariables(customTpl.body, vars);
+              html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"><div style="white-space: pre-wrap; color: #334155; font-size: 15px; line-height: 1.6;">${templateTextToHtml(bodyText)}</div><p style="color: #999; font-size: 12px; margin-top: 30px;">${businessName} — Zaro Agendamentos</p></div>`;
+            }
+          }
 
           try {
             await sendReminderEmail(resendKey, clientEmail, subject, html);
