@@ -203,55 +203,86 @@ const AdminServicos = () => {
         <Button size="sm" className="gap-2" onClick={openCreate}><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {services.map((s) => (
-          <div key={s.id} className="rounded-lg border bg-card group hover:shadow-md transition-shadow overflow-hidden">
-            {s.image_url ? (
-              <div className="relative w-full h-36 bg-muted">
-                <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
-                <button
-                  onClick={() => handleRemoveImage(s.id)}
-                  className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          <div key={s.id} className="rounded-xl border bg-card group hover:shadow-lg transition-all duration-300 overflow-hidden">
+            {/* Image with 16:9 ratio */}
+            <div className="relative w-full bg-muted" style={{ aspectRatio: '16 / 9' }}>
+              {s.image_url ? (
+                <>
+                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)' }} />
+                  <button
+                    onClick={() => handleRemoveImage(s.id)}
+                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              ) : (
+                <div
+                  className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors bg-muted/30"
+                  onClick={() => quickUploadRefs.current[s.id]?.click()}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <div
-                className="w-full h-36 bg-muted/30 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => quickUploadRefs.current[s.id]?.click()}
-              >
-                <Upload className="h-6 w-6 text-muted-foreground/40" />
-                <span className="text-xs text-muted-foreground/60">Enviar foto</span>
-                <input
-                  ref={(el) => { quickUploadRefs.current[s.id] = el; }}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleQuickUpload(s.id, file);
-                    e.target.value = "";
+                  <Upload className="h-8 w-8 text-muted-foreground/30" />
+                  <span className="text-xs text-muted-foreground/50">Enviar foto</span>
+                  <input
+                    ref={(el) => { quickUploadRefs.current[s.id] = el; }}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleQuickUpload(s.id, file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+              {/* Status badge */}
+              <div className="absolute top-2.5 left-2.5">
+                <span
+                  className="text-xs font-medium px-2.5 py-1 rounded-full"
+                  style={{
+                    background: s.active ? '#16a34a' : 'hsl(var(--muted))',
+                    color: s.active ? '#fff' : 'hsl(var(--muted-foreground))',
+                    fontSize: '12px',
                   }}
-                />
-              </div>
-            )}
-            <div className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-2xl">{s.icon}</span>
-                <Badge variant="outline" className={s.active ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>
+                >
                   {s.active ? "Ativo" : "Inativo"}
-                </Badge>
+                </span>
               </div>
-              <h3 className="font-semibold mb-1">{s.name}</h3>
-              <p className="text-sm text-muted-foreground mb-3">{s.description}</p>
+              {/* Name overlay at bottom of image */}
+              {s.image_url && (
+                <div className="absolute bottom-2.5 left-3 right-3">
+                  <span className="text-base font-bold text-white drop-shadow-md">{s.icon} {s.name}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              {!s.image_url && (
+                <h3 className="font-semibold mb-1 text-base">{s.icon} {s.name}</h3>
+              )}
+              {s.description && (
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{s.description}</p>
+              )}
               <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold">R$ {Number(s.price).toFixed(0)}</span>
-                <span className="text-xs text-muted-foreground">⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes}min`}</span>
+                <span className="font-bold" style={{ fontSize: '22px', color: '#22c55e' }}>
+                  R$ {Number(s.price).toFixed(0)}
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  ⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes} min`}
+                </span>
               </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="sm" className="flex-1 gap-1" onClick={() => openEdit(s)}><Edit className="h-3 w-3" /> Editar</Button>
-                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(s.id)}><Trash2 className="h-3 w-3" /></Button>
+              <div className="flex gap-2 pt-2 border-t border-border">
+                <Button variant="ghost" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => openEdit(s)}>
+                  <Edit className="h-3.5 w-3.5" /> Editar
+                </Button>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(s.id)}>
+                  <Trash2 className="h-3.5 w-3.5" /> Excluir
+                </Button>
               </div>
             </div>
           </div>
