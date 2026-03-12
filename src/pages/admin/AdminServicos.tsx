@@ -56,6 +56,7 @@ const AdminServicos = () => {
     setErrors({});
     setImageFile(null);
     setImagePreview(null);
+    setAspectWarning(false);
     setDialogOpen(true);
   };
 
