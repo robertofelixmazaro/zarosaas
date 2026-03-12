@@ -89,6 +89,39 @@ const LandingPage = () => {
     },
   });
 
+  const { data: galleryImages = [] } = useQuery({
+    queryKey: ["landing-gallery-images"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_gallery_images" as any)
+        .select("*")
+        .order("ordem", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
+  const { data: galleryVideos = [] } = useQuery({
+    queryKey: ["landing-gallery-videos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_gallery_videos" as any)
+        .select("*")
+        .order("created_at", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
+  const { data: clientLogos = [] } = useQuery({
+    queryKey: ["landing-client-logos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("landing_clients_logos" as any)
+        .select("*")
+        .order("created_at", { ascending: true });
+      return (data as any[]) || [];
+    },
+  });
+
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -416,7 +449,97 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ===== CTA FINAL ===== */}
+      {/* ===== GALERIA DE IMAGENS ===== */}
+      {galleryImages.length > 0 && (
+        <section className="py-20 bg-muted/40">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
+              className="text-center mb-12 max-w-xl mx-auto"
+            >
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Galeria</span>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Conheça o sistema por dentro</h2>
+              <p className="text-muted-foreground">Veja capturas de tela e imagens do funcionamento da plataforma.</p>
+            </motion.div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+              {galleryImages.map((img: any, i: number) => (
+                <motion.div key={img.id}
+                  initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  variants={fadeUp} transition={{ duration: 0.4, delay: i * 0.08 }}
+                  className="rounded-xl overflow-hidden border bg-card shadow-sm hover:shadow-lg transition-shadow"
+                >
+                  <img src={img.image_url} alt="Galeria Zaro" className="w-full aspect-video object-cover" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== GALERIA DE VÍDEOS ===== */}
+      {galleryVideos.length > 0 && (
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
+              className="text-center mb-12 max-w-xl mx-auto"
+            >
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Demonstração</span>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Veja o Zaro em ação</h2>
+              <p className="text-muted-foreground">Assista aos vídeos e descubra como podemos transformar seu negócio.</p>
+            </motion.div>
+            <div className={`grid gap-6 max-w-5xl mx-auto ${galleryVideos.length === 1 ? "max-w-3xl" : "sm:grid-cols-2"}`}>
+              {galleryVideos.map((v: any, i: number) => {
+                const embed = getEmbedUrl(v.video_url);
+                if (!embed) return null;
+                return (
+                  <motion.div key={v.id}
+                    initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    variants={fadeUp} transition={{ duration: 0.5, delay: i * 0.12 }}
+                    className="space-y-2"
+                  >
+                    <div className="rounded-xl overflow-hidden border shadow-lg aspect-video bg-muted">
+                      {embed.endsWith(".mp4") ? (
+                        <video src={embed} controls className="w-full h-full object-contain" />
+                      ) : (
+                        <iframe src={embed} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={v.titulo || "Vídeo"} />
+                      )}
+                    </div>
+                    {v.titulo && <p className="text-sm font-medium text-center">{v.titulo}</p>}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== EMPRESAS QUE CONFIAM NO ZARO ===== */}
+      {clientLogos.length > 0 && (
+        <section className="py-20 bg-muted/40">
+          <div className="container mx-auto px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
+              className="text-center mb-12 max-w-xl mx-auto"
+            >
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary mb-3 block">Nossos Clientes</span>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Empresas que confiam no Zaro</h2>
+              <p className="text-muted-foreground">Negócios de diversos segmentos já utilizam nossa plataforma.</p>
+            </motion.div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-5xl mx-auto items-center">
+              {clientLogos.map((logo: any, i: number) => (
+                <motion.div key={logo.id}
+                  initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  variants={fadeUp} transition={{ duration: 0.4, delay: i * 0.06 }}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border bg-card hover:shadow-md transition-shadow"
+                >
+                  <img src={logo.logo_url} alt={logo.empresa_nome} className="w-16 h-16 object-contain" />
+                  <p className="text-xs font-medium text-muted-foreground text-center truncate w-full">{logo.empresa_nome}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 pointer-events-none" />
         <div className="container mx-auto px-4 relative">
