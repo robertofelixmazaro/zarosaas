@@ -164,7 +164,7 @@ const ExploreMarketplace = () => {
                       <img
                         src={listing.logo_url}
                         alt={listing.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                        className="w-16 h-16 rounded-xl object-contain border-2 border-border bg-background p-1"
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-border">
