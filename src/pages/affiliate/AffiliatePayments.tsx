@@ -14,6 +14,21 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
+const MIN_WITHDRAWAL = 50;
+
+const getBrasiliaDate = () => {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc - 3 * 3600000);
+};
+
+const isWithdrawalTimeAllowed = () => {
+  const brasilia = getBrasiliaDate();
+  const day = brasilia.getDay();
+  const hour = brasilia.getHours();
+  return day >= 1 && day <= 5 && hour >= 9 && hour < 17;
+};
+
 const AffiliatePayments = () => {
   const { user } = useAuth();
   const [affiliate, setAffiliate] = useState<any>(null);
@@ -66,43 +81,46 @@ const AffiliatePayments = () => {
     load();
   }, [user]);
 
+  const hasPendingWithdrawal = withdrawals.some(
+    (w: any) => w.status === "pendente" || w.status === "em_processamento"
+  );
+
   const hasTodayWithdrawal = withdrawals.some((w: any) => {
-    const today = new Date().toISOString().slice(0, 10);
-    return w.created_at?.slice(0, 10) === today && w.status !== "recusado";
+    const brasilia = getBrasiliaDate();
+    const todayStr = `${brasilia.getFullYear()}-${String(brasilia.getMonth() + 1).padStart(2, "0")}-${String(brasilia.getDate()).padStart(2, "0")}`;
+    return w.created_at?.slice(0, 10) === todayStr && w.status !== "recusado";
   });
 
-  const getBrasiliaDate = () => {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    return new Date(utc - 3 * 3600000);
-  };
+  const canRequestWithdrawal = !hasPendingWithdrawal && !hasTodayWithdrawal && isWithdrawalTimeAllowed() && availableBalance >= MIN_WITHDRAWAL;
 
-  const isWithdrawalAllowed = () => {
-    const brasilia = getBrasiliaDate();
-    const day = brasilia.getDay(); // 0=Sun, 6=Sat
-    const hour = brasilia.getHours();
-    if (day === 0 || day === 6) return false;
-    if (hour < 9 || hour >= 17) return false;
-    return true;
+  const getBlockReason = (): string | null => {
+    if (!isWithdrawalTimeAllowed()) return "Saque disponível apenas de segunda a sexta-feira, das 09:00 às 17:00.";
+    if (hasPendingWithdrawal) return "Existe um saque em processamento. Aguarde a conclusão para solicitar outro.";
+    if (hasTodayWithdrawal) return "Você já realizou um saque hoje. Tente novamente amanhã.";
+    if (availableBalance < MIN_WITHDRAWAL) return `O valor mínimo para saque é de R$${MIN_WITHDRAWAL.toFixed(2)}.`;
+    return null;
   };
 
   const handleWithdraw = async () => {
     if (!affiliate) return;
-    if (!isWithdrawalAllowed()) {
-      toast.error("Saque disponível apenas de segunda a sexta-feira, das 09:00 às 17:00.");
+
+    const blockReason = getBlockReason();
+    if (blockReason) {
+      toast.error(blockReason);
       return;
     }
+
     const val = parseFloat(withdrawAmount.replace(",", "."));
     if (isNaN(val) || val <= 0) {
       toast.error("Informe um valor válido.");
       return;
     }
-    if (val > availableBalance) {
-      toast.error("Valor acima do saldo disponível.");
+    if (val < MIN_WITHDRAWAL) {
+      toast.error(`O valor mínimo para saque é de R$${MIN_WITHDRAWAL.toFixed(2)}.`);
       return;
     }
-    if (hasTodayWithdrawal) {
-      toast.error("Você já realizou uma solicitação de saque hoje. Aguarde até amanhã.");
+    if (val > availableBalance) {
+      toast.error("Valor acima do saldo disponível.");
       return;
     }
     if (!affiliate.pix_key) {
@@ -120,12 +138,15 @@ const AffiliatePayments = () => {
     } as any);
 
     if (error) {
-      toast.error("Erro ao solicitar saque.");
+      // Show server-side validation message if available
+      const msg = error.message?.includes("RAISE")
+        ? error.message.split("RAISE")[0]
+        : error.message || "Erro ao solicitar saque.";
+      toast.error(msg.includes("R$") || msg.includes("saque") || msg.includes("Saque") ? msg : "Erro ao solicitar saque.");
     } else {
       toast.success("Solicitação de saque enviada com sucesso!");
       setWithdrawModalOpen(false);
       setWithdrawAmount("");
-      // Reload withdrawals
       const { data: wds } = await supabase
         .from("affiliate_withdrawals" as any)
         .select("*")
@@ -148,8 +169,9 @@ const AffiliatePayments = () => {
   const withdrawalStatusBadge = (status: string) => {
     switch (status) {
       case "pendente": return <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 dark:bg-orange-950/30">Pendente</Badge>;
-      case "pago": return <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50 dark:bg-green-950/30">Pago</Badge>;
-      case "recusado": return <Badge variant="destructive">Recusado</Badge>;
+      case "em_processamento": return <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50 dark:bg-blue-950/30">Em Processamento</Badge>;
+      case "pago": return <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50 dark:bg-green-950/30">Concluído</Badge>;
+      case "recusado": return <Badge variant="destructive">Rejeitado</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -162,6 +184,8 @@ const AffiliatePayments = () => {
     { title: "Total Recebido", value: `R$ ${totalReceived.toFixed(2)}`, icon: CheckCircle, color: "text-blue-500" },
   ];
 
+  const blockReason = getBlockReason();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -170,7 +194,7 @@ const AffiliatePayments = () => {
           size="lg"
           className="gap-2"
           onClick={() => setWithdrawModalOpen(true)}
-          disabled={availableBalance <= 0}
+          disabled={!canRequestWithdrawal}
         >
           <DollarSign className="h-5 w-5" />
           Solicitar Saque
@@ -192,13 +216,23 @@ const AffiliatePayments = () => {
         ))}
       </div>
 
+      {/* Block Reason Alert */}
+      {blockReason && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{blockReason}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Rules Notice */}
       <Alert className="border-primary/20 bg-primary/5">
         <Info className="h-4 w-4 text-primary" />
         <AlertDescription className="space-y-1">
           <p>Os saques são processados manualmente e pagos via PIX em até 48 horas após a solicitação.</p>
           <p>É permitido apenas 1 solicitação de saque por dia.</p>
+          <p>Valor mínimo para saque: <strong>R$ {MIN_WITHDRAWAL.toFixed(2)}</strong>.</p>
           <p>Horário para solicitação de saques: <strong>segunda a sexta, das 09:00 às 17:00</strong> (horário de Brasília).</p>
+          <p>Não é possível solicitar novo saque enquanto houver um pedido pendente ou em processamento.</p>
         </AlertDescription>
       </Alert>
 
@@ -278,17 +312,9 @@ const AffiliatePayments = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Solicitar Saque</DialogTitle>
-            <DialogDescription>Informe o valor que deseja sacar.</DialogDescription>
+            <DialogDescription>Informe o valor que deseja sacar (mínimo R$ {MIN_WITHDRAWAL.toFixed(2)}).</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {hasTodayWithdrawal && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Você já realizou uma solicitação de saque hoje. Aguarde até amanhã para solicitar novamente.
-                </AlertDescription>
-              </Alert>
-            )}
             <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
               <span className="text-sm text-muted-foreground">Saldo disponível</span>
               <span className="font-bold text-lg">R$ {availableBalance.toFixed(2)}</span>
@@ -297,10 +323,9 @@ const AffiliatePayments = () => {
               <Label>Valor do saque (R$)</Label>
               <Input
                 type="text"
-                placeholder="0,00"
+                placeholder={`Mínimo ${MIN_WITHDRAWAL.toFixed(2)}`}
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                disabled={hasTodayWithdrawal}
               />
             </div>
             <div className="space-y-2">
@@ -316,7 +341,7 @@ const AffiliatePayments = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWithdrawModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleWithdraw} disabled={submitting || hasTodayWithdrawal || !affiliate?.pix_key}>
+            <Button onClick={handleWithdraw} disabled={submitting || !affiliate?.pix_key}>
               {submitting ? "Enviando..." : "Solicitar Saque"}
             </Button>
           </DialogFooter>
