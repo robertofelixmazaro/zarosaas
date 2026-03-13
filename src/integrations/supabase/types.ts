@@ -1289,6 +1289,7 @@ export type Database = {
           custom_domain: string | null
           id: string
           logo_url: string | null
+          marketplace_logo_url: string | null
           marketplace_visible: boolean
           mercadopago_access_token: string | null
           mercadopago_public_key: string | null
@@ -1313,6 +1314,7 @@ export type Database = {
           custom_domain?: string | null
           id?: string
           logo_url?: string | null
+          marketplace_logo_url?: string | null
           marketplace_visible?: boolean
           mercadopago_access_token?: string | null
           mercadopago_public_key?: string | null
@@ -1337,6 +1339,7 @@ export type Database = {
           custom_domain?: string | null
           id?: string
           logo_url?: string | null
+          marketplace_logo_url?: string | null
           marketplace_visible?: boolean
           mercadopago_access_token?: string | null
           mercadopago_public_key?: string | null
@@ -1448,6 +1451,7 @@ export type Database = {
           city: string
           id: string
           logo_url: string
+          marketplace_logo_url: string
           name: string
           niche: string
           slug: string
