@@ -126,3 +126,19 @@
     background-color: hsl(var(--muted-foreground));
   }
 }
+
+/* Platform appearance - dynamic colors from Super Admin */
+.platform-btn-primary {
+  background-color: var(--platform-primary-btn) !important;
+  border-color: var(--platform-primary-btn) !important;
+  color: #fff !important;
+}
+
+.platform-btn-secondary {
+  border-color: var(--platform-secondary-btn) !important;
+  color: var(--platform-secondary-btn) !important;
+}
+
+.platform-link {
+  color: var(--platform-link-color) !important;
+}
