@@ -1,5 +1,5 @@
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { AlertTriangle, Crown, Clock } from "lucide-react";
+import { AlertTriangle, Crown, Clock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,6 +15,93 @@ const PlanUpgradeBanner = () => {
   const billingPath = `${basePath}/admin/billing`;
 
   if (loading) return null;
+
+  // Billing overdue (after due date)
+  if (limits.billingOverdue && !limits.isTrial) {
+    return (
+      <div className="mx-4 mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-destructive">Seu plano está vencido</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Regularize para continuar utilizando o sistema.
+            </p>
+            <Button size="sm" className="mt-3" onClick={() => navigate(billingPath)}>
+              <CreditCard className="h-4 w-4 mr-2" /> Pagar agora
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Billing due today
+  if (limits.daysUntilDue !== null && limits.daysUntilDue === 0 && !limits.isTrial) {
+    return (
+      <div className="mx-4 mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-destructive">Seu plano vence hoje</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Efetue o pagamento para continuar utilizando o sistema.
+            </p>
+            <Button size="sm" className="mt-3" onClick={() => navigate(billingPath)}>
+              <CreditCard className="h-4 w-4 mr-2" /> Pagar agora
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Billing due in 2 days
+  if (limits.daysUntilDue !== null && limits.daysUntilDue > 0 && limits.daysUntilDue <= 2 && !limits.isTrial) {
+    return (
+      <div className="mx-4 mt-4 rounded-lg border border-warning/30 bg-warning/5 p-4">
+        <div className="flex items-start gap-3">
+          <Clock className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">
+              Seu plano vence em {limits.daysUntilDue} dia{limits.daysUntilDue !== 1 ? "s" : ""}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Evite interrupções realizando o pagamento.
+            </p>
+            <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate(billingPath)}>
+              <CreditCard className="h-4 w-4 mr-2" /> Pagar agora
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Billing due in 5 days
+  if (limits.daysUntilDue !== null && limits.daysUntilDue > 2 && limits.daysUntilDue <= 5 && !limits.isTrial) {
+    const dueDate = limits.currentPeriodEnd
+      ? format(new Date(limits.currentPeriodEnd), "dd/MM/yyyy", { locale: ptBR })
+      : "";
+    return (
+      <div className="mx-4 mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <div className="flex items-start gap-3">
+          <CreditCard className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">
+              Seu plano vence em {limits.daysUntilDue} dias
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Realize o pagamento até {dueDate} para evitar bloqueio.
+            </p>
+            <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate(billingPath)}>
+              <CreditCard className="h-4 w-4 mr-2" /> Pagar agora
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Cancelled subscription
   if (limits.subscriptionStatus === "cancelled") {

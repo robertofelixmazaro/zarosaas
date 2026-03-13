@@ -192,8 +192,64 @@ const PlatformTenants = () => {
       expiration_date: sub?.current_period_end
         ? new Date(sub.current_period_end).toISOString().split("T")[0]
         : defaultExpiration.toISOString().split("T")[0],
+      payment_method: (sub as any)?.payment_method || "online",
     });
     setPlanOpen(true);
+  };
+
+  const confirmManualPayment = async () => {
+    if (!planTenant) return;
+    setConfirmingPayment(true);
+    try {
+      const sub = subscriptions[planTenant.id];
+      const now = new Date();
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      if (sub) {
+        await supabase
+          .from("subscriptions" as any)
+          .update({
+            status: "active",
+            payment_method: "manual",
+            current_period_start: now.toISOString(),
+            current_period_end: periodEnd.toISOString(),
+            trial_ends_at: null,
+          } as any)
+          .eq("id", sub.id);
+      } else {
+        await supabase
+          .from("subscriptions" as any)
+          .insert({
+            tenant_id: planTenant.id,
+            plan_id: planForm.plan_id || planTenant.plan_id,
+            status: "active",
+            payment_method: "manual",
+            current_period_start: now.toISOString(),
+            current_period_end: periodEnd.toISOString(),
+          } as any);
+      }
+
+      // Record payment
+      await supabase
+        .from("payments" as any)
+        .insert({
+          tenant_id: planTenant.id,
+          plan_id: planForm.plan_id || planTenant.plan_id || sub?.plan_id,
+          amount: 0,
+          status: "approved",
+          payment_method: "manual",
+          transaction_id: `manual-${Date.now()}`,
+        } as any);
+
+      toast.success("Pagamento confirmado! Plano renovado por 30 dias.");
+      setPlanOpen(false);
+      fetchData();
+    } catch {
+      toast.error("Erro ao confirmar pagamento");
+    } finally {
+      setConfirmingPayment(false);
+    }
   };
 
   const savePlan = async () => {
