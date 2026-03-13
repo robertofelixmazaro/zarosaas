@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Eye, Pencil, Trash2, CreditCard } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash2, CreditCard, CheckCircle } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
