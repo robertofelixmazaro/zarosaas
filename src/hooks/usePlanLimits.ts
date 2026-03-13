@@ -137,6 +137,22 @@ export function usePlanLimits() {
     };
 
     load();
+
+    // Listen for realtime subscription changes to update UI immediately after payment
+    const channel = supabase
+      .channel(`plan-limits-${tenantId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions', filter: `tenant_id=eq.${tenantId}` },
+        () => {
+          load();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [tenantId]);
 
   const canAddStaff = () => limits.currentStaff < limits.maxStaff && !limits.subscriptionBlocked;
