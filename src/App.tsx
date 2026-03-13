@@ -53,6 +53,7 @@ const AffiliateLayout = lazy(() => import("./components/AffiliateLayout"));
 const AffiliateDashboard = lazy(() => import("./pages/affiliate/AffiliateDashboard"));
 const AffiliateSales = lazy(() => import("./pages/affiliate/AffiliateSales"));
 const AffiliateReferrals = lazy(() => import("./pages/affiliate/AffiliateReferrals"));
+const AffiliatePayments = lazy(() => import("./pages/affiliate/AffiliatePayments"));
 const ReferralRedirectPage = lazy(() => import("./pages/ReferralRedirectPage"));
 const PlatformAffiliates = lazy(() => import("./pages/platform/PlatformAffiliates"));
 const ComprarPage = lazy(() => import("./pages/ComprarPage"));
@@ -62,6 +63,7 @@ const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"))
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
 const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCenter"));
 const PlatformCommissions = lazy(() => import("./pages/platform/PlatformCommissions"));
+const PlatformWithdrawals = lazy(() => import("./pages/platform/PlatformWithdrawals"));
 const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 
@@ -208,6 +210,7 @@ const AppRoutes = () => {
         <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformLandingPage /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/help-center" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformHelpCenter /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/commissions" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformCommissions /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/withdrawals" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformWithdrawals /></SuperAdminLayout></ProtectedRoute>} />
         {/* Legacy super admin redirects */}
         <Route path="/admin-platform" element={<Navigate to="/superadmin/dashboard" replace />} />
         <Route path="/admin-platform/*" element={<Navigate to="/superadmin/dashboard" replace />} />
@@ -217,6 +220,7 @@ const AppRoutes = () => {
         <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
         <Route path="/affiliate/referrals" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateReferrals /></AffiliateLayout></ProtectedRoute>} />
         <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
+        <Route path="/affiliate/payments" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliatePayments /></AffiliateLayout></ProtectedRoute>} />
 
         {/* Staff */}
         <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />

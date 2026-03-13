@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Handshake, CreditCard, UserCog,
-  DollarSign, Globe, Settings, Menu, X, LogOut, Shield, HelpCircle, Percent
+  DollarSign, Globe, Settings, Menu, X, LogOut, Shield, HelpCircle, Percent, Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ const navItems = [
   { icon: Building2, label: "Lojas", path: "/superadmin/stores" },
   { icon: Handshake, label: "Afiliados", path: "/superadmin/affiliates" },
   { icon: Percent, label: "Comissões", path: "/superadmin/commissions" },
+  { icon: Wallet, label: "Saques", path: "/superadmin/withdrawals" },
   { icon: CreditCard, label: "Planos", path: "/superadmin/planos" },
   { icon: UserCog, label: "Usuários", path: "/superadmin/usuarios" },
   { icon: DollarSign, label: "Pagamentos", path: "/superadmin/pagamentos" },
