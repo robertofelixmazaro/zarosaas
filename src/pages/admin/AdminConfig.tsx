@@ -101,6 +101,9 @@ const AdminConfig = () => {
   const [marketplaceVisible, setMarketplaceVisible] = useState(false);
   const [city, setCity] = useState("");
   const [savingMarketplace, setSavingMarketplace] = useState(false);
+  const [marketplaceLogoFile, setMarketplaceLogoFile] = useState<File | null>(null);
+  const [marketplaceLogoPreview, setMarketplaceLogoPreview] = useState<string | null>(null);
+  const marketplaceLogoInputRef = useRef<HTMLInputElement>(null);
 
   // Custom domain
   const [customDomain, setCustomDomain] = useState("");
@@ -132,7 +135,7 @@ const AdminConfig = () => {
     // Load no-show settings and marketplace settings from tenant
     const { data: tenantData } = await supabase
       .from("tenants" as any)
-      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours, marketplace_visible, city, custom_domain")
+      .select("no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours, marketplace_visible, city, custom_domain, marketplace_logo_url")
       .eq("id", tenantId)
       .maybeSingle();
     if (tenantData) {
@@ -143,6 +146,7 @@ const AdminConfig = () => {
       setMarketplaceVisible((tenantData as any).marketplace_visible || false);
       setCity((tenantData as any).city || "");
       setCustomDomain((tenantData as any).custom_domain || "");
+      if ((tenantData as any).marketplace_logo_url) setMarketplaceLogoPreview((tenantData as any).marketplace_logo_url);
     }
 
     setLoading(false);
@@ -563,15 +567,68 @@ const AdminConfig = () => {
             <span className="text-sm font-medium">Mostrar empresa no marketplace</span>
           </div>
           {marketplaceVisible && (
-            <div>
-              <label className="text-sm font-medium mb-1 block">Cidade</label>
-              <Input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Ex: São Paulo, SP"
-                className="max-w-xs"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Cidade</label>
+                <Input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Ex: São Paulo, SP"
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Logo do Marketplace</label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Envie uma logo específica para o marketplace. Se não enviar, será usada a logo principal da empresa.
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={marketplaceLogoInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+                    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem deve ter no máximo 5MB"); return; }
+                    setMarketplaceLogoFile(file);
+                    setMarketplaceLogoPreview(URL.createObjectURL(file));
+                  }}
+                />
+                <div className="flex items-center gap-3">
+                  {marketplaceLogoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={marketplaceLogoPreview}
+                        alt="Logo marketplace"
+                        className="w-16 h-16 rounded-xl object-contain border-2 border-border bg-white p-1"
+                      />
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                        onClick={() => { setMarketplaceLogoFile(null); setMarketplaceLogoPreview(null); }}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => marketplaceLogoInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    {marketplaceLogoPreview ? "Trocar" : "Enviar logo"}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
           <Button
@@ -581,14 +638,38 @@ const AdminConfig = () => {
             onClick={async () => {
               setSavingMarketplace(true);
               try {
+                let uploadedLogoUrl: string | null = null;
+                // Upload marketplace logo if new file selected
+                if (marketplaceLogoFile && tenantId) {
+                  const ext = marketplaceLogoFile.name.split(".").pop() || "png";
+                  const path = `${tenantId}/marketplace-logo.${ext}`;
+                  const { error: uploadErr } = await supabase.storage
+                    .from("tenant-assets")
+                    .upload(path, marketplaceLogoFile, { upsert: true });
+                  if (uploadErr) throw uploadErr;
+                  const { data: urlData } = supabase.storage.from("tenant-assets").getPublicUrl(path);
+                  uploadedLogoUrl = urlData.publicUrl;
+                }
+                const updatePayload: any = {
+                  marketplace_visible: marketplaceVisible,
+                  city: city || null,
+                };
+                if (uploadedLogoUrl) {
+                  updatePayload.marketplace_logo_url = uploadedLogoUrl;
+                }
+                // If user removed the marketplace logo (preview is null and no file)
+                if (!marketplaceLogoPreview && !marketplaceLogoFile) {
+                  updatePayload.marketplace_logo_url = null;
+                }
                 const { error } = await supabase
                   .from("tenants" as any)
-                  .update({
-                    marketplace_visible: marketplaceVisible,
-                    city: city || null,
-                  } as any)
+                  .update(updatePayload)
                   .eq("id", tenantId);
                 if (error) throw error;
+                if (uploadedLogoUrl) {
+                  setMarketplaceLogoPreview(uploadedLogoUrl);
+                  setMarketplaceLogoFile(null);
+                }
                 toast.success("Configurações do marketplace salvas!");
               } catch (err: any) {
                 toast.error("Erro ao salvar", { description: err.message });
