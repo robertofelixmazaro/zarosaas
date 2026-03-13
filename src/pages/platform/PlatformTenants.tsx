@@ -459,6 +459,29 @@ const PlatformTenants = () => {
                 onChange={(e) => setPlanForm({ ...planForm, expiration_date: e.target.value })}
               />
             </div>
+            <div className="grid gap-2">
+              <Label>Método de Pagamento</Label>
+              <Select value={planForm.payment_method} onValueChange={(v) => setPlanForm({ ...planForm, payment_method: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">Online (Mercado Pago)</SelectItem>
+                  <SelectItem value="manual">Manual (PIX / Dinheiro)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="w-full gap-2 text-green-600 border-green-600 hover:bg-green-50"
+              onClick={confirmManualPayment}
+              disabled={confirmingPayment || !planForm.plan_id}
+            >
+              <CheckCircle className="h-4 w-4" />
+              {confirmingPayment ? "Confirmando..." : "Confirmar Pagamento Manual (+30 dias)"}
+            </Button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPlanOpen(false)}>Cancelar</Button>
