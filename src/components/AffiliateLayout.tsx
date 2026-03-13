@@ -10,6 +10,7 @@ const navItems = [
   { icon: Link2, label: "Minhas Indicações", path: "/affiliate/referrals" },
   { icon: ShoppingCart, label: "Vendas", path: "/affiliate/sales" },
   { icon: DollarSign, label: "Pagamentos", path: "/affiliate/payments" },
+  { icon: Search, label: "Buscar Clientes", path: "/affiliate/search" },
 ];
 
 const AffiliateLayout = ({ children }: { children: React.ReactNode }) => {
