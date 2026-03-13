@@ -588,7 +588,15 @@ const LandingPage = () => {
               {landingContent?.landing_cta_subtitle || "Crie sua página de agendamento e comece a receber clientes hoje mesmo."}
             </p>
             <Link to="/cadastrar">
-              <Button size="lg" className="text-base px-10 gap-2">
+              <Button
+                size="lg"
+                className="text-base px-10 gap-2"
+                style={landingContent?.appearance_primary_button ? {
+                  backgroundColor: landingContent.appearance_primary_button,
+                  borderColor: landingContent.appearance_primary_button,
+                  color: '#fff',
+                } : undefined}
+              >
                 Criar minha agenda agora <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
