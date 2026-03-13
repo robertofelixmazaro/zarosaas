@@ -71,16 +71,25 @@ const AffiliatePayments = () => {
     return w.created_at?.slice(0, 10) === today && w.status !== "recusado";
   });
 
+  const getBrasiliaDate = () => {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utc - 3 * 3600000);
+  };
+
+  const isWithdrawalAllowed = () => {
+    const brasilia = getBrasiliaDate();
+    const day = brasilia.getDay(); // 0=Sun, 6=Sat
+    const hour = brasilia.getHours();
+    if (day === 0 || day === 6) return false;
+    if (hour < 9 || hour >= 17) return false;
+    return true;
+  };
+
   const handleWithdraw = async () => {
     if (!affiliate) return;
-    const now = new Date();
-    const currentHour = now.getHours();
-    if (currentHour < 9) {
-      toast.error("Os saques podem ser solicitados apenas entre 09:00 e 17:00.");
-      return;
-    }
-    if (currentHour >= 17) {
-      toast.error("O horário de solicitação de saque encerrou às 17:00. Tente novamente no próximo dia.");
+    if (!isWithdrawalAllowed()) {
+      toast.error("Saque disponível apenas de segunda a sexta-feira, das 09:00 às 17:00.");
       return;
     }
     const val = parseFloat(withdrawAmount.replace(",", "."));
