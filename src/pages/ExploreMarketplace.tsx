@@ -161,14 +161,14 @@ const ExploreMarketplace = () => {
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4 mb-4">
-                    {listing.logo_url ? (
+                    {(listing.marketplace_logo_url || listing.logo_url) ? (
                       <img
-                        src={listing.logo_url}
+                        src={listing.marketplace_logo_url || listing.logo_url!}
                         alt={listing.name}
                         className="w-16 h-16 rounded-xl object-contain border-2 border-border bg-background p-1"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border-2 border-border">
+                      <div className="w-16 h-16 rounded-xl bg-background flex items-center justify-center border-2 border-border">
                         <Store className="h-7 w-7 text-primary" />
                       </div>
                     )}
