@@ -19,6 +19,9 @@ export interface PlanLimits {
   currentServices: number;
   currentMonthAppointments: number;
   currentClients: number;
+  currentPeriodEnd: string | null;
+  daysUntilDue: number | null;
+  billingOverdue: boolean;
 }
 
 const defaultLimits: PlanLimits = {
