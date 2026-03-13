@@ -233,18 +233,25 @@ const AppRoutes = () => {
   );
 };
 
+const PlatformAppearanceLoader = ({ children }: { children: React.ReactNode }) => {
+  usePlatformAppearance();
+  return <>{children}</>;
+};
+
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <PlatformAppearanceLoader>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </PlatformAppearanceLoader>
     </QueryClientProvider>
   </ThemeProvider>
 );
