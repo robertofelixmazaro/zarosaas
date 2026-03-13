@@ -73,6 +73,16 @@ const AffiliatePayments = () => {
 
   const handleWithdraw = async () => {
     if (!affiliate) return;
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (currentHour < 9) {
+      toast.error("Os saques podem ser solicitados apenas entre 09:00 e 17:00.");
+      return;
+    }
+    if (currentHour >= 17) {
+      toast.error("O horário de solicitação de saque encerrou às 17:00. Tente novamente no próximo dia.");
+      return;
+    }
     const val = parseFloat(withdrawAmount.replace(",", "."));
     if (isNaN(val) || val <= 0) {
       toast.error("Informe um valor válido.");
@@ -179,6 +189,7 @@ const AffiliatePayments = () => {
         <AlertDescription className="space-y-1">
           <p>Os saques são processados manualmente e pagos via PIX em até 48 horas após a solicitação.</p>
           <p>É permitido apenas 1 solicitação de saque por dia.</p>
+          <p>Horário para solicitação de saques: <strong>09:00 às 17:00</strong>.</p>
         </AlertDescription>
       </Alert>
 
