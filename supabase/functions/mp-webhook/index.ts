@@ -241,8 +241,10 @@ async function processNewTenant(
     tenant_id: tenant.id,
     plan_id: refData.plan_id,
     status: "active",
+    payment_method: "online",
     current_period_start: now.toISOString(),
     current_period_end: periodEnd.toISOString(),
+    trial_ends_at: null,
   });
 
   await adminClient.from("site_settings").insert([

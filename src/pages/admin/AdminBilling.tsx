@@ -48,6 +48,22 @@ const AdminBilling = () => {
   useEffect(() => {
     if (!tenantId) return;
     loadData();
+
+    // Listen for realtime subscription changes to update UI immediately after payment
+    const channel = supabase
+      .channel('billing-subscription-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions', filter: `tenant_id=eq.${tenantId}` },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [tenantId]);
 
   const loadData = async () => {
