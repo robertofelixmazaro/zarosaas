@@ -73,6 +73,16 @@ const AffiliatePayments = () => {
 
   const handleWithdraw = async () => {
     if (!affiliate) return;
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (currentHour < 9) {
+      toast.error("Os saques podem ser solicitados apenas entre 09:00 e 17:00.");
+      return;
+    }
+    if (currentHour >= 17) {
+      toast.error("O horário de solicitação de saque encerrou às 17:00. Tente novamente no próximo dia.");
+      return;
+    }
     const val = parseFloat(withdrawAmount.replace(",", "."));
     if (isNaN(val) || val <= 0) {
       toast.error("Informe um valor válido.");
