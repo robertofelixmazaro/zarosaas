@@ -254,7 +254,20 @@ async function processNewTenant(
     { key: "shop_name", value: refData.client_name || "Minha Loja", tenant_id: tenant.id },
   ]);
 
-  // Handle affiliate commission
+  // Handle affiliate commission for new tenant
+  await createAffiliateCommission(adminClient, tenant.id, refData, payment);
+}
+
+async function createAffiliateCommission(
+  adminClient: ReturnType<typeof createClient>,
+  tenantId: string,
+  refData: { plan_id: string; client_email: string; client_name: string; ref_code: string },
+  payment: any
+) {
+  // Try ref_code from payment first, then fall back to tenant's referred_by_affiliate_id
+  let affiliateId: string | null = null;
+  let commissionPercent = 10;
+
   if (refData.ref_code) {
     const { data: affiliate } = await adminClient
       .from("affiliates")
@@ -263,33 +276,67 @@ async function processNewTenant(
       .maybeSingle();
 
     if (affiliate) {
-      const commissionAmount = (payment.transaction_amount * affiliate.commission_percent) / 100;
+      affiliateId = affiliate.id;
+      commissionPercent = affiliate.commission_percent;
+    }
+  }
 
-      const { data: sale } = await adminClient
-        .from("affiliate_sales")
-        .insert({
-          affiliate_id: affiliate.id,
-          client_email: refData.client_email,
-          client_name: refData.client_name || null,
-          store_name: refData.client_name || "Minha Loja",
-          payment_status: "paid",
-          access_released: true,
-          created_user_id: newUserId,
-          amount: payment.transaction_amount,
-          commission_amount: commissionAmount,
-          plan_id: refData.plan_id,
-        })
-        .select("id")
-        .single();
+  // Fall back to tenant's referred_by_affiliate_id
+  if (!affiliateId) {
+    const { data: tenantData } = await adminClient
+      .from("tenants")
+      .select("referred_by_affiliate_id")
+      .eq("id", tenantId)
+      .maybeSingle();
 
-      if (sale) {
-        await adminClient.from("affiliate_commissions").insert({
-          affiliate_id: affiliate.id,
-          sale_id: sale.id,
-          amount: commissionAmount,
-          status: "pendente",
-        });
+    if (tenantData?.referred_by_affiliate_id) {
+      const { data: affiliate } = await adminClient
+        .from("affiliates")
+        .select("id, commission_percent")
+        .eq("id", tenantData.referred_by_affiliate_id)
+        .maybeSingle();
+
+      if (affiliate) {
+        affiliateId = affiliate.id;
+        commissionPercent = affiliate.commission_percent;
       }
     }
+  }
+
+  if (!affiliateId) return;
+
+  const commissionAmount = (payment.transaction_amount * commissionPercent) / 100;
+
+  // Get tenant name for display
+  const { data: tenantInfo } = await adminClient
+    .from("tenants")
+    .select("name")
+    .eq("id", tenantId)
+    .maybeSingle();
+
+  const { data: sale } = await adminClient
+    .from("affiliate_sales")
+    .insert({
+      affiliate_id: affiliateId,
+      client_email: refData.client_email,
+      client_name: refData.client_name || null,
+      store_name: tenantInfo?.name || "Loja",
+      payment_status: "paid",
+      access_released: true,
+      amount: payment.transaction_amount,
+      commission_amount: commissionAmount,
+      plan_id: refData.plan_id,
+    })
+    .select("id")
+    .single();
+
+  if (sale) {
+    await adminClient.from("affiliate_commissions").insert({
+      affiliate_id: affiliateId,
+      sale_id: sale.id,
+      amount: commissionAmount,
+      status: "pendente",
+    });
+    console.log("Affiliate commission created:", affiliateId, "amount:", commissionAmount);
   }
 }
