@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Save, ShieldAlert, Mail, Send } from "lucide-react";
+import { ArrowLeft, Save, ShieldAlert, Mail, Send, Palette } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { toast } from "sonner";
 
@@ -42,11 +42,34 @@ const NO_SHOW_LABELS: Record<string, string> = {
   no_show_max_deposit: "Valor máximo de garantia (R$)",
 };
 
+const APPEARANCE_KEYS = [
+  "appearance_primary_button",
+  "appearance_secondary_button",
+  "appearance_link_color",
+  "appearance_main_color",
+];
+
+const APPEARANCE_LABELS: Record<string, string> = {
+  appearance_primary_button: "Cor do botão primário",
+  appearance_secondary_button: "Cor do botão secundário",
+  appearance_link_color: "Cor dos links",
+  appearance_main_color: "Cor principal do sistema",
+};
+
+const APPEARANCE_DEFAULTS: Record<string, string> = {
+  appearance_primary_button: "#7c3aed",
+  appearance_secondary_button: "#6b7280",
+  appearance_link_color: "#7c3aed",
+  appearance_main_color: "#7c3aed",
+};
+
 const PlatformSettings = () => {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingNoShow, setSavingNoShow] = useState(false);
+  const [savingAppearance, setSavingAppearance] = useState(false);
+  const [appearanceSettings, setAppearanceSettings] = useState<Record<string, string>>({ ...APPEARANCE_DEFAULTS });
 
   // No-show state
   const [noShowSettings, setNoShowSettings] = useState<Record<string, string>>({
@@ -65,7 +88,7 @@ const PlatformSettings = () => {
       .order("key");
     if (error) { toast.error("Erro ao carregar configurações"); return; }
     const all = (data as any) || [];
-    const regular = all.filter((s: Setting) => !NO_SHOW_KEYS.includes(s.key));
+    const regular = all.filter((s: Setting) => !NO_SHOW_KEYS.includes(s.key) && !APPEARANCE_KEYS.includes(s.key));
     setSettings(regular);
 
     // Load no-show settings
@@ -74,6 +97,14 @@ const PlatformSettings = () => {
       if (NO_SHOW_KEYS.includes(s.key)) nsMap[s.key] = s.value;
     });
     setNoShowSettings(nsMap);
+
+    // Load appearance settings
+    const apMap: Record<string, string> = { ...APPEARANCE_DEFAULTS };
+    all.forEach((s: Setting) => {
+      if (APPEARANCE_KEYS.includes(s.key)) apMap[s.key] = s.value;
+    });
+    setAppearanceSettings(apMap);
+
     setLoading(false);
   };
 
@@ -118,6 +149,31 @@ const PlatformSettings = () => {
       toast.error("Erro ao salvar", { description: err.message });
     }
     setSavingNoShow(false);
+  };
+
+  const handleSaveAppearance = async () => {
+    setSavingAppearance(true);
+    try {
+      for (const [key, value] of Object.entries(appearanceSettings)) {
+        const { data: existing } = await supabase
+          .from("platform_settings" as any)
+          .select("id")
+          .eq("key", key)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from("platform_settings" as any)
+            .update({ value, updated_at: new Date().toISOString() } as any)
+            .eq("id", (existing as any).id);
+        } else {
+          await supabase.from("platform_settings" as any)
+            .insert({ key, value } as any);
+        }
+      }
+      toast.success("Aparência salva com sucesso!");
+    } catch (err: any) {
+      toast.error("Erro ao salvar", { description: err.message });
+    }
+    setSavingAppearance(false);
   };
 
   const noShowEnabled = noShowSettings.no_show_global_enabled === "true";
@@ -243,6 +299,51 @@ const PlatformSettings = () => {
               <Button onClick={handleSaveNoShow} disabled={savingNoShow} className="w-full">
                 <Save className="h-4 w-4 mr-2" />
                 {savingNoShow ? "Salvando..." : "Salvar Política de No-Show"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Aparência da Plataforma */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Aparência da Plataforma
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Configure as cores dos botões e links exibidos na landing page e áreas públicas da plataforma.
+            </p>
+            <div className="space-y-4">
+              {APPEARANCE_KEYS.map((key) => (
+                <div key={key} className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <Label>{APPEARANCE_LABELS[key]}</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="color"
+                        value={appearanceSettings[key] || APPEARANCE_DEFAULTS[key]}
+                        onChange={e => setAppearanceSettings(prev => ({ ...prev, [key]: e.target.value }))}
+                        className="w-10 h-10 rounded border border-border cursor-pointer"
+                      />
+                      <Input
+                        value={appearanceSettings[key] || APPEARANCE_DEFAULTS[key]}
+                        onChange={e => setAppearanceSettings(prev => ({ ...prev, [key]: e.target.value }))}
+                        placeholder="#000000"
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="w-20 h-10 rounded-md border border-border"
+                    style={{ backgroundColor: appearanceSettings[key] || APPEARANCE_DEFAULTS[key] }}
+                  />
+                </div>
+              ))}
+              <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-full">
+                <Save className="h-4 w-4 mr-2" />
+                {savingAppearance ? "Salvando..." : "Salvar Aparência"}
               </Button>
             </div>
           </CardContent>

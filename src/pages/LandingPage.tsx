@@ -82,6 +82,10 @@ const LandingPage = () => {
           "landing_cta_title",
           "landing_cta_subtitle",
           "landing_hero_image_url",
+          "appearance_primary_button",
+          "appearance_secondary_button",
+          "appearance_link_color",
+          "appearance_main_color",
         ]);
       const map: Record<string, string> = {};
       data?.forEach((row) => { map[row.key] = row.value; });
@@ -135,7 +139,15 @@ const LandingPage = () => {
   const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div
+      className="min-h-screen bg-background overflow-x-hidden"
+      style={{
+        '--platform-primary-btn': landingContent?.appearance_primary_button || '',
+        '--platform-secondary-btn': landingContent?.appearance_secondary_button || '',
+        '--platform-link-color': landingContent?.appearance_link_color || '',
+        '--platform-main-color': landingContent?.appearance_main_color || '',
+      } as React.CSSProperties}
+    >
       {/* Navbar */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -181,12 +193,28 @@ const LandingPage = () => {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/cadastrar">
-                    <Button size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="text-base px-8 gap-2 w-full sm:w-auto"
+                      style={landingContent?.appearance_primary_button ? {
+                        backgroundColor: landingContent.appearance_primary_button,
+                        borderColor: landingContent.appearance_primary_button,
+                        color: '#fff',
+                      } : undefined}
+                    >
                       Começar agora <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                   <Link to="/explorar">
-                    <Button variant="outline" size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-base px-8 gap-2 w-full sm:w-auto"
+                      style={landingContent?.appearance_secondary_button ? {
+                        borderColor: landingContent.appearance_secondary_button,
+                        color: landingContent.appearance_secondary_button,
+                      } : undefined}
+                    >
                       <Search className="h-4 w-4" /> Explorar Marketplace
                     </Button>
                   </Link>
@@ -560,7 +588,15 @@ const LandingPage = () => {
               {landingContent?.landing_cta_subtitle || "Crie sua página de agendamento e comece a receber clientes hoje mesmo."}
             </p>
             <Link to="/cadastrar">
-              <Button size="lg" className="text-base px-10 gap-2">
+              <Button
+                size="lg"
+                className="text-base px-10 gap-2"
+                style={landingContent?.appearance_primary_button ? {
+                  backgroundColor: landingContent.appearance_primary_button,
+                  borderColor: landingContent.appearance_primary_button,
+                  color: '#fff',
+                } : undefined}
+              >
                 Criar minha agenda agora <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
