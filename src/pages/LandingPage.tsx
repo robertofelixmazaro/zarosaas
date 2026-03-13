@@ -82,10 +82,6 @@ const LandingPage = () => {
           "landing_cta_title",
           "landing_cta_subtitle",
           "landing_hero_image_url",
-          "appearance_primary_button",
-          "appearance_secondary_button",
-          "appearance_link_color",
-          "appearance_main_color",
         ]);
       const map: Record<string, string> = {};
       data?.forEach((row) => { map[row.key] = row.value; });
