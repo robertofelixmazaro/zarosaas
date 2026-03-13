@@ -146,6 +146,7 @@ const AdminConfig = () => {
       setMarketplaceVisible((tenantData as any).marketplace_visible || false);
       setCity((tenantData as any).city || "");
       setCustomDomain((tenantData as any).custom_domain || "");
+      if ((tenantData as any).marketplace_logo_url) setMarketplaceLogoPreview((tenantData as any).marketplace_logo_url);
     }
 
     setLoading(false);
