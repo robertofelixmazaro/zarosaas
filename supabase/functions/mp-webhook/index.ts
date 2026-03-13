@@ -168,6 +168,9 @@ async function processUpgrade(
     transaction_id: String(paymentId),
   });
 
+  // 4. Handle affiliate commission for upgrades
+  await createAffiliateCommission(adminClient, tenantId, refData, payment);
+
   console.log("Upgrade processed for tenant:", tenantId, "to plan:", refData.plan_id);
 }
 
