@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("MP Webhook received:", JSON.stringify(body));
 
-    // Mercado Pago sends notifications with type "payment"
     if (body.type !== "payment" && body.action !== "payment.created" && body.action !== "payment.updated") {
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
@@ -35,18 +34,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Try to fetch payment with global token first, then tenant-specific if needed
-    let mpAccessToken = globalMpAccessToken;
+    const mpAccessToken = globalMpAccessToken;
 
-    // Fetch payment details from Mercado Pago
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${mpAccessToken}` },
     });
-    let payment = await mpRes.json();
+    const payment = await mpRes.json();
 
-    // If global token fails, try to resolve tenant token from external_reference
     if (!mpRes.ok && mpRes.status === 401) {
-      // We can't know which tenant yet without the payment data
       console.log("Global MP token failed, payment may belong to a tenant-specific account");
     }
 
@@ -59,8 +54,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Parse external_reference
-    let refData: { plan_id: string; client_email: string; client_name: string; ref_code: string };
+    let refData: { plan_id: string; client_email: string; client_name: string; ref_code: string; tenant_id?: string };
     try {
       refData = JSON.parse(payment.external_reference);
     } catch {
@@ -73,7 +67,7 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check if this payment was already processed (idempotency)
+    // Idempotency check
     const { data: existingPayment } = await adminClient
       .from("payments")
       .select("id")
@@ -88,142 +82,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate password
-    const randomPassword = crypto.randomUUID().slice(0, 12);
-
-    // 1. Create auth user
-    const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
-      email: refData.client_email,
-      password: randomPassword,
-      email_confirm: true,
-      user_metadata: { name: refData.client_name || refData.client_email },
-    });
-
-    if (createErr) {
-      console.error("Error creating user:", createErr.message);
-      // User might already exist - that's ok
-      if (!createErr.message?.includes("already been registered")) {
-        return new Response(JSON.stringify({ error: "Erro ao criar usuário" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // === UPGRADE FLOW: existing tenant ===
+    if (refData.tenant_id) {
+      console.log("Processing UPGRADE for tenant:", refData.tenant_id);
+      await processUpgrade(adminClient, refData, payment, paymentId);
+      return new Response(JSON.stringify({ ok: true, processed: true, type: "upgrade" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const newUserId = newUser?.user?.id;
-
-    if (newUserId) {
-      // 2. Create store slug
-      const slug = (refData.client_name || "loja")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-        + "-" + Date.now().toString(36);
-
-      // 3. Create tenant
-      const { data: tenant, error: tenantErr } = await adminClient
-        .from("tenants")
-        .insert({
-          name: refData.client_name || "Minha Loja",
-          slug,
-          owner_user_id: newUserId,
-          plan_id: refData.plan_id,
-        })
-        .select("id")
-        .single();
-
-      if (tenantErr) {
-        console.error("Error creating tenant:", tenantErr.message);
-      } else {
-        // 4. Update profile
-        await adminClient
-          .from("profiles")
-          .update({ tenant_id: tenant.id })
-          .eq("auth_id", newUserId);
-
-        // 5. Update role
-        await adminClient
-          .from("user_roles")
-          .update({ role: "admin", tenant_id: tenant.id })
-          .eq("user_id", newUserId);
-
-        // 6. Record payment
-        await adminClient.from("payments").insert({
-          tenant_id: tenant.id,
-          plan_id: refData.plan_id,
-          amount: payment.transaction_amount,
-          status: "approved",
-          payment_method: payment.payment_method_id || "mercadopago",
-          transaction_id: String(paymentId),
-        });
-
-        // 7. Create subscription
-        const now = new Date();
-        const periodEnd = new Date(now);
-        periodEnd.setMonth(periodEnd.getMonth() + 1);
-        
-        await adminClient.from("subscriptions").insert({
-          tenant_id: tenant.id,
-          plan_id: refData.plan_id,
-          status: "active",
-          current_period_start: now.toISOString(),
-          current_period_end: periodEnd.toISOString(),
-        });
-
-        // 8. Initialize site settings
-        await adminClient.from("site_settings").insert([
-          { key: "shop_name", value: refData.client_name || "Minha Loja", tenant_id: tenant.id },
-        ]);
-      }
-
-      // 9. Handle affiliate commission
-      if (refData.ref_code) {
-        const { data: affiliate } = await adminClient
-          .from("affiliates")
-          .select("id, commission_percent")
-          .eq("ref_code", refData.ref_code)
-          .maybeSingle();
-
-        if (affiliate) {
-          const commissionAmount = (payment.transaction_amount * affiliate.commission_percent) / 100;
-
-          // Record sale
-          const { data: sale } = await adminClient
-            .from("affiliate_sales")
-            .insert({
-              affiliate_id: affiliate.id,
-              client_email: refData.client_email,
-              client_name: refData.client_name || null,
-              store_name: refData.client_name || "Minha Loja",
-              payment_status: "paid",
-              access_released: true,
-              created_user_id: newUserId,
-              amount: payment.transaction_amount,
-              commission_amount: commissionAmount,
-              plan_id: refData.plan_id,
-            })
-            .select("id")
-            .single();
-
-          // Record commission
-          if (sale) {
-            await adminClient
-              .from("affiliate_commissions")
-              .insert({
-                affiliate_id: affiliate.id,
-                sale_id: sale.id,
-                amount: commissionAmount,
-                status: "pendente",
-              });
-          }
-        }
-      }
-    }
+    // === NEW TENANT FLOW ===
+    console.log("Processing NEW TENANT creation");
+    await processNewTenant(adminClient, refData, payment, paymentId);
 
     console.log("Payment processed successfully:", paymentId);
-    return new Response(JSON.stringify({ ok: true, processed: true }), {
+    return new Response(JSON.stringify({ ok: true, processed: true, type: "new_tenant" }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -235,3 +109,182 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+async function processUpgrade(
+  adminClient: ReturnType<typeof createClient>,
+  refData: { plan_id: string; client_email: string; client_name: string; ref_code: string; tenant_id?: string },
+  payment: any,
+  paymentId: string | number
+) {
+  const tenantId = refData.tenant_id!;
+
+  // 1. Update tenant plan_id
+  await adminClient
+    .from("tenants")
+    .update({ plan_id: refData.plan_id })
+    .eq("id", tenantId);
+
+  // 2. Upsert subscription (update existing or insert new)
+  const { data: existingSub } = await adminClient
+    .from("subscriptions")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+
+  const now = new Date();
+  const periodEnd = new Date(now);
+  periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+  if (existingSub) {
+    await adminClient
+      .from("subscriptions")
+      .update({
+        plan_id: refData.plan_id,
+        status: "active",
+        payment_method: "online",
+        current_period_start: now.toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        trial_ends_at: null,
+      })
+      .eq("id", existingSub.id);
+  } else {
+    await adminClient.from("subscriptions").insert({
+      tenant_id: tenantId,
+      plan_id: refData.plan_id,
+      status: "active",
+      payment_method: "online",
+      current_period_start: now.toISOString(),
+      current_period_end: periodEnd.toISOString(),
+    });
+  }
+
+  // 3. Record payment
+  await adminClient.from("payments").insert({
+    tenant_id: tenantId,
+    plan_id: refData.plan_id,
+    amount: payment.transaction_amount,
+    status: "approved",
+    payment_method: payment.payment_method_id || "mercadopago",
+    transaction_id: String(paymentId),
+  });
+
+  console.log("Upgrade processed for tenant:", tenantId, "to plan:", refData.plan_id);
+}
+
+async function processNewTenant(
+  adminClient: ReturnType<typeof createClient>,
+  refData: { plan_id: string; client_email: string; client_name: string; ref_code: string },
+  payment: any,
+  paymentId: string | number
+) {
+  const randomPassword = crypto.randomUUID().slice(0, 12);
+
+  const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
+    email: refData.client_email,
+    password: randomPassword,
+    email_confirm: true,
+    user_metadata: { name: refData.client_name || refData.client_email },
+  });
+
+  if (createErr) {
+    console.error("Error creating user:", createErr.message);
+    if (!createErr.message?.includes("already been registered")) {
+      throw new Error("Erro ao criar usuário");
+    }
+  }
+
+  const newUserId = newUser?.user?.id;
+  if (!newUserId) return;
+
+  const slug = (refData.client_name || "loja")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    + "-" + Date.now().toString(36);
+
+  const { data: tenant, error: tenantErr } = await adminClient
+    .from("tenants")
+    .insert({
+      name: refData.client_name || "Minha Loja",
+      slug,
+      owner_user_id: newUserId,
+      plan_id: refData.plan_id,
+    })
+    .select("id")
+    .single();
+
+  if (tenantErr) {
+    console.error("Error creating tenant:", tenantErr.message);
+    return;
+  }
+
+  // Update profile, role, payment, subscription, settings
+  await adminClient.from("profiles").update({ tenant_id: tenant.id }).eq("auth_id", newUserId);
+  await adminClient.from("user_roles").update({ role: "admin", tenant_id: tenant.id }).eq("user_id", newUserId);
+
+  await adminClient.from("payments").insert({
+    tenant_id: tenant.id,
+    plan_id: refData.plan_id,
+    amount: payment.transaction_amount,
+    status: "approved",
+    payment_method: payment.payment_method_id || "mercadopago",
+    transaction_id: String(paymentId),
+  });
+
+  const now = new Date();
+  const periodEnd = new Date(now);
+  periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+  await adminClient.from("subscriptions").insert({
+    tenant_id: tenant.id,
+    plan_id: refData.plan_id,
+    status: "active",
+    current_period_start: now.toISOString(),
+    current_period_end: periodEnd.toISOString(),
+  });
+
+  await adminClient.from("site_settings").insert([
+    { key: "shop_name", value: refData.client_name || "Minha Loja", tenant_id: tenant.id },
+  ]);
+
+  // Handle affiliate commission
+  if (refData.ref_code) {
+    const { data: affiliate } = await adminClient
+      .from("affiliates")
+      .select("id, commission_percent")
+      .eq("ref_code", refData.ref_code)
+      .maybeSingle();
+
+    if (affiliate) {
+      const commissionAmount = (payment.transaction_amount * affiliate.commission_percent) / 100;
+
+      const { data: sale } = await adminClient
+        .from("affiliate_sales")
+        .insert({
+          affiliate_id: affiliate.id,
+          client_email: refData.client_email,
+          client_name: refData.client_name || null,
+          store_name: refData.client_name || "Minha Loja",
+          payment_status: "paid",
+          access_released: true,
+          created_user_id: newUserId,
+          amount: payment.transaction_amount,
+          commission_amount: commissionAmount,
+          plan_id: refData.plan_id,
+        })
+        .select("id")
+        .single();
+
+      if (sale) {
+        await adminClient.from("affiliate_commissions").insert({
+          affiliate_id: affiliate.id,
+          sale_id: sale.id,
+          amount: commissionAmount,
+          status: "pendente",
+        });
+      }
+    }
+  }
+}
