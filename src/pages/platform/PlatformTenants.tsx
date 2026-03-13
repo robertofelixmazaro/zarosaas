@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Eye, Pencil, Trash2, CreditCard } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash2, CreditCard, CheckCircle } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -66,8 +66,9 @@ const PlatformTenants = () => {
   // Plan activation state
   const [planOpen, setPlanOpen] = useState(false);
   const [planTenant, setPlanTenant] = useState<Tenant | null>(null);
-  const [planForm, setPlanForm] = useState({ plan_id: "", status: "active", expiration_date: "" });
+  const [planForm, setPlanForm] = useState({ plan_id: "", status: "active", expiration_date: "", payment_method: "online" });
   const [planSaving, setPlanSaving] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
 
   const fetchData = async () => {
     const [tenantsRes, plansRes, subsRes] = await Promise.all([
@@ -191,8 +192,64 @@ const PlatformTenants = () => {
       expiration_date: sub?.current_period_end
         ? new Date(sub.current_period_end).toISOString().split("T")[0]
         : defaultExpiration.toISOString().split("T")[0],
+      payment_method: (sub as any)?.payment_method || "online",
     });
     setPlanOpen(true);
+  };
+
+  const confirmManualPayment = async () => {
+    if (!planTenant) return;
+    setConfirmingPayment(true);
+    try {
+      const sub = subscriptions[planTenant.id];
+      const now = new Date();
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      if (sub) {
+        await supabase
+          .from("subscriptions" as any)
+          .update({
+            status: "active",
+            payment_method: "manual",
+            current_period_start: now.toISOString(),
+            current_period_end: periodEnd.toISOString(),
+            trial_ends_at: null,
+          } as any)
+          .eq("id", sub.id);
+      } else {
+        await supabase
+          .from("subscriptions" as any)
+          .insert({
+            tenant_id: planTenant.id,
+            plan_id: planForm.plan_id || planTenant.plan_id,
+            status: "active",
+            payment_method: "manual",
+            current_period_start: now.toISOString(),
+            current_period_end: periodEnd.toISOString(),
+          } as any);
+      }
+
+      // Record payment
+      await supabase
+        .from("payments" as any)
+        .insert({
+          tenant_id: planTenant.id,
+          plan_id: planForm.plan_id || planTenant.plan_id || sub?.plan_id,
+          amount: 0,
+          status: "approved",
+          payment_method: "manual",
+          transaction_id: `manual-${Date.now()}`,
+        } as any);
+
+      toast.success("Pagamento confirmado! Plano renovado por 30 dias.");
+      setPlanOpen(false);
+      fetchData();
+    } catch {
+      toast.error("Erro ao confirmar pagamento");
+    } finally {
+      setConfirmingPayment(false);
+    }
   };
 
   const savePlan = async () => {
@@ -211,6 +268,7 @@ const PlatformTenants = () => {
         .update({
           plan_id: planForm.plan_id,
           status: planForm.status,
+          payment_method: planForm.payment_method,
           current_period_end: periodEnd,
           current_period_start: sub.current_period_start || new Date().toISOString(),
         } as any)
@@ -402,6 +460,29 @@ const PlatformTenants = () => {
                 onChange={(e) => setPlanForm({ ...planForm, expiration_date: e.target.value })}
               />
             </div>
+            <div className="grid gap-2">
+              <Label>Método de Pagamento</Label>
+              <Select value={planForm.payment_method} onValueChange={(v) => setPlanForm({ ...planForm, payment_method: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">Online (Mercado Pago)</SelectItem>
+                  <SelectItem value="manual">Manual (PIX / Dinheiro)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="w-full gap-2 text-green-600 border-green-600 hover:bg-green-50"
+              onClick={confirmManualPayment}
+              disabled={confirmingPayment || !planForm.plan_id}
+            >
+              <CheckCircle className="h-4 w-4" />
+              {confirmingPayment ? "Confirmando..." : "Confirmar Pagamento Manual (+30 dias)"}
+            </Button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPlanOpen(false)}>Cancelar</Button>

@@ -19,6 +19,9 @@ export interface PlanLimits {
   currentServices: number;
   currentMonthAppointments: number;
   currentClients: number;
+  currentPeriodEnd: string | null;
+  daysUntilDue: number | null;
+  billingOverdue: boolean;
 }
 
 const defaultLimits: PlanLimits = {
@@ -38,6 +41,9 @@ const defaultLimits: PlanLimits = {
   currentServices: 0,
   currentMonthAppointments: 0,
   currentClients: 0,
+  currentPeriodEnd: null,
+  daysUntilDue: null,
+  billingOverdue: false,
 };
 
 export function usePlanLimits() {
@@ -97,6 +103,15 @@ export function usePlanLimits() {
       const isExpiredOrCancelled = sub.status === "expired" || sub.status === "cancelled";
       const subscriptionBlocked = trialExpired || isExpiredOrCancelled;
 
+      const currentPeriodEnd = sub.current_period_end || null;
+      let daysUntilDue: number | null = null;
+      let billingOverdue = false;
+      if (currentPeriodEnd && !isTrial) {
+        const diffMs = new Date(currentPeriodEnd).getTime() - Date.now();
+        daysUntilDue = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        billingOverdue = daysUntilDue < 0;
+      }
+
       setLimits({
         planName: plan.name,
         maxStaff: plan.max_barbers || 999,
@@ -114,6 +129,9 @@ export function usePlanLimits() {
         currentServices: servicesRes.count || 0,
         currentMonthAppointments: apptRes.count || 0,
         currentClients: clientsRes.count || 0,
+        currentPeriodEnd,
+        daysUntilDue,
+        billingOverdue,
       });
       setLoading(false);
     };
