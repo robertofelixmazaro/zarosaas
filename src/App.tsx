@@ -63,6 +63,7 @@ const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"))
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
 const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCenter"));
 const PlatformCommissions = lazy(() => import("./pages/platform/PlatformCommissions"));
+const PlatformWithdrawals = lazy(() => import("./pages/platform/PlatformWithdrawals"));
 const SuperAdminLayout = lazy(() => import("./components/SuperAdminLayout"));
 const SuperAdminLoginPage = lazy(() => import("./pages/SuperAdminLoginPage"));
 
