@@ -66,8 +66,9 @@ const PlatformTenants = () => {
   // Plan activation state
   const [planOpen, setPlanOpen] = useState(false);
   const [planTenant, setPlanTenant] = useState<Tenant | null>(null);
-  const [planForm, setPlanForm] = useState({ plan_id: "", status: "active", expiration_date: "" });
+  const [planForm, setPlanForm] = useState({ plan_id: "", status: "active", expiration_date: "", payment_method: "online" });
   const [planSaving, setPlanSaving] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
 
   const fetchData = async () => {
     const [tenantsRes, plansRes, subsRes] = await Promise.all([
