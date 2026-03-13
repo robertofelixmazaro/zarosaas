@@ -193,7 +193,15 @@ const LandingPage = () => {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/cadastrar">
-                    <Button size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="text-base px-8 gap-2 w-full sm:w-auto"
+                      style={landingContent?.appearance_primary_button ? {
+                        backgroundColor: landingContent.appearance_primary_button,
+                        borderColor: landingContent.appearance_primary_button,
+                        color: '#fff',
+                      } : undefined}
+                    >
                       Começar agora <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
