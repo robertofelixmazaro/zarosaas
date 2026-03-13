@@ -219,6 +219,7 @@ const AppRoutes = () => {
         <Route path="/affiliate/dashboard" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateDashboard /></AffiliateLayout></ProtectedRoute>} />
         <Route path="/affiliate/referrals" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateReferrals /></AffiliateLayout></ProtectedRoute>} />
         <Route path="/affiliate/sales" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSales /></AffiliateLayout></ProtectedRoute>} />
+        <Route path="/affiliate/payments" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliatePayments /></AffiliateLayout></ProtectedRoute>} />
 
         {/* Staff */}
         <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
