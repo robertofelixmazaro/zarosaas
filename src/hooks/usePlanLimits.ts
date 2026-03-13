@@ -41,6 +41,9 @@ const defaultLimits: PlanLimits = {
   currentServices: 0,
   currentMonthAppointments: 0,
   currentClients: 0,
+  currentPeriodEnd: null,
+  daysUntilDue: null,
+  billingOverdue: false,
 };
 
 export function usePlanLimits() {
