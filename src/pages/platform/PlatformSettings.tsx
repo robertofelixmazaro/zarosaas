@@ -303,6 +303,51 @@ const PlatformSettings = () => {
             </div>
           </CardContent>
         </Card>
+        {/* Aparência da Plataforma */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Aparência da Plataforma
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Configure as cores dos botões e links exibidos na landing page e áreas públicas da plataforma.
+            </p>
+            <div className="space-y-4">
+              {APPEARANCE_KEYS.map((key) => (
+                <div key={key} className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <Label>{APPEARANCE_LABELS[key]}</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="color"
+                        value={appearanceSettings[key] || APPEARANCE_DEFAULTS[key]}
+                        onChange={e => setAppearanceSettings(prev => ({ ...prev, [key]: e.target.value }))}
+                        className="w-10 h-10 rounded border border-border cursor-pointer"
+                      />
+                      <Input
+                        value={appearanceSettings[key] || APPEARANCE_DEFAULTS[key]}
+                        onChange={e => setAppearanceSettings(prev => ({ ...prev, [key]: e.target.value }))}
+                        placeholder="#000000"
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="w-20 h-10 rounded-md border border-border"
+                    style={{ backgroundColor: appearanceSettings[key] || APPEARANCE_DEFAULTS[key] }}
+                  />
+                </div>
+              ))}
+              <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-full">
+                <Save className="h-4 w-4 mr-2" />
+                {savingAppearance ? "Salvando..." : "Salvar Aparência"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
         {/* Test Email */}
         <TestEmailCard />
       </main>
