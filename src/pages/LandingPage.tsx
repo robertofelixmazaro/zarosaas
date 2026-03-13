@@ -379,26 +379,28 @@ const LandingPage = () => {
                       </span>
                       {plan.price > 0 && <span className="text-sm text-muted-foreground">/mês</span>}
                     </div>
-                    <ul className="space-y-2 mb-6 flex-1">
-                      {plan.max_barbers != null && (
-                        <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_barbers} profissionais</li>
-                      )}
-                      {plan.max_services != null && (
-                        <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_services} serviços</li>
-                      )}
-                      {plan.max_appointments_month != null && (
-                        <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> {plan.max_appointments_month} agendamentos/mês</li>
-                      )}
-                      {plan.max_clients != null && (
-                        <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_clients} clientes</li>
-                      )}
-                      {plan.max_products != null && (
-                        <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_products} produtos</li>
-                      )}
-                      {features.map((f: string, fi: number) => (
-                        <li key={fi} className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> {f}</li>
-                      ))}
-                    </ul>
+                    <div className="flex-1 mb-6">
+                      <ul className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                        {plan.max_barbers != null && (
+                          <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_barbers} profissionais</li>
+                        )}
+                        {plan.max_services != null && (
+                          <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_services} serviços</li>
+                        )}
+                        {plan.max_appointments_month != null && (
+                          <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> {plan.max_appointments_month} agendamentos/mês</li>
+                        )}
+                        {plan.max_clients != null && (
+                          <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_clients} clientes</li>
+                        )}
+                        {plan.max_products != null && (
+                          <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Até {plan.max_products} produtos</li>
+                        )}
+                        {features.map((f: string, fi: number) => (
+                          <li key={fi} className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> {f}</li>
+                        ))}
+                      </ul>
+                    </div>
                     <Link to="/cadastrar">
                       <Button className="w-full" variant={isPopular ? "default" : "outline"}>
                         {plan.price === 0 ? "Começar grátis" : "Assinar agora"}
