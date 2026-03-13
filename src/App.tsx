@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import { usePlatformAppearance } from "@/hooks/usePlatformAppearance";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -232,18 +233,25 @@ const AppRoutes = () => {
   );
 };
 
+const PlatformAppearanceLoader = ({ children }: { children: React.ReactNode }) => {
+  usePlatformAppearance();
+  return <>{children}</>;
+};
+
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <PlatformAppearanceLoader>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </PlatformAppearanceLoader>
     </QueryClientProvider>
   </ThemeProvider>
 );
