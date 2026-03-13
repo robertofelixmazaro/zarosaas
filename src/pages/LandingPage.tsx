@@ -206,7 +206,15 @@ const LandingPage = () => {
                     </Button>
                   </Link>
                   <Link to="/explorar">
-                    <Button variant="outline" size="lg" className="text-base px-8 gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-base px-8 gap-2 w-full sm:w-auto"
+                      style={landingContent?.appearance_secondary_button ? {
+                        borderColor: landingContent.appearance_secondary_button,
+                        color: landingContent.appearance_secondary_button,
+                      } : undefined}
+                    >
                       <Search className="h-4 w-4" /> Explorar Marketplace
                     </Button>
                   </Link>
