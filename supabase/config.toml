@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.send-test-email]
 verify_jwt = false
+
+[functions.check-billing-due]
+verify_jwt = false
