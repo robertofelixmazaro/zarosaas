@@ -88,7 +88,7 @@ const PlatformSettings = () => {
       .order("key");
     if (error) { toast.error("Erro ao carregar configurações"); return; }
     const all = (data as any) || [];
-    const regular = all.filter((s: Setting) => !NO_SHOW_KEYS.includes(s.key));
+    const regular = all.filter((s: Setting) => !NO_SHOW_KEYS.includes(s.key) && !APPEARANCE_KEYS.includes(s.key));
     setSettings(regular);
 
     // Load no-show settings
@@ -97,6 +97,14 @@ const PlatformSettings = () => {
       if (NO_SHOW_KEYS.includes(s.key)) nsMap[s.key] = s.value;
     });
     setNoShowSettings(nsMap);
+
+    // Load appearance settings
+    const apMap: Record<string, string> = { ...APPEARANCE_DEFAULTS };
+    all.forEach((s: Setting) => {
+      if (APPEARANCE_KEYS.includes(s.key)) apMap[s.key] = s.value;
+    });
+    setAppearanceSettings(apMap);
+
     setLoading(false);
   };
 
