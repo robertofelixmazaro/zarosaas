@@ -54,6 +54,7 @@ const AffiliateDashboard = lazy(() => import("./pages/affiliate/AffiliateDashboa
 const AffiliateSales = lazy(() => import("./pages/affiliate/AffiliateSales"));
 const AffiliateReferrals = lazy(() => import("./pages/affiliate/AffiliateReferrals"));
 const AffiliatePayments = lazy(() => import("./pages/affiliate/AffiliatePayments"));
+const AffiliateSearchClients = lazy(() => import("./pages/affiliate/AffiliateSearchClients"));
 const ReferralRedirectPage = lazy(() => import("./pages/ReferralRedirectPage"));
 const PlatformAffiliates = lazy(() => import("./pages/platform/PlatformAffiliates"));
 const ComprarPage = lazy(() => import("./pages/ComprarPage"));
