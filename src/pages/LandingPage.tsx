@@ -183,12 +183,7 @@ const LandingPage = () => {
                   <Link to="/cadastrar">
                     <Button
                       size="lg"
-                      className="text-base px-8 gap-2 w-full sm:w-auto"
-                      style={landingContent?.appearance_primary_button ? {
-                        backgroundColor: landingContent.appearance_primary_button,
-                        borderColor: landingContent.appearance_primary_button,
-                        color: '#fff',
-                      } : undefined}
+                      className="text-base px-8 gap-2 w-full sm:w-auto platform-btn-primary"
                     >
                       Começar agora <ArrowRight className="h-4 w-4" />
                     </Button>
