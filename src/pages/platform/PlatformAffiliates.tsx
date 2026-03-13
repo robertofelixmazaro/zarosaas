@@ -77,7 +77,7 @@ const PlatformAffiliates = () => {
 
   const [editOpen, setEditOpen] = useState(false);
   const [editAffiliate, setEditAffiliate] = useState<AffiliateRow | null>(null);
-  const [editForm, setEditForm] = useState({ commission_percent: "10", phone: "", whatsapp: "", cpf: "", pix_type: "", pix_key: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", commission_percent: "10", phone: "", whatsapp: "", cpf: "", pix_type: "", pix_key: "" });
   const [saving, setSaving] = useState(false);
 
   const fetchAffiliates = async () => {
@@ -236,12 +236,28 @@ const PlatformAffiliates = () => {
       }
     }
 
+    // Update affiliates table
     const { error } = await supabase
       .from("affiliates")
       .update(updateData as any)
       .eq("id", editAffiliate.id);
+
+    if (error) { toast.error("Erro ao salvar"); setSaving(false); return; }
+
+    // Update profile (name, email) if changed
+    if (editForm.name !== editAffiliate.name || editForm.email !== editAffiliate.email) {
+      const profileUpdate: Record<string, string> = {};
+      if (editForm.name.trim()) profileUpdate.name = editForm.name.trim();
+      if (editForm.email.trim()) profileUpdate.email = editForm.email.trim();
+      if (Object.keys(profileUpdate).length > 0) {
+        await supabase
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("auth_id", editAffiliate.user_id);
+      }
+    }
+
     setSaving(false);
-    if (error) { toast.error("Erro ao salvar"); return; }
     toast.success("Afiliado atualizado");
     setEditOpen(false);
     fetchAffiliates();
@@ -331,6 +347,8 @@ const PlatformAffiliates = () => {
                           <Button size="icon" variant="ghost" title="Editar" onClick={() => {
                             setEditAffiliate(a);
                             setEditForm({
+                              name: a.name || "",
+                              email: a.email || "",
                               commission_percent: String(a.commission_percent),
                               phone: a.phone ? formatPhone(a.phone) : "",
                               whatsapp: a.whatsapp ? formatPhone(a.whatsapp) : "",
@@ -473,9 +491,18 @@ const PlatformAffiliates = () => {
           </DialogHeader>
           <ScrollArea className="max-h-[65vh] px-6">
             <div className="grid gap-4 py-4">
+              {/* Dados pessoais */}
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Dados Pessoais</h4>
+                <Separator />
+              </div>
               <div className="grid gap-2">
-                <Label>Comissão (%)</Label>
-                <Input type="number" min="0" max="100" value={editForm.commission_percent} onChange={(e) => setEditForm({ ...editForm, commission_percent: e.target.value })} />
+                <Label>Nome completo</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Nome do afiliado" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Email</Label>
+                <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="email@exemplo.com" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -487,13 +514,22 @@ const PlatformAffiliates = () => {
                   <Input value={editForm.whatsapp} onChange={(e) => setEditForm({ ...editForm, whatsapp: formatPhone(e.target.value) })} placeholder="(00) 00000-0000" />
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label>CPF</Label>
-                <Input value={editForm.cpf} onChange={(e) => setEditForm({ ...editForm, cpf: formatCPF(e.target.value) })} placeholder="000.000.000-00" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>CPF</Label>
+                  <Input value={editForm.cpf} onChange={(e) => setEditForm({ ...editForm, cpf: formatCPF(e.target.value) })} placeholder="000.000.000-00" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Comissão (%)</Label>
+                  <Input type="number" min="0" max="100" value={editForm.commission_percent} onChange={(e) => setEditForm({ ...editForm, commission_percent: e.target.value })} />
+                </div>
               </div>
 
-              <Separator />
-
+              {/* Dados de pagamento */}
+              <div className="space-y-1 pt-2">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Dados de Pagamento</h4>
+                <Separator />
+              </div>
               <div className="grid gap-2">
                 <Label>Tipo de chave PIX</Label>
                 <Select value={editForm.pix_type} onValueChange={(v) => setEditForm({ ...editForm, pix_type: v, pix_key: v === "cpf" ? editForm.cpf : editForm.pix_key })}>
