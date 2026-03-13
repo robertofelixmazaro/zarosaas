@@ -77,7 +77,7 @@ const PlatformAffiliates = () => {
 
   const [editOpen, setEditOpen] = useState(false);
   const [editAffiliate, setEditAffiliate] = useState<AffiliateRow | null>(null);
-  const [editForm, setEditForm] = useState({ commission_percent: "10", phone: "", whatsapp: "", cpf: "", pix_type: "", pix_key: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", commission_percent: "10", phone: "", whatsapp: "", cpf: "", pix_type: "", pix_key: "" });
   const [saving, setSaving] = useState(false);
 
   const fetchAffiliates = async () => {
