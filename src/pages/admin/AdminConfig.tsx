@@ -101,6 +101,9 @@ const AdminConfig = () => {
   const [marketplaceVisible, setMarketplaceVisible] = useState(false);
   const [city, setCity] = useState("");
   const [savingMarketplace, setSavingMarketplace] = useState(false);
+  const [marketplaceLogoFile, setMarketplaceLogoFile] = useState<File | null>(null);
+  const [marketplaceLogoPreview, setMarketplaceLogoPreview] = useState<string | null>(null);
+  const marketplaceLogoInputRef = useRef<HTMLInputElement>(null);
 
   // Custom domain
   const [customDomain, setCustomDomain] = useState("");
