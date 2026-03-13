@@ -151,6 +151,31 @@ const PlatformSettings = () => {
     setSavingNoShow(false);
   };
 
+  const handleSaveAppearance = async () => {
+    setSavingAppearance(true);
+    try {
+      for (const [key, value] of Object.entries(appearanceSettings)) {
+        const { data: existing } = await supabase
+          .from("platform_settings" as any)
+          .select("id")
+          .eq("key", key)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from("platform_settings" as any)
+            .update({ value, updated_at: new Date().toISOString() } as any)
+            .eq("id", (existing as any).id);
+        } else {
+          await supabase.from("platform_settings" as any)
+            .insert({ key, value } as any);
+        }
+      }
+      toast.success("Aparência salva com sucesso!");
+    } catch (err: any) {
+      toast.error("Erro ao salvar", { description: err.message });
+    }
+    setSavingAppearance(false);
+  };
+
   const noShowEnabled = noShowSettings.no_show_global_enabled === "true";
 
   return (
