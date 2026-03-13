@@ -85,16 +85,43 @@ const AffiliateDashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard do Afiliado</h1>
-        <p className="text-sm text-muted-foreground">
-          Seu código de referência: <span className="font-mono font-semibold text-primary">{(affiliate as any)?.ref_code || "—"}</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Seu link de indicação:{" "}
-          <span className="font-mono text-primary break-all">
-            {window.location.origin}/ref/{(affiliate as any)?.ref_code || ""}
-          </span>
-        </p>
       </div>
+
+      {/* Referral Link Section */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Link2 className="h-5 w-5 text-primary" />
+            Seu Link de Indicação
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Compartilhe este link com seus clientes. Cada loja criada através dele será vinculada a você automaticamente.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-2 rounded-lg border bg-background px-4 py-3">
+            <span className="font-mono text-sm text-foreground break-all flex-1">
+              https://zarosaas.lovable.app/ref/{(affiliate as any)?.ref_code || ""}
+            </span>
+          </div>
+          <Button
+            size="lg"
+            className="w-full gap-2 text-base"
+            onClick={async () => {
+              const link = `https://zarosaas.lovable.app/ref/${(affiliate as any)?.ref_code || ""}`;
+              try {
+                await navigator.clipboard.writeText(link);
+                toast.success("Link copiado! Compartilhe com seus clientes.");
+              } catch {
+                toast.error("Não foi possível copiar o link.");
+              }
+            }}
+          >
+            <Copy className="h-5 w-5" />
+            Copiar meu link de indicação
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
