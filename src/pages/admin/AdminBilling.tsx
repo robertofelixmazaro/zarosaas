@@ -254,7 +254,7 @@ const AdminBilling = () => {
 
       {/* Upgrade Dialog */}
       <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Escolha seu Plano</DialogTitle>
             <DialogDescription>Selecione o plano ideal para o seu negócio</DialogDescription>
