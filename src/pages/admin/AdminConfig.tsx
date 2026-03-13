@@ -638,14 +638,38 @@ const AdminConfig = () => {
             onClick={async () => {
               setSavingMarketplace(true);
               try {
+                let uploadedLogoUrl: string | null = null;
+                // Upload marketplace logo if new file selected
+                if (marketplaceLogoFile && tenantId) {
+                  const ext = marketplaceLogoFile.name.split(".").pop() || "png";
+                  const path = `${tenantId}/marketplace-logo.${ext}`;
+                  const { error: uploadErr } = await supabase.storage
+                    .from("tenant-assets")
+                    .upload(path, marketplaceLogoFile, { upsert: true });
+                  if (uploadErr) throw uploadErr;
+                  const { data: urlData } = supabase.storage.from("tenant-assets").getPublicUrl(path);
+                  uploadedLogoUrl = urlData.publicUrl;
+                }
+                const updatePayload: any = {
+                  marketplace_visible: marketplaceVisible,
+                  city: city || null,
+                };
+                if (uploadedLogoUrl) {
+                  updatePayload.marketplace_logo_url = uploadedLogoUrl;
+                }
+                // If user removed the marketplace logo (preview is null and no file)
+                if (!marketplaceLogoPreview && !marketplaceLogoFile) {
+                  updatePayload.marketplace_logo_url = null;
+                }
                 const { error } = await supabase
                   .from("tenants" as any)
-                  .update({
-                    marketplace_visible: marketplaceVisible,
-                    city: city || null,
-                  } as any)
+                  .update(updatePayload)
                   .eq("id", tenantId);
                 if (error) throw error;
+                if (uploadedLogoUrl) {
+                  setMarketplaceLogoPreview(uploadedLogoUrl);
+                  setMarketplaceLogoFile(null);
+                }
                 toast.success("Configurações do marketplace salvas!");
               } catch (err: any) {
                 toast.error("Erro ao salvar", { description: err.message });
