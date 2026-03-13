@@ -236,12 +236,28 @@ const PlatformAffiliates = () => {
       }
     }
 
+    // Update affiliates table
     const { error } = await supabase
       .from("affiliates")
       .update(updateData as any)
       .eq("id", editAffiliate.id);
+
+    if (error) { toast.error("Erro ao salvar"); setSaving(false); return; }
+
+    // Update profile (name, email) if changed
+    if (editForm.name !== editAffiliate.name || editForm.email !== editAffiliate.email) {
+      const profileUpdate: Record<string, string> = {};
+      if (editForm.name.trim()) profileUpdate.name = editForm.name.trim();
+      if (editForm.email.trim()) profileUpdate.email = editForm.email.trim();
+      if (Object.keys(profileUpdate).length > 0) {
+        await supabase
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("auth_id", editAffiliate.user_id);
+      }
+    }
+
     setSaving(false);
-    if (error) { toast.error("Erro ao salvar"); return; }
     toast.success("Afiliado atualizado");
     setEditOpen(false);
     fetchAffiliates();
