@@ -167,7 +167,7 @@ const ExploreMarketplace = () => {
                         className="w-16 h-16 rounded-xl object-contain border-2 border-border bg-background p-1"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-border">
+                      <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border-2 border-border">
                         <Store className="h-7 w-7 text-primary" />
                       </div>
                     )}
