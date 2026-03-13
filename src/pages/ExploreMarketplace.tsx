@@ -13,6 +13,7 @@ interface MarketplaceListing {
   name: string;
   slug: string;
   logo_url: string | null;
+  marketplace_logo_url: string | null;
   city: string | null;
   niche: string | null;
   avg_rating: number;
