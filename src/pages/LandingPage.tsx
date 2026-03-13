@@ -139,7 +139,15 @@ const LandingPage = () => {
   const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div
+      className="min-h-screen bg-background overflow-x-hidden"
+      style={{
+        '--platform-primary-btn': landingContent?.appearance_primary_button || '',
+        '--platform-secondary-btn': landingContent?.appearance_secondary_button || '',
+        '--platform-link-color': landingContent?.appearance_link_color || '',
+        '--platform-main-color': landingContent?.appearance_main_color || '',
+      } as React.CSSProperties}
+    >
       {/* Navbar */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
