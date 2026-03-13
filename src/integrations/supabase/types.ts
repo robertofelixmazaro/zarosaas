@@ -122,9 +122,11 @@ export type Database = {
           amount: number
           created_at: string | null
           id: string
+          ip_address: string | null
           paid_at: string | null
           pix_key: string
           pix_type: string
+          processed_at: string | null
           status: string
         }
         Insert: {
@@ -132,9 +134,11 @@ export type Database = {
           amount: number
           created_at?: string | null
           id?: string
+          ip_address?: string | null
           paid_at?: string | null
           pix_key: string
           pix_type: string
+          processed_at?: string | null
           status?: string
         }
         Update: {
@@ -142,9 +146,11 @@ export type Database = {
           amount?: number
           created_at?: string | null
           id?: string
+          ip_address?: string | null
           paid_at?: string | null
           pix_key?: string
           pix_type?: string
+          processed_at?: string | null
           status?: string
         }
         Relationships: [
