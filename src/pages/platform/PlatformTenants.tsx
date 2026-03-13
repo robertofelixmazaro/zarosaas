@@ -268,6 +268,7 @@ const PlatformTenants = () => {
         .update({
           plan_id: planForm.plan_id,
           status: planForm.status,
+          payment_method: planForm.payment_method,
           current_period_end: periodEnd,
           current_period_start: sub.current_period_start || new Date().toISOString(),
         } as any)
