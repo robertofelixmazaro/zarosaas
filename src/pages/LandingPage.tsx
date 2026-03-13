@@ -569,12 +569,7 @@ const LandingPage = () => {
             <Link to="/cadastrar">
               <Button
                 size="lg"
-                className="text-base px-10 gap-2"
-                style={landingContent?.appearance_primary_button ? {
-                  backgroundColor: landingContent.appearance_primary_button,
-                  borderColor: landingContent.appearance_primary_button,
-                  color: '#fff',
-                } : undefined}
+                className="text-base px-10 gap-2 platform-btn-primary"
               >
                 Criar minha agenda agora <ArrowRight className="h-4 w-4" />
               </Button>
