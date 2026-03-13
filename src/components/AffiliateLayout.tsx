@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, LogOut, Menu, X, Link2, DollarSign } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, LogOut, Menu, X, Link2, DollarSign, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -10,6 +10,7 @@ const navItems = [
   { icon: Link2, label: "Minhas Indicações", path: "/affiliate/referrals" },
   { icon: ShoppingCart, label: "Vendas", path: "/affiliate/sales" },
   { icon: DollarSign, label: "Pagamentos", path: "/affiliate/payments" },
+  { icon: Search, label: "Buscar Clientes", path: "/affiliate/search" },
 ];
 
 const AffiliateLayout = ({ children }: { children: React.ReactNode }) => {

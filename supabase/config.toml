@@ -59,3 +59,6 @@ verify_jwt = false
 
 [functions.check-billing-due]
 verify_jwt = false
+
+[functions.search-places]
+verify_jwt = false
