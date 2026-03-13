@@ -189,6 +189,7 @@ const AffiliatePayments = () => {
         <AlertDescription className="space-y-1">
           <p>Os saques são processados manualmente e pagos via PIX em até 48 horas após a solicitação.</p>
           <p>É permitido apenas 1 solicitação de saque por dia.</p>
+          <p>Horário para solicitação de saques: <strong>09:00 às 17:00</strong>.</p>
         </AlertDescription>
       </Alert>
 
