@@ -67,7 +67,7 @@ const PlatformSettings = () => {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [savingNoShow, setSavingNoShow] = useState(false);
+  const [savingAppearance, setSavingAppearance] = useState(false);
 
   // No-show state
   const [noShowSettings, setNoShowSettings] = useState<Record<string, string>>({
