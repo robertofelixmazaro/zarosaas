@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, ShoppingCart, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DollarSign, Users, ShoppingCart, TrendingUp, Copy, Check, Link2 } from "lucide-react";
+import { toast } from "sonner";
 
 const AffiliateDashboard = () => {
   const { user } = useAuth();
