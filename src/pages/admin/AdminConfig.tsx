@@ -567,15 +567,68 @@ const AdminConfig = () => {
             <span className="text-sm font-medium">Mostrar empresa no marketplace</span>
           </div>
           {marketplaceVisible && (
-            <div>
-              <label className="text-sm font-medium mb-1 block">Cidade</label>
-              <Input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Ex: São Paulo, SP"
-                className="max-w-xs"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Cidade</label>
+                <Input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Ex: São Paulo, SP"
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Exibida para clientes no marketplace</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Logo do Marketplace</label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Envie uma logo específica para o marketplace. Se não enviar, será usada a logo principal da empresa.
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={marketplaceLogoInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+                    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem deve ter no máximo 5MB"); return; }
+                    setMarketplaceLogoFile(file);
+                    setMarketplaceLogoPreview(URL.createObjectURL(file));
+                  }}
+                />
+                <div className="flex items-center gap-3">
+                  {marketplaceLogoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={marketplaceLogoPreview}
+                        alt="Logo marketplace"
+                        className="w-16 h-16 rounded-xl object-contain border-2 border-border bg-white p-1"
+                      />
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                        onClick={() => { setMarketplaceLogoFile(null); setMarketplaceLogoPreview(null); }}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => marketplaceLogoInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    {marketplaceLogoPreview ? "Trocar" : "Enviar logo"}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
           <Button
