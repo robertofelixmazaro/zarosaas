@@ -331,6 +331,8 @@ const PlatformAffiliates = () => {
                           <Button size="icon" variant="ghost" title="Editar" onClick={() => {
                             setEditAffiliate(a);
                             setEditForm({
+                              name: a.name || "",
+                              email: a.email || "",
                               commission_percent: String(a.commission_percent),
                               phone: a.phone ? formatPhone(a.phone) : "",
                               whatsapp: a.whatsapp ? formatPhone(a.whatsapp) : "",
