@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Save, ShieldAlert, Mail, Send } from "lucide-react";
+import { ArrowLeft, Save, ShieldAlert, Mail, Send, Palette } from "lucide-react";
 import PlatformHeader from "@/components/PlatformHeader";
 import { toast } from "sonner";
 
@@ -40,6 +40,27 @@ const NO_SHOW_LABELS: Record<string, string> = {
   no_show_default_cancel_hours: "Prazo cancelamento padrão (horas)",
   no_show_max_retention: "Percentual máximo de retenção (%)",
   no_show_max_deposit: "Valor máximo de garantia (R$)",
+};
+
+const APPEARANCE_KEYS = [
+  "appearance_primary_button",
+  "appearance_secondary_button",
+  "appearance_link_color",
+  "appearance_main_color",
+];
+
+const APPEARANCE_LABELS: Record<string, string> = {
+  appearance_primary_button: "Cor do botão primário",
+  appearance_secondary_button: "Cor do botão secundário",
+  appearance_link_color: "Cor dos links",
+  appearance_main_color: "Cor principal do sistema",
+};
+
+const APPEARANCE_DEFAULTS: Record<string, string> = {
+  appearance_primary_button: "#7c3aed",
+  appearance_secondary_button: "#6b7280",
+  appearance_link_color: "#7c3aed",
+  appearance_main_color: "#7c3aed",
 };
 
 const PlatformSettings = () => {
