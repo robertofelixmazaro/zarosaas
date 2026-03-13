@@ -129,16 +129,19 @@
 
 /* Platform appearance - dynamic colors from Super Admin */
 .platform-btn-primary {
-  background-color: var(--platform-primary-btn) !important;
-  border-color: var(--platform-primary-btn) !important;
-  color: #fff !important;
+  background-color: var(--platform-primary-btn, hsl(var(--primary)));
+  border-color: var(--platform-primary-btn, hsl(var(--primary)));
+  color: #fff;
+}
+.platform-btn-primary:hover {
+  filter: brightness(0.9);
 }
 
 .platform-btn-secondary {
-  border-color: var(--platform-secondary-btn) !important;
-  color: var(--platform-secondary-btn) !important;
+  border-color: var(--platform-secondary-btn, hsl(var(--border)));
+  color: var(--platform-secondary-btn, hsl(var(--foreground)));
 }
 
 .platform-link {
-  color: var(--platform-link-color) !important;
+  color: var(--platform-link-color, hsl(var(--primary)));
 }
