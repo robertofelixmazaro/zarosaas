@@ -210,6 +210,7 @@ const AppRoutes = () => {
         <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformLandingPage /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/help-center" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformHelpCenter /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/commissions" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformCommissions /></SuperAdminLayout></ProtectedRoute>} />
+        <Route path="/superadmin/withdrawals" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformWithdrawals /></SuperAdminLayout></ProtectedRoute>} />
         {/* Legacy super admin redirects */}
         <Route path="/admin-platform" element={<Navigate to="/superadmin/dashboard" replace />} />
         <Route path="/admin-platform/*" element={<Navigate to="/superadmin/dashboard" replace />} />

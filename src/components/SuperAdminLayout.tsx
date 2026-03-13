@@ -13,6 +13,7 @@ const navItems = [
   { icon: Building2, label: "Lojas", path: "/superadmin/stores" },
   { icon: Handshake, label: "Afiliados", path: "/superadmin/affiliates" },
   { icon: Percent, label: "Comissões", path: "/superadmin/commissions" },
+  { icon: Wallet, label: "Saques", path: "/superadmin/withdrawals" },
   { icon: CreditCard, label: "Planos", path: "/superadmin/planos" },
   { icon: UserCog, label: "Usuários", path: "/superadmin/usuarios" },
   { icon: DollarSign, label: "Pagamentos", path: "/superadmin/pagamentos" },
