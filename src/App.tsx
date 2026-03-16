@@ -162,6 +162,12 @@ const CustomDomainTenantRoutes = () => (
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
+        <Route path="staff" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
+        <Route path="staff/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
+        <Route path="staff/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
+        <Route path="staff/faturamento" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffFaturamento /></StaffLayout></ProtectedRoute>} />
+        <Route path="staff/perfil" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffPerfil /></StaffLayout></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
@@ -231,11 +237,12 @@ const AppRoutes = () => {
         <Route path="/affiliate/search" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSearchClients /></AffiliateLayout></ProtectedRoute>} />
 
         {/* Staff */}
-        <Route path="/staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
-        <Route path="/staff/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
-        <Route path="/staff/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
-        <Route path="/staff/faturamento" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffFaturamento /></StaffLayout></ProtectedRoute>} />
-        <Route path="/staff/perfil" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffPerfil /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="/staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><TenantProvider><StaffLayout><StaffDashboard /></StaffLayout></TenantProvider></ProtectedRoute>} />
+        <Route path="/staff/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><TenantProvider><StaffLayout><StaffAgenda /></StaffLayout></TenantProvider></ProtectedRoute>} />
+        <Route path="/staff/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><TenantProvider><StaffLayout><StaffClientes /></StaffLayout></TenantProvider></ProtectedRoute>} />
+        <Route path="/staff/faturamento" element={<ProtectedRoute allowedRoles={["staff"]}><TenantProvider><StaffLayout><StaffFaturamento /></StaffLayout></TenantProvider></ProtectedRoute>} />
+        <Route path="/staff/perfil" element={<ProtectedRoute allowedRoles={["staff"]}><TenantProvider><StaffLayout><StaffPerfil /></StaffLayout></TenantProvider></ProtectedRoute>} />
         {/* Legacy staff redirects */}
         <Route path="/st" element={<Navigate to="/staff/dashboard" replace />} />
         <Route path="/st/*" element={<Navigate to="/staff/dashboard" replace />} />

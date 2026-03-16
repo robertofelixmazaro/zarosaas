@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { detectTenantSlug } from "@/lib/tenantResolver";
 import { getTenantBasePath } from "@/lib/tenantUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Mail, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -13,9 +14,13 @@ type LoginView = "login" | "forgot";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, user, userRole, loading: authLoading } = useAuth();
+  const { signIn, user, userRole, loading: authLoading, roleLoading, refreshUserRole } = useAuth();
   const { tenantId, tenantSlug, tenant } = useTenant();
+  const tenantDetection = detectTenantSlug();
+  const isCustomDomainLogin = tenantDetection.source === "custom_domain";
   const basePath = getTenantBasePath(tenantSlug);
+  const adminRedirect = isCustomDomainLogin ? "/admin" : (basePath ? `${basePath}/admin` : "/dashboard");
+  const staffRedirect = "/staff/dashboard";
   const [view, setView] = useState<LoginView>("login");
   const isForgot = view === "forgot";
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -27,14 +32,30 @@ const LoginPage = () => {
   const [shopName, setShopName] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user && userRole) {
-      if (userRole === "admin") {
-        navigate(`${basePath}/admin`, { replace: true });
-      } else {
-        navigate(basePath || "/", { replace: true });
-      }
+    if (authLoading || roleLoading || !user || !userRole) return;
+
+    if (userRole === "super_admin") {
+      navigate("/superadmin/dashboard", { replace: true });
+      return;
     }
-  }, [authLoading, user, userRole, navigate]);
+
+    if (userRole === "affiliate") {
+      navigate("/affiliate/dashboard", { replace: true });
+      return;
+    }
+
+    if (userRole === "staff") {
+      navigate(staffRedirect, { replace: true });
+      return;
+    }
+
+    if (userRole === "admin") {
+      navigate(adminRedirect, { replace: true });
+      return;
+    }
+
+    navigate(basePath || "/", { replace: true });
+  }, [authLoading, roleLoading, user, userRole, navigate, adminRedirect, staffRedirect, basePath]);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -68,26 +89,58 @@ const LoginPage = () => {
     const { error } = await signIn(email, password);
     if (error) {
       toast.error("Erro ao entrar", { description: error.message });
-    } else {
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.session.user.id)
-          .single();
-        const role = (roleData as any)?.role;
-        if (role === "admin") {
-          toast.success("Bem-vindo de volta!");
-          navigate(`${basePath}/admin`);
-        } else {
-          toast.success("Bem-vindo!");
-          navigate(basePath || "/");
-        }
-      } else {
-        navigate(basePath || "/");
+      setLoading(false);
+      return;
+    }
+
+    const { data: session } = await supabase.auth.getSession();
+    const currentUser = session?.session?.user;
+
+    if (!currentUser) {
+      toast.error("Não foi possível iniciar sua sessão.");
+      setLoading(false);
+      return;
+    }
+
+    let { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (!roleData?.role) {
+      const { data: provisionResult, error: provisionError } = await supabase.functions.invoke("provision-user");
+      if (provisionError) {
+        console.error("Provision error:", provisionError);
+      }
+      if (provisionResult?.role) {
+        roleData = { role: provisionResult.role };
       }
     }
+
+    if (roleData?.role) {
+      await refreshUserRole();
+    }
+
+    const role = (roleData as any)?.role;
+
+    if (role === "super_admin") {
+      toast.success("Bem-vindo de volta!");
+      navigate("/superadmin/dashboard", { replace: true });
+    } else if (role === "affiliate") {
+      toast.success("Bem-vindo de volta!");
+      navigate("/affiliate/dashboard", { replace: true });
+    } else if (role === "staff") {
+      toast.success("Bem-vindo de volta!");
+      navigate(staffRedirect, { replace: true });
+    } else if (role === "admin") {
+      toast.success("Bem-vindo de volta!");
+      navigate(adminRedirect, { replace: true });
+    } else {
+      toast.success("Bem-vindo!");
+      navigate(basePath || "/", { replace: true });
+    }
+
     setLoading(false);
   };
 
