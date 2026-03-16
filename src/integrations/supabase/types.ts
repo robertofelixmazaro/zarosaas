@@ -116,6 +116,41 @@ export type Database = {
           },
         ]
       }
+      affiliate_searches: {
+        Row: {
+          affiliate_id: string
+          created_at: string | null
+          id: string
+          results_count: number | null
+          search_city: string
+          search_query: string
+        }
+        Insert: {
+          affiliate_id: string
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_city: string
+          search_query: string
+        }
+        Update: {
+          affiliate_id?: string
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_city?: string
+          search_query?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_searches_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_withdrawals: {
         Row: {
           affiliate_id: string
