@@ -229,12 +229,14 @@ const AppRoutes = () => {
         <Route path="/affiliate/search" element={<ProtectedRoute allowedRoles={["affiliate"]}><AffiliateLayout><AffiliateSearchClients /></AffiliateLayout></ProtectedRoute>} />
 
         {/* Staff */}
-        <Route path="/st" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
-        <Route path="/st/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
-        <Route path="/st/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
         {/* Legacy staff redirects */}
-        <Route path="/staff-dashboard" element={<Navigate to="/st" replace />} />
-        <Route path="/staff-dashboard/*" element={<Navigate to="/st" replace />} />
+        <Route path="/st" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="/st/*" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="/staff-dashboard" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="/staff-dashboard/*" element={<Navigate to="/staff/dashboard" replace />} />
 
         {/* Tenant path-based routes */}
         <Route path="/t/:slug/*" element={<TenantRoutes />} />

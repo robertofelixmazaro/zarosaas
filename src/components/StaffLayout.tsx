@@ -8,9 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/st" },
-  { icon: Calendar, label: "Minha Agenda", path: "/st/agenda" },
-  { icon: Users, label: "Meus Clientes", path: "/st/clientes" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/staff/dashboard" },
+  { icon: Calendar, label: "Minha Agenda", path: "/staff/agenda" },
+  { icon: Users, label: "Meus Clientes", path: "/staff/clientes" },
 ];
 
 const StaffLayout = ({ children }: { children: React.ReactNode }) => {
