@@ -46,6 +46,24 @@ const AdminDashboard = () => {
       ]);
       setAppointments(a);
       setBarbers(b);
+
+      // Build staff ranking from completed appointments
+      if (isAdmin) {
+        const rankMap = new Map<string, { name: string; services: number; revenue: number; commission: number }>();
+        a.filter((appt: DbAppointment) => appt.status === "concluido").forEach((appt: DbAppointment) => {
+          const barberName = appt.barbers?.name || "Desconhecido";
+          const barberId = appt.barber_id;
+          if (!rankMap.has(barberId)) {
+            rankMap.set(barberId, { name: barberName, services: 0, revenue: 0, commission: 0 });
+          }
+          const entry = rankMap.get(barberId)!;
+          entry.services += 1;
+          entry.revenue += Number(appt.price || 0);
+          entry.commission += Number(appt.staff_commission || 0);
+        });
+        setStaffRanking(Array.from(rankMap.values()).sort((x, y) => y.revenue - x.revenue));
+      }
+
       setLoading(false);
     };
     load();
