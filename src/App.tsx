@@ -72,6 +72,8 @@ const StaffLayout = lazy(() => import("./components/StaffLayout"));
 const StaffDashboard = lazy(() => import("./pages/staff/StaffDashboard"));
 const StaffAgenda = lazy(() => import("./pages/staff/StaffAgenda"));
 const StaffClientes = lazy(() => import("./pages/staff/StaffClientes"));
+const StaffFaturamento = lazy(() => import("./pages/staff/StaffFaturamento"));
+const StaffPerfil = lazy(() => import("./pages/staff/StaffPerfil"));
 const ExploreMarketplace = lazy(() => import("./pages/ExploreMarketplace"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const ExcluirContaPage = lazy(() => import("./pages/ExcluirContaPage"));
