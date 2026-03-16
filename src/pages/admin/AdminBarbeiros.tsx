@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff, Lock } from "lucide-react";
+import { Plus, Edit, Trash2, Power, Upload, X, KeyRound, Eye, EyeOff, Lock, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getNicheLabels } from "@/lib/nicheLabels";
@@ -34,6 +35,7 @@ const defaultLunch: LunchForm = { enabled: true, start: "12:00", end: "13:00" };
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const AdminBarbeiros = () => {
+  const navigate = useNavigate();
   const { tenantId, tenant } = useTenant();
   const nicheLabels = getNicheLabels(tenant?.niche);
   const { canAddStaff, limits } = usePlanLimits();
@@ -300,6 +302,9 @@ const AdminBarbeiros = () => {
                   </div>
                 </div>
                 <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`admin/staff/${b.id}`)} title="Ver desempenho">
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openCredentials(b)} title={`Acesso do ${nicheLabels.staffSingular.toLowerCase()}`}>
                     <KeyRound className="h-4 w-4" />
                   </Button>
