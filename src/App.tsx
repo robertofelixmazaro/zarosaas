@@ -234,6 +234,8 @@ const AppRoutes = () => {
         <Route path="/staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
         <Route path="/staff/agenda" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffAgenda /></StaffLayout></ProtectedRoute>} />
         <Route path="/staff/clientes" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffClientes /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff/faturamento" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffFaturamento /></StaffLayout></ProtectedRoute>} />
+        <Route path="/staff/perfil" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffPerfil /></StaffLayout></ProtectedRoute>} />
         {/* Legacy staff redirects */}
         <Route path="/st" element={<Navigate to="/staff/dashboard" replace />} />
         <Route path="/st/*" element={<Navigate to="/staff/dashboard" replace />} />
