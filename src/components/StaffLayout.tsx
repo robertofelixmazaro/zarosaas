@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Calendar, Users, LogOut, Menu, LayoutDashboard } from "lucide-react";
+import { Calendar, Users, LogOut, Menu, LayoutDashboard, DollarSign, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
