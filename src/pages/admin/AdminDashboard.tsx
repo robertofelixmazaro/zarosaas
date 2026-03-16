@@ -218,6 +218,54 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Staff Ranking & Commission Report */}
+      {isAdmin && staffRanking.length > 0 && (
+        <div className="rounded-lg border bg-card">
+          <div className="flex items-center gap-2 p-5 border-b">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Ranking de Colaboradores</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left p-3 font-medium text-muted-foreground">#</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Colaborador</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Serviços</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Faturamento</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Comissão</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Empresa</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {staffRanking.map((r, i) => (
+                  <tr key={i} className="hover:bg-muted/50 transition-colors">
+                    <td className="p-3">
+                      <span className={`font-bold ${i === 0 ? "text-yellow-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : "text-muted-foreground"}`}>
+                        {i + 1}°
+                      </span>
+                    </td>
+                    <td className="p-3 font-medium">{r.name}</td>
+                    <td className="p-3 text-right">{r.services}</td>
+                    <td className="p-3 text-right font-semibold">R$ {r.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                    <td className="p-3 text-right text-orange-600">R$ {r.commission.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                    <td className="p-3 text-right text-green-600">R$ {(r.revenue - r.commission).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                  </tr>
+                ))}
+                {/* Total row */}
+                <tr className="bg-muted/50 font-semibold border-t-2">
+                  <td className="p-3" colSpan={2}>Total</td>
+                  <td className="p-3 text-right">{staffRanking.reduce((s, r) => s + r.services, 0)}</td>
+                  <td className="p-3 text-right">R$ {staffRanking.reduce((s, r) => s + r.revenue, 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                  <td className="p-3 text-right text-orange-600">R$ {staffRanking.reduce((s, r) => s + r.commission, 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                  <td className="p-3 text-right text-green-600">R$ {staffRanking.reduce((s, r) => s + (r.revenue - r.commission), 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
