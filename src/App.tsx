@@ -74,6 +74,7 @@ const StaffAgenda = lazy(() => import("./pages/staff/StaffAgenda"));
 const StaffClientes = lazy(() => import("./pages/staff/StaffClientes"));
 const ExploreMarketplace = lazy(() => import("./pages/ExploreMarketplace"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const ExcluirContaPage = lazy(() => import("./pages/ExcluirContaPage"));
 
 const queryClient = new QueryClient();
 
@@ -184,6 +185,7 @@ const AppRoutes = () => {
         <Route path="/redefinir-senha" element={<ForgotPasswordPage />} />
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
+        <Route path="/excluir-conta" element={<ExcluirContaPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
         
         <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
