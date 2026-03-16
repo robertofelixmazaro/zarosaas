@@ -131,7 +131,7 @@ const AdminServicos = () => {
         toast.success("Serviço atualizado!");
       } else {
         // Create first, then upload image
-        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, is_full_day: form.is_full_day, tenant_id: tenantId } as any).select("id").single();
+        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, is_full_day: form.is_full_day, commission_percentage: form.commission_percentage, tenant_id: tenantId } as any).select("id").single();
         if (error) throw error;
         const newId = (created as any).id;
         if (imageFile) {
