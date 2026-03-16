@@ -48,6 +48,8 @@ export interface DbAppointment {
   price: number;
   created_at: string;
   tenant_id: string | null;
+  staff_commission?: number;
+  company_revenue?: number;
   barbers?: { name: string };
   services?: { name: string };
 }

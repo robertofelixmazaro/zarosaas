@@ -353,6 +353,17 @@ const AdminServicos = () => {
                 <Input value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })} maxLength={10} />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Comissão Colaborador (%)</label>
+                <Input type="number" value={form.commission_percentage} onChange={e => setForm({ ...form, commission_percentage: Number(e.target.value) })} min={0} max={100} step={1} />
+                {form.commission_percentage > 0 && form.price > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Colaborador: R$ {(form.price * form.commission_percentage / 100).toFixed(2)} · Empresa: R$ {(form.price - form.price * form.commission_percentage / 100).toFixed(2)}
+                  </p>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.is_full_day} onChange={e => setForm({ ...form, is_full_day: e.target.checked, ...(e.target.checked ? { duration_minutes: 480 } : {}) })} id="is_full_day" className="rounded" />
               <label htmlFor="is_full_day" className="text-sm">Serviço de dia inteiro</label>
