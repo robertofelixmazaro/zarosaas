@@ -11,6 +11,8 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/staff/dashboard" },
   { icon: Calendar, label: "Minha Agenda", path: "/staff/agenda" },
   { icon: Users, label: "Meus Clientes", path: "/staff/clientes" },
+  { icon: DollarSign, label: "Meu Faturamento", path: "/staff/faturamento" },
+  { icon: User, label: "Meu Perfil", path: "/staff/perfil" },
 ];
 
 const StaffLayout = ({ children }: { children: React.ReactNode }) => {
