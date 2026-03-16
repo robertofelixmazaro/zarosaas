@@ -21,7 +21,7 @@ const serviceSchema = z.object({
   active: z.boolean(),
 });
 
-const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true, is_full_day: false };
+const emptyForm = { name: "", description: "", price: 0, duration_minutes: 30, icon: "✂️", active: true, is_full_day: false, commission_percentage: 0 };
 
 const AdminServicos = () => {
   const { tenantId } = useTenant();
@@ -61,7 +61,7 @@ const AdminServicos = () => {
   };
 
   const openEdit = (s: DbService) => {
-    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active, is_full_day: s.is_full_day || false });
+    setForm({ name: s.name, description: s.description || "", price: Number(s.price), duration_minutes: s.duration_minutes, icon: s.icon || "✂️", active: s.active, is_full_day: s.is_full_day || false, commission_percentage: s.commission_percentage || 0 });
     setEditingId(s.id);
     setErrors({});
     setImageFile(null);
@@ -127,11 +127,11 @@ const AdminServicos = () => {
         if (imageFile) {
           imageUrl = await uploadImage(editingId);
         }
-        await updateService(editingId, { ...parsed.data, is_full_day: form.is_full_day, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
+        await updateService(editingId, { ...parsed.data, is_full_day: form.is_full_day, commission_percentage: form.commission_percentage, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) });
         toast.success("Serviço atualizado!");
       } else {
         // Create first, then upload image
-        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, is_full_day: form.is_full_day, tenant_id: tenantId } as any).select("id").single();
+        const { data: created, error } = await supabase.from("services" as any).insert({ ...parsed.data, is_full_day: form.is_full_day, commission_percentage: form.commission_percentage, tenant_id: tenantId } as any).select("id").single();
         if (error) throw error;
         const newId = (created as any).id;
         if (imageFile) {
@@ -268,7 +268,7 @@ const AdminServicos = () => {
               {s.description && (
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{s.description}</p>
               )}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-1">
                 <span className="font-bold" style={{ fontSize: '22px', color: '#22c55e' }}>
                   R$ {Number(s.price).toFixed(0)}
                 </span>
@@ -276,6 +276,11 @@ const AdminServicos = () => {
                   ⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes} min`}
                 </span>
               </div>
+              {(s.commission_percentage ?? 0) > 0 && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Comissão: {s.commission_percentage}% (R$ {(Number(s.price) * (s.commission_percentage || 0) / 100).toFixed(0)})
+                </p>
+              )}
               <div className="flex gap-2 pt-2 border-t border-border">
                 <Button variant="ghost" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => openEdit(s)}>
                   <Edit className="h-3.5 w-3.5" /> Editar
@@ -351,6 +356,17 @@ const AdminServicos = () => {
               <div>
                 <label className="text-sm font-medium mb-1 block">Ícone</label>
                 <Input value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })} maxLength={10} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Comissão Colaborador (%)</label>
+                <Input type="number" value={form.commission_percentage} onChange={e => setForm({ ...form, commission_percentage: Number(e.target.value) })} min={0} max={100} step={1} />
+                {form.commission_percentage > 0 && form.price > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Colaborador: R$ {(form.price * form.commission_percentage / 100).toFixed(2)} · Empresa: R$ {(form.price - form.price * form.commission_percentage / 100).toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">

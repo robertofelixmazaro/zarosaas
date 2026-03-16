@@ -12,6 +12,7 @@ export interface DbService {
   image_url: string | null;
   tenant_id: string | null;
   is_full_day?: boolean;
+  commission_percentage?: number;
 }
 
 export interface DbBarber {
@@ -47,6 +48,8 @@ export interface DbAppointment {
   price: number;
   created_at: string;
   tenant_id: string | null;
+  staff_commission?: number;
+  company_revenue?: number;
   barbers?: { name: string };
   services?: { name: string };
 }
