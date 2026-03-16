@@ -314,11 +314,11 @@ const AdminBarbeiros = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle>{editingId ? `Editar ${nicheLabels.staffSingular}` : `Novo ${nicheLabels.staffSingular}`}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
             {/* Photo upload */}
             <div>
               <label className="text-sm font-medium mb-2 block">Foto</label>
