@@ -92,7 +92,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
   if (!userRole || !allowedRoles.includes(userRole)) {
     if (userRole === "super_admin") return <Navigate to="/superadmin/dashboard" replace />;
     if (userRole === "affiliate") return <Navigate to="/affiliate/dashboard" replace />;
-    if (userRole === "staff") return <Navigate to="/staff-dashboard/agenda" replace />;
+    if (userRole === "staff") return <Navigate to="/st/agenda" replace />;
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
