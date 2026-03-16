@@ -17,18 +17,23 @@ export function useDynamicManifest(
     const manifest = {
       name: tenantName,
       short_name: tenantName.slice(0, 12),
+      id: `com.zarosistemas.${tenantName.toLowerCase().replace(/\s+/g, '')}`,
       description: `Agende seu horário em ${tenantName}`,
       start_url: window.location.pathname,
       display: "standalone" as const,
       background_color: "#ffffff",
       theme_color: color,
       orientation: "portrait" as const,
+      categories: ["business", "productivity"],
       icons: logoUrl
         ? [
             { src: logoUrl, sizes: "192x192", type: "image/png", purpose: "any" },
             { src: logoUrl, sizes: "512x512", type: "image/png", purpose: "any" },
           ]
-        : [],
+        : [
+            { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          ],
     };
 
     const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });

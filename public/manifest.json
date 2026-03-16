@@ -1,23 +1,33 @@
 {
   "name": "Zaro Sistemas",
   "short_name": "Zaro",
-  "description": "Sistema completo de agendamento online para barbearias, salões, clínicas, estúdios e prestadores de serviços.",
+  "id": "com.zarosistemas.app",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#ffffff",
-  "theme_color": "#0f1729",
+  "theme_color": "#0a2540",
+  "description": "Sistema completo de agendamento online para barbearias, salões, clínicas e prestadores de serviços.",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
