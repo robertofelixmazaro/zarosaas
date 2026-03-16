@@ -268,7 +268,7 @@ const AdminServicos = () => {
               {s.description && (
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{s.description}</p>
               )}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-1">
                 <span className="font-bold" style={{ fontSize: '22px', color: '#22c55e' }}>
                   R$ {Number(s.price).toFixed(0)}
                 </span>
@@ -276,6 +276,11 @@ const AdminServicos = () => {
                   ⏱ {s.is_full_day ? "Dia inteiro" : `${s.duration_minutes} min`}
                 </span>
               </div>
+              {(s.commission_percentage ?? 0) > 0 && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Comissão: {s.commission_percentage}% (R$ {(Number(s.price) * (s.commission_percentage || 0) / 100).toFixed(0)})
+                </p>
+              )}
               <div className="flex gap-2 pt-2 border-t border-border">
                 <Button variant="ghost" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => openEdit(s)}>
                   <Edit className="h-3.5 w-3.5" /> Editar
