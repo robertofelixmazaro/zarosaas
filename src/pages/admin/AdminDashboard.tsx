@@ -27,7 +27,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const [staffRanking, setStaffRanking] = useState<{ name: string; services: number; revenue: number; commission: number }[]>([]);
-  const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const isAdmin = userRole === "admin";
   const emailConfirmed = Boolean((user as any)?.email_confirmed_at);
 
