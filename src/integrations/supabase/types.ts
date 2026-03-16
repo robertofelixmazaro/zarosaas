@@ -279,6 +279,7 @@ export type Database = {
           client_name: string
           client_phone: string
           client_user_id: string | null
+          company_revenue: number | null
           created_at: string | null
           deposit_amount: number | null
           deposit_paid: boolean | null
@@ -290,6 +291,7 @@ export type Database = {
           reminder_2h_sent: boolean
           reminder_sent: boolean
           service_id: string
+          staff_commission: number | null
           status: Database["public"]["Enums"]["appointment_status"]
           tenant_id: string | null
           updated_at: string | null
@@ -304,6 +306,7 @@ export type Database = {
           client_name: string
           client_phone: string
           client_user_id?: string | null
+          company_revenue?: number | null
           created_at?: string | null
           deposit_amount?: number | null
           deposit_paid?: boolean | null
@@ -315,6 +318,7 @@ export type Database = {
           reminder_2h_sent?: boolean
           reminder_sent?: boolean
           service_id: string
+          staff_commission?: number | null
           status?: Database["public"]["Enums"]["appointment_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -329,6 +333,7 @@ export type Database = {
           client_name?: string
           client_phone?: string
           client_user_id?: string | null
+          company_revenue?: number | null
           created_at?: string | null
           deposit_amount?: number | null
           deposit_paid?: boolean | null
@@ -340,6 +345,7 @@ export type Database = {
           reminder_2h_sent?: boolean
           reminder_sent?: boolean
           service_id?: string
+          staff_commission?: number | null
           status?: Database["public"]["Enums"]["appointment_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -1233,6 +1239,7 @@ export type Database = {
       services: {
         Row: {
           active: boolean | null
+          commission_percentage: number | null
           created_at: string | null
           description: string | null
           duration_minutes: number
@@ -1246,6 +1253,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          commission_percentage?: number | null
           created_at?: string | null
           description?: string | null
           duration_minutes: number
@@ -1259,6 +1267,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          commission_percentage?: number | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number
