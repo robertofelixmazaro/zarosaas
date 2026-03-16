@@ -388,10 +388,10 @@ const AdminBarbeiros = () => {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
-            </div>
+          </div>
+          <div className="flex gap-2 justify-end pt-4 border-t shrink-0">
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
           </div>
         </DialogContent>
       </Dialog>
