@@ -1,0 +1,23 @@
+{
+  "name": "Zaro Sistemas",
+  "short_name": "Zaro",
+  "description": "Sistema completo de agendamento online para barbearias, salões, clínicas, estúdios e prestadores de serviços.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#0f1729",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
