@@ -197,6 +197,7 @@ const AppRoutes = () => {
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
         <Route path="/excluir-conta" element={<ExcluirContaPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
         
         <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
