@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Globe, Loader2, Sparkles, UserPlus, PartyPopper, Copy, ExternalLink, ArrowRight, Check, X } from "lucide-react";
+import { Globe, Loader2, PartyPopper, Copy, ExternalLink, ArrowRight, Check, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OnboardingWizardProps {
   tenantId: string;
@@ -16,33 +15,13 @@ interface OnboardingWizardProps {
   onComplete: (newSlug: string) => void;
 }
 
-const DURATION_OPTIONS = [15, 20, 30, 45, 60, 90, 120];
-
-/** Generate a URL-safe slug from a company name */
-const generateSlugFromName = (name: string) =>
-  name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove accents
-    .replace(/[^a-z0-9]+/g, "-")    // non-alphanum → hyphen
-    .replace(/^-|-$/g, "")          // trim hyphens
-    .slice(0, 50);
-
 const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizardProps) => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 - Subdomain (auto-generated from tenant name, editable)
+  // Step 1 - Subdomain
   const [slug, setSlug] = useState(currentSlug || "");
   const [slugError, setSlugError] = useState("");
-
-  // Step 2 - Service
-  const [serviceName, setServiceName] = useState("");
-  const [servicePrice, setServicePrice] = useState("");
-  const [serviceDuration, setServiceDuration] = useState("30");
-
-  // Step 3 - Professional
-  const [professionalName, setProfessionalName] = useState("");
 
   // Final slug after save
   const [finalSlug, setFinalSlug] = useState(currentSlug || "");
@@ -99,45 +78,6 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     setStep(2);
   };
 
-  const handleStep2 = async () => {
-    if (!serviceName.trim()) { toast.error("Informe o nome do serviço"); return; }
-    if (!servicePrice || Number(servicePrice) <= 0) { toast.error("Informe um preço válido"); return; }
-
-    setSaving(true);
-    const { error } = await supabase.from("services").insert({
-      tenant_id: tenantId,
-      name: serviceName.trim(),
-      price: Number(servicePrice),
-      duration_minutes: Number(serviceDuration),
-      active: true,
-    });
-    if (error) {
-      toast.error("Erro ao criar serviço: " + error.message);
-      setSaving(false);
-      return;
-    }
-    setSaving(false);
-    setStep(3);
-  };
-
-  const handleStep3 = async () => {
-    if (!professionalName.trim()) { toast.error("Informe o nome do profissional"); return; }
-
-    setSaving(true);
-    const { error } = await supabase.from("barbers").insert({
-      tenant_id: tenantId,
-      name: professionalName.trim(),
-      active: true,
-    });
-    if (error) {
-      toast.error("Erro ao adicionar profissional: " + error.message);
-      setSaving(false);
-      return;
-    }
-    setSaving(false);
-    setStep(4);
-  };
-
   const handleFinish = async () => {
     setSaving(true);
     await supabase.from("tenants").update({ onboarding_completed: true } as any).eq("id", tenantId);
@@ -168,7 +108,8 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const progressValue = (step / 4) * 100;
+  const totalSteps = 2;
+  const progressValue = (step / totalSteps) * 100;
 
   return (
     <Dialog open={true}>
@@ -189,15 +130,15 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
 
         {/* Header */}
         <div className="space-y-4">
-          {step < 4 && (
+          {step === 1 && (
             <>
               <div className="text-center">
                 <h2 className="text-xl font-bold">Bem-vindo ao Zaro 👋</h2>
-                <p className="text-sm text-muted-foreground mt-1">Vamos configurar sua empresa em poucos passos.</p>
+                <p className="text-sm text-muted-foreground mt-1">Vamos configurar o endereço da sua empresa.</p>
               </div>
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Passo {step} de 4</span>
+                  <span>Passo {step} de {totalSteps}</span>
                   <span>{Math.round(progressValue)}%</span>
                 </div>
                 <Progress value={progressValue} className="h-2" />
@@ -239,80 +180,8 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
             </div>
           )}
 
-          {/* STEP 2 - First Service */}
+          {/* STEP 2 - Done */}
           {step === 2 && (
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Sparkles className="h-5 w-5" />
-                <h3 className="font-semibold">Crie seu primeiro serviço</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Nome do serviço</Label>
-                  <Input
-                    value={serviceName}
-                    onChange={(e) => setServiceName(e.target.value)}
-                    placeholder="Ex: Corte Masculino, Consulta, etc."
-                    autoFocus
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Preço (R$)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={servicePrice}
-                      onChange={(e) => setServicePrice(e.target.value)}
-                      placeholder="50.00"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Duração</Label>
-                    <Select value={serviceDuration} onValueChange={setServiceDuration}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {DURATION_OPTIONS.map((d) => (
-                          <SelectItem key={d} value={String(d)}>{d} min</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <Button onClick={handleStep2} disabled={saving || !serviceName.trim()} className="w-full gap-2">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                Continuar
-              </Button>
-            </div>
-          )}
-
-          {/* STEP 3 - First Professional */}
-          {step === 3 && (
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 text-primary">
-                <UserPlus className="h-5 w-5" />
-                <h3 className="font-semibold">Adicione um profissional</h3>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Nome do profissional</Label>
-                <Input
-                  value={professionalName}
-                  onChange={(e) => setProfessionalName(e.target.value)}
-                  placeholder="Ex: João Silva"
-                  autoFocus
-                />
-              </div>
-              <Button onClick={handleStep3} disabled={saving || !professionalName.trim()} className="w-full gap-2">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                Continuar
-              </Button>
-            </div>
-          )}
-
-          {/* STEP 4 - Done */}
-          {step === 4 && (
             <div className="space-y-5 pt-2 text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <PartyPopper className="h-8 w-8 text-primary" />

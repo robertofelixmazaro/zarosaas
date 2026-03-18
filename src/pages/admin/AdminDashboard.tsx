@@ -3,7 +3,7 @@ import { fetchAppointmentsAdmin, fetchBarbers, fetchBarberByUserId, DbAppointmen
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert, ShieldAlert, UserX, CheckCircle, Trophy } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, TriangleAlert, ShieldAlert, UserX, CheckCircle, Trophy, Sparkles, UserPlus, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -22,6 +22,8 @@ const AdminDashboard = () => {
   const { tenantId, tenant } = useTenant();
   const nicheLabels = getNicheLabels(tenant?.niche);
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
+  const [hasServices, setHasServices] = useState(true);
+  const [hasStaff, setHasStaff] = useState(true);
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,11 @@ const AdminDashboard = () => {
       ]);
       setAppointments(a);
       setBarbers(b);
+      setHasStaff(b.length > 0);
+
+      // Check if tenant has services
+      const { count } = await supabase.from("services").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true);
+      setHasServices((count ?? 0) > 0);
 
       // Build staff ranking from completed appointments
       if (isAdmin) {
@@ -130,6 +137,31 @@ const AdminDashboard = () => {
             <Button variant="outline" size="sm" onClick={resendConfirmationEmail} disabled={resendingConfirmation}>
               {resendingConfirmation ? "Reenviando..." : "Reenviar email de confirmação"}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {isAdmin && (!hasServices || !hasStaff) && (
+        <div className="rounded-lg border border-accent/30 bg-accent/10 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Lightbulb className="h-4 w-4 text-warning" />
+            Sugestões para começar
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {!hasServices && (
+              <a href={`/t/${tenant?.slug}/admin/servicos`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> Criar primeiro serviço
+                </Button>
+              </a>
+            )}
+            {!hasStaff && (
+              <a href={`/t/${tenant?.slug}/admin/barbeiros`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <UserPlus className="h-3.5 w-3.5" /> Adicionar profissional
+                </Button>
+              </a>
+            )}
           </div>
         </div>
       )}
