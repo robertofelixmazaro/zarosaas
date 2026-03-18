@@ -141,6 +141,31 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {isAdmin && (!hasServices || !hasStaff) && (
+        <div className="rounded-lg border border-accent/30 bg-accent/10 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Lightbulb className="h-4 w-4 text-warning" />
+            Sugestões para começar
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {!hasServices && (
+              <a href={`/t/${tenant?.slug}/admin/servicos`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> Criar primeiro serviço
+                </Button>
+              </a>
+            )}
+            {!hasStaff && (
+              <a href={`/t/${tenant?.slug}/admin/barbeiros`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <UserPlus className="h-3.5 w-3.5" /> Adicionar profissional
+                </Button>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {!isAdmin && currentBarber && (
         <div className="p-4 rounded-lg border bg-card">
           <p className="text-sm text-muted-foreground">Logado como {getNicheLabels(tenant?.niche).staffSingular.toLowerCase()}</p>
