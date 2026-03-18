@@ -103,7 +103,7 @@ const SubdomainSetupPopup = ({ tenantId, currentSlug, onComplete }: SubdomainSet
             <Label htmlFor="slug-input">Subdomínio</Label>
             <div className="flex items-center gap-0 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
               <span className="text-sm text-muted-foreground bg-muted px-3 py-2.5 border-r whitespace-nowrap">
-                https://
+                {window.location.origin}/t/
               </span>
               <Input
                 id="slug-input"
@@ -113,9 +113,6 @@ const SubdomainSetupPopup = ({ tenantId, currentSlug, onComplete }: SubdomainSet
                 className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
                 autoFocus
               />
-              <span className="text-sm text-muted-foreground bg-muted px-3 py-2.5 border-l whitespace-nowrap">
-                .zarosistemas.com.br
-              </span>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <p className="text-xs text-muted-foreground">
