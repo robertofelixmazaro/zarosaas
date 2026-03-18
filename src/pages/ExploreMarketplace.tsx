@@ -199,7 +199,7 @@ const ExploreMarketplace = () => {
                   </div>
                   <Button
                     className="w-full gap-2 group-hover:gap-3 transition-all platform-btn-primary"
-                    onClick={() => handleSchedule(listing.slug)}
+                    onClick={() => handleSchedule(listing)}
                   >
                     Agendar
                     <ArrowRight className="h-4 w-4" />
