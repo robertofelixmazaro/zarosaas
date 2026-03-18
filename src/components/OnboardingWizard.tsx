@@ -130,15 +130,15 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
 
         {/* Header */}
         <div className="space-y-4">
-          {step < 4 && (
+          {step === 1 && (
             <>
               <div className="text-center">
                 <h2 className="text-xl font-bold">Bem-vindo ao Zaro 👋</h2>
-                <p className="text-sm text-muted-foreground mt-1">Vamos configurar sua empresa em poucos passos.</p>
+                <p className="text-sm text-muted-foreground mt-1">Vamos configurar o endereço da sua empresa.</p>
               </div>
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Passo {step} de 4</span>
+                  <span>Passo {step} de {totalSteps}</span>
                   <span>{Math.round(progressValue)}%</span>
                 </div>
                 <Progress value={progressValue} className="h-2" />
