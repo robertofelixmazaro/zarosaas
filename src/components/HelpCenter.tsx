@@ -44,8 +44,18 @@ const helpArticles = [
   },
 ];
 
+const normalizeVideoUrl = (url: string): string => {
+  // Google Drive: convert /view to /preview for embedding
+  if (url.includes("drive.google.com")) {
+    return url.replace(/\/view(\?.*)?$/, "/preview");
+  }
+  return url;
+};
+
 const VideoEmbed = ({ url }: { url: string }) => {
   if (!url) return null;
+
+  const normalized = normalizeVideoUrl(url);
 
   // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
@@ -73,12 +83,41 @@ const VideoEmbed = ({ url }: { url: string }) => {
     );
   }
 
+  // Google Drive
+  if (url.includes("drive.google.com")) {
+    return (
+      <div className="space-y-2">
+        <iframe
+          src={normalized}
+          className="w-full aspect-video rounded-lg"
+          allow="autoplay; fullscreen"
+          allowFullScreen
+        />
+        <button
+          onClick={() => window.open(url, "_blank")}
+          className="text-xs text-primary hover:underline"
+        >
+          Abrir no Google Drive ↗
+        </button>
+      </div>
+    );
+  }
+
   // MP4
   if (url.endsWith(".mp4")) {
     return <video src={url} controls className="w-full aspect-video rounded-lg" />;
   }
 
-  return null;
+  // Fallback: open externally
+  return (
+    <button
+      onClick={() => window.open(url, "_blank")}
+      className="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-primary/40 py-6 text-sm text-primary hover:bg-primary/5 transition-colors"
+    >
+      <PlayCircle className="h-5 w-5" />
+      Assistir vídeo ↗
+    </button>
+  );
 };
 
 interface HelpCenterProps {
