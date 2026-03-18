@@ -47,6 +47,11 @@ const AdminDashboard = () => {
       ]);
       setAppointments(a);
       setBarbers(b);
+      setHasStaff(b.length > 0);
+
+      // Check if tenant has services
+      const { count } = await supabase.from("services").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true);
+      setHasServices((count ?? 0) > 0);
 
       // Build staff ranking from completed appointments
       if (isAdmin) {
