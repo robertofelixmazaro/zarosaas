@@ -22,6 +22,8 @@ const AdminDashboard = () => {
   const { tenantId, tenant } = useTenant();
   const nicheLabels = getNicheLabels(tenant?.niche);
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
+  const [hasServices, setHasServices] = useState(true);
+  const [hasStaff, setHasStaff] = useState(true);
   const [barbers, setBarbers] = useState<DbBarber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<DbBarber | null>(null);
   const [loading, setLoading] = useState(true);
