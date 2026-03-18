@@ -108,7 +108,8 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const progressValue = (step / 4) * 100;
+  const totalSteps = 2;
+  const progressValue = (step / totalSteps) * 100;
 
   return (
     <Dialog open={true}>
