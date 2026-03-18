@@ -251,6 +251,7 @@ const UnifiedLoginPage = () => {
             {googleLoading ? "Conectando..." : "Continuar com Google"}
           </Button>
 
+        </motion.div>
       </motion.div>
     </div>
   );
