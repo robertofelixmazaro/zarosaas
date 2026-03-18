@@ -79,45 +79,6 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     setStep(2);
   };
 
-  const handleStep2 = async () => {
-    if (!serviceName.trim()) { toast.error("Informe o nome do serviço"); return; }
-    if (!servicePrice || Number(servicePrice) <= 0) { toast.error("Informe um preço válido"); return; }
-
-    setSaving(true);
-    const { error } = await supabase.from("services").insert({
-      tenant_id: tenantId,
-      name: serviceName.trim(),
-      price: Number(servicePrice),
-      duration_minutes: Number(serviceDuration),
-      active: true,
-    });
-    if (error) {
-      toast.error("Erro ao criar serviço: " + error.message);
-      setSaving(false);
-      return;
-    }
-    setSaving(false);
-    setStep(3);
-  };
-
-  const handleStep3 = async () => {
-    if (!professionalName.trim()) { toast.error("Informe o nome do profissional"); return; }
-
-    setSaving(true);
-    const { error } = await supabase.from("barbers").insert({
-      tenant_id: tenantId,
-      name: professionalName.trim(),
-      active: true,
-    });
-    if (error) {
-      toast.error("Erro ao adicionar profissional: " + error.message);
-      setSaving(false);
-      return;
-    }
-    setSaving(false);
-    setStep(4);
-  };
-
   const handleFinish = async () => {
     setSaving(true);
     await supabase.from("tenants").update({ onboarding_completed: true } as any).eq("id", tenantId);
