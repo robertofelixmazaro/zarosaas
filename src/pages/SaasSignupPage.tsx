@@ -130,7 +130,7 @@ const SaasSignupPage = () => {
     setGoogleLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/completar-cadastro`,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
       if (error) toast.error("Erro ao entrar com Google: " + (error as Error).message);
     } catch (err: any) {

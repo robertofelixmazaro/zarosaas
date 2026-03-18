@@ -78,6 +78,7 @@ const StaffPerfil = lazy(() => import("./pages/staff/StaffPerfil"));
 const ExploreMarketplace = lazy(() => import("./pages/ExploreMarketplace"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const ExcluirContaPage = lazy(() => import("./pages/ExcluirContaPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,7 @@ const CustomDomainTenantRoutes = () => (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route index element={<Index />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="agendar" element={<AgendarPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
@@ -196,6 +198,7 @@ const AppRoutes = () => {
         <Route path="/comprar" element={<ComprarPage />} />
         <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
         <Route path="/excluir-conta" element={<ExcluirContaPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/ref/:code" element={<ReferralRedirectPage />} />
         
         <Route path="/confirmar-agendamento/:id" element={<ConfirmAppointmentPage />} />
