@@ -4,6 +4,7 @@ import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationC
 import PushNotificationSection from "@/components/admin/PushNotificationSection";
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
 import EmailTemplatesEditor from "@/components/admin/EmailTemplatesEditor";
+import SmsConfig from "@/components/admin/SmsConfig";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
