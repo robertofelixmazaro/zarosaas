@@ -66,8 +66,9 @@ const ExploreMarketplace = () => {
 
   const niches = [...new Set(listings.map((l) => l.niche || "other"))];
 
-  const handleSchedule = (slug: string) => {
-    window.open(`https://${slug}.zarosistemas.com.br`, "_blank");
+  const handleSchedule = (listing: MarketplaceListing) => {
+    const path = listing.slug || listing.id;
+    navigate(`/t/${path}`);
   };
 
   return (
