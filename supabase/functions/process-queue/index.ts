@@ -162,8 +162,16 @@ async function processJob(
     }
 
     case "send_sms": {
-      // SMS integration placeholder — log for now, ready for Twilio/Vonage integration
-      console.log(`[SMS] tenant=${job.tenant_id} phone=${payload.phone} message=${payload.message?.slice(0, 80)}`);
+      const res = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`send-sms: ${res.status} ${text}`);
       break;
     }
 
