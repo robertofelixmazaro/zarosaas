@@ -948,6 +948,9 @@ const AdminConfig = () => {
       {/* Push Notifications */}
       <PushNotificationSection />
 
+      {/* SMS Configuration */}
+      <SmsConfig />
+
       {/* QR Code */}
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
