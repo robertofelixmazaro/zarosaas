@@ -78,6 +78,7 @@ const StaffPerfil = lazy(() => import("./pages/staff/StaffPerfil"));
 const ExploreMarketplace = lazy(() => import("./pages/ExploreMarketplace"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const ExcluirContaPage = lazy(() => import("./pages/ExcluirContaPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 
 const queryClient = new QueryClient();
 
