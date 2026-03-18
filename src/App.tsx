@@ -143,6 +143,7 @@ const CustomDomainTenantRoutes = () => (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route index element={<Index />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="agendar" element={<AgendarPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="minhas-avaliacoes" element={<MinhasAvaliacoes />} />
