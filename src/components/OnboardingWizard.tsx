@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Globe, Loader2, Sparkles, UserPlus, PartyPopper, Copy, ExternalLink, ArrowRight, Check } from "lucide-react";
+import { Globe, Loader2, Sparkles, UserPlus, PartyPopper, Copy, ExternalLink, ArrowRight, Check, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -18,11 +18,21 @@ interface OnboardingWizardProps {
 
 const DURATION_OPTIONS = [15, 20, 30, 45, 60, 90, 120];
 
+/** Generate a URL-safe slug from a company name */
+const generateSlugFromName = (name: string) =>
+  name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove accents
+    .replace(/[^a-z0-9]+/g, "-")    // non-alphanum → hyphen
+    .replace(/^-|-$/g, "")          // trim hyphens
+    .slice(0, 50);
+
 const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizardProps) => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 - Subdomain
+  // Step 1 - Subdomain (auto-generated from tenant name, editable)
   const [slug, setSlug] = useState(currentSlug || "");
   const [slugError, setSlugError] = useState("");
 
@@ -38,6 +48,8 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
   const [finalSlug, setFinalSlug] = useState(currentSlug || "");
   const [copied, setCopied] = useState(false);
 
+  // Auto-generate slug from current slug if it looks auto-generated (has timestamp suffix)
+  // Otherwise keep as-is for editing
   const sanitizeSlug = (val: string) =>
     val.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-{2,}/g, "-");
 
@@ -49,6 +61,11 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     return null;
   };
 
+  const handleDismiss = () => {
+    localStorage.setItem(`onboarding_hidden_${tenantId}`, "true");
+    onComplete(finalSlug || currentSlug);
+  };
+
   const handleStep1 = async () => {
     const err = validateSlug(slug);
     if (err) { setSlugError(err); return; }
@@ -56,6 +73,7 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
     setSaving(true);
     setSlugError("");
 
+    // Validate uniqueness
     const { data: existing } = await supabase
       .from("tenants")
       .select("id")
@@ -123,7 +141,6 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
   const handleFinish = async () => {
     setSaving(true);
     await supabase.from("tenants").update({ onboarding_completed: true } as any).eq("id", tenantId);
-    // Also mark subdomain as configured
     const { data: existing } = await supabase
       .from("site_settings")
       .select("id")
@@ -137,19 +154,21 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
         value: "true",
       });
     }
+    localStorage.removeItem(`onboarding_hidden_${tenantId}`);
     setSaving(false);
     onComplete(finalSlug);
   };
 
+  const publicUrl = getTenantExternalUrl(finalSlug || slug);
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://${finalSlug}.zarosistemas.com.br`);
+    navigator.clipboard.writeText(publicUrl);
     setCopied(true);
     toast.success("Link copiado!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const progressValue = (step / 4) * 100;
-  const publicUrl = `https://${finalSlug}.zarosistemas.com.br`;
 
   return (
     <Dialog open={true}>
@@ -158,6 +177,16 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          aria-label="Fechar"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
         {/* Header */}
         <div className="space-y-4">
           {step < 4 && (
@@ -181,12 +210,17 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
             <div className="space-y-4 pt-2">
               <div className="flex items-center gap-2 text-primary">
                 <Globe className="h-5 w-5" />
-                <h3 className="font-semibold">Escolha o endereço da sua empresa</h3>
+                <h3 className="font-semibold">Endereço da sua empresa</h3>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Gerado automaticamente a partir do nome da empresa. Você pode editar se quiser.
+              </p>
               <div className="space-y-2">
                 <Label>Subdomínio</Label>
                 <div className="flex items-center rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                  <span className="text-xs text-muted-foreground bg-muted px-2.5 py-2.5 border-r whitespace-nowrap">https://</span>
+                  <span className="text-xs text-muted-foreground bg-muted px-2.5 py-2.5 border-r whitespace-nowrap">
+                    {window.location.origin}/t/
+                  </span>
                   <Input
                     value={slug}
                     onChange={(e) => { setSlug(sanitizeSlug(e.target.value)); setSlugError(""); }}
@@ -194,7 +228,6 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
                     className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
                     autoFocus
                   />
-                  <span className="text-xs text-muted-foreground bg-muted px-2.5 py-2.5 border-l whitespace-nowrap">.zarosistemas.com.br</span>
                 </div>
                 {slugError && <p className="text-sm text-destructive">{slugError}</p>}
                 <p className="text-xs text-muted-foreground">Letras minúsculas, números e hífen. Mínimo 3 caracteres.</p>
@@ -301,7 +334,7 @@ const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizar
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copied ? "Copiado!" : "Copiar link"}
                 </Button>
-                <a href={getTenantExternalUrl(finalSlug)} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
                   <Button variant="outline" className="w-full gap-2">
                     <ExternalLink className="h-4 w-4" /> Abrir página
                   </Button>

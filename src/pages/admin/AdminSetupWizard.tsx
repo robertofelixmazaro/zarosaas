@@ -209,15 +209,15 @@ const AdminSetupWizard = () => {
     window.location.href = getTenantAdminUrl(createdTenantSlug);
   };
 
-  const getPublicLink = () => `${createdTenantSlug}.zarosistemas.com.br`;
+  const getPublicLink = () => `${window.location.origin}/t/${createdTenantSlug}`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://${getPublicLink()}`);
+    navigator.clipboard.writeText(getPublicLink());
     toast.success("Link copiado!");
   };
 
   const handleShareWhatsApp = () => {
-    const message = encodeURIComponent(`Olá! Agora você pode agendar comigo online: https://${getPublicLink()}`);
+    const message = encodeURIComponent(`Olá! Agora você pode agendar comigo online: ${getPublicLink()}`);
     window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
