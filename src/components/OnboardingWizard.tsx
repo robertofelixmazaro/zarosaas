@@ -16,33 +16,13 @@ interface OnboardingWizardProps {
   onComplete: (newSlug: string) => void;
 }
 
-const DURATION_OPTIONS = [15, 20, 30, 45, 60, 90, 120];
-
-/** Generate a URL-safe slug from a company name */
-const generateSlugFromName = (name: string) =>
-  name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove accents
-    .replace(/[^a-z0-9]+/g, "-")    // non-alphanum → hyphen
-    .replace(/^-|-$/g, "")          // trim hyphens
-    .slice(0, 50);
-
 const OnboardingWizard = ({ tenantId, currentSlug, onComplete }: OnboardingWizardProps) => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 - Subdomain (auto-generated from tenant name, editable)
+  // Step 1 - Subdomain
   const [slug, setSlug] = useState(currentSlug || "");
   const [slugError, setSlugError] = useState("");
-
-  // Step 2 - Service
-  const [serviceName, setServiceName] = useState("");
-  const [servicePrice, setServicePrice] = useState("");
-  const [serviceDuration, setServiceDuration] = useState("30");
-
-  // Step 3 - Professional
-  const [professionalName, setProfessionalName] = useState("");
 
   // Final slug after save
   const [finalSlug, setFinalSlug] = useState(currentSlug || "");
