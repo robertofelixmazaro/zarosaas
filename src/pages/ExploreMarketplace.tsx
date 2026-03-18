@@ -28,6 +28,7 @@ const nicheLabelsMap: Record<string, string> = {
 };
 
 const ExploreMarketplace = () => {
+  const navigate = useNavigate();
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [filteredListings, setFilteredListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
