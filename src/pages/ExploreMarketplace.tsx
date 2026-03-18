@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getNicheLabels, type BusinessNiche } from "@/lib/nicheLabels";
 
 interface MarketplaceListing {
@@ -28,6 +28,7 @@ const nicheLabelsMap: Record<string, string> = {
 };
 
 const ExploreMarketplace = () => {
+  const navigate = useNavigate();
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [filteredListings, setFilteredListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,8 +66,9 @@ const ExploreMarketplace = () => {
 
   const niches = [...new Set(listings.map((l) => l.niche || "other"))];
 
-  const handleSchedule = (slug: string) => {
-    window.open(`https://${slug}.zarosistemas.com.br`, "_blank");
+  const handleSchedule = (listing: MarketplaceListing) => {
+    const path = listing.slug || listing.id;
+    navigate(`/t/${path}`);
   };
 
   return (
@@ -197,7 +199,7 @@ const ExploreMarketplace = () => {
                   </div>
                   <Button
                     className="w-full gap-2 group-hover:gap-3 transition-all platform-btn-primary"
-                    onClick={() => handleSchedule(listing.slug)}
+                    onClick={() => handleSchedule(listing)}
                   >
                     Agendar
                     <ArrowRight className="h-4 w-4" />
