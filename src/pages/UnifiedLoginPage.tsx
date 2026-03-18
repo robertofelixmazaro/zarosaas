@@ -79,6 +79,19 @@ const UnifiedLoginPage = () => {
 
   // Email confirmation no longer required (auto-confirm enabled)
 
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+      });
+      if (error) toast.error("Erro ao entrar com Google: " + (error as Error).message);
+    } catch (err: any) {
+      toast.error("Erro inesperado: " + err.message);
+    }
+    setGoogleLoading(false);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
