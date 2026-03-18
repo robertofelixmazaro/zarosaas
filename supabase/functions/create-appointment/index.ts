@@ -199,6 +199,15 @@ Deno.serve(async (req) => {
       },
       {
         tenant_id,
+        type: "send_sms",
+        payload: {
+          tenant_id,
+          to: client_phone || "",
+          message: `Olá ${client_name}! Seu agendamento foi confirmado para ${appointment_date} às ${appointment_time}. Obrigado!`,
+        },
+      },
+      {
+        tenant_id,
         type: "log_activity",
         payload: {
           action: "appointment_created",
