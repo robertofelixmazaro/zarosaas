@@ -94,6 +94,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   // Check if onboarding has been completed and if tour should show
   useEffect(() => {
     if (!tenant?.id || userRole !== "admin") return;
+    const hiddenKey = `onboarding_hidden_${tenant.id}`;
+    if (localStorage.getItem(hiddenKey) === "true") return;
     supabase
       .from("tenants")
       .select("onboarding_completed")
