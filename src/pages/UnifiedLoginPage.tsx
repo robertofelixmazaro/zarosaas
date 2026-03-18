@@ -19,6 +19,7 @@ const UnifiedLoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
 
   const redirectByRole = useCallback((role: string) => {
