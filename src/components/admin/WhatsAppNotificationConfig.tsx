@@ -46,6 +46,29 @@ const WhatsAppNotificationConfig = () => {
   const [sendingTest, setSendingTest] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [testLog, setTestLog] = useState<{ type: "success" | "error"; message: string; detail?: string } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"unknown" | "checking" | "connected" | "disconnected">("unknown");
+
+  const checkConnectionStatus = async () => {
+    if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) return;
+    setConnectionStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("test-whatsapp", {
+        body: {
+          action: "check_connection",
+          api_url: settings.wa_api_url,
+          api_key: settings.wa_api_key,
+          instance_id: settings.wa_instance_id,
+        },
+      });
+      if (error || !data?.success) {
+        setConnectionStatus("disconnected");
+      } else {
+        setConnectionStatus(data.connected ? "connected" : "disconnected");
+      }
+    } catch {
+      setConnectionStatus("disconnected");
+    }
+  };
 
   useEffect(() => {
     if (!tenantId) return;
