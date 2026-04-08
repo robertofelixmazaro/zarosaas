@@ -710,9 +710,23 @@ const AdminConfig = () => {
               placeholder="agenda.meudominio.com.br"
               className="max-w-md"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Configure um registro CNAME apontando seu domínio para <code className="bg-muted px-1 py-0.5 rounded">zarosistemas.com.br</code>
-            </p>
+            {customDomain ? (() => {
+              const parts = customDomain.replace(/^https?:\/\//, '').split('.');
+              const isSubdomain = parts.length >= 3;
+              return isSubdomain ? (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                  ✅ Configuração recomendada
+                </p>
+              ) : (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  ⚠️ Recomendamos usar um subdomínio como <strong>agenda.{customDomain}</strong> para melhor funcionamento
+                </p>
+              );
+            })() : (
+              <p className="text-xs text-muted-foreground mt-1">
+                Configure um registro CNAME apontando seu domínio para <code className="bg-muted px-1 py-0.5 rounded">zarosistemas.com.br</code>
+              </p>
+            )}
           </div>
           <Button
             variant="outline"
@@ -721,7 +735,6 @@ const AdminConfig = () => {
             onClick={async () => {
               setSavingDomain(true);
               try {
-                // Check uniqueness if domain is set
                 if (customDomain) {
                   const { data: existing } = await supabase
                     .from("tenants" as any)
@@ -749,14 +762,27 @@ const AdminConfig = () => {
           >
             {savingDomain ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Salvando...</> : "Salvar Domínio"}
           </Button>
+
           {customDomain && (
             <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-xs font-medium text-muted-foreground mb-2">Configuração DNS necessária:</p>
               <div className="space-y-1 text-xs font-mono">
                 <p><span className="text-muted-foreground">Tipo:</span> CNAME</p>
-                <p><span className="text-muted-foreground">Nome:</span> {customDomain.split('.')[0]}</p>
+                <p><span className="text-muted-foreground">Nome:</span> {customDomain.replace(/^https?:\/\//, '').split('.')[0]}</p>
                 <p><span className="text-muted-foreground">Valor:</span> zarosistemas.com.br</p>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-2 h-7 text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${customDomain.replace(/^https?:\/\//, '').split('.')[0]} CNAME zarosistemas.com.br`);
+                  toast.success("Configuração copiada!");
+                }}
+              >
+                📋 Copiar configuração
+              </Button>
               <p className="text-xs text-muted-foreground mt-2">
                 Após configurar o DNS, seu site estará acessível em{" "}
                 <a href={`https://${customDomain}`} target="_blank" className="text-primary hover:underline">
@@ -765,6 +791,60 @@ const AdminConfig = () => {
               </p>
             </div>
           )}
+
+          {/* Tutorial passo a passo */}
+          <details className="rounded-lg border bg-card">
+            <summary className="cursor-pointer p-4 text-sm font-semibold flex items-center gap-2 select-none hover:bg-muted/30 transition-colors rounded-lg">
+              📖 Como configurar seu domínio personalizado
+            </summary>
+            <div className="px-4 pb-4 space-y-3">
+              <ol className="space-y-3 text-sm">
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</span>
+                  <span>Acesse o painel do seu provedor de domínio (HostGator, GoDaddy, Registro.br, etc.)</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</span>
+                  <span>Vá até a área de <strong>DNS</strong> (Zona DNS)</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</span>
+                  <span>Crie um novo registro do tipo <strong>CNAME</strong></span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</span>
+                  <div>
+                    <span>Preencha os campos assim:</span>
+                    <div className="mt-2 p-2 rounded bg-muted/50 font-mono text-xs space-y-1">
+                      <p><strong>Nome:</strong> agenda</p>
+                      <p><strong>Tipo:</strong> CNAME</p>
+                      <p><strong>Valor:</strong> zarosistemas.com.br</p>
+                    </div>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">5</span>
+                  <span>Salve e aguarde a propagação (pode levar até 1 hora)</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">6</span>
+                  <span>Acesse: <code className="bg-muted px-1.5 py-0.5 rounded text-xs">https://agenda.seudominio.com</code></span>
+                </li>
+              </ol>
+
+              <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                  ⚠️ Importante: não utilize seu domínio principal (ex: seudominio.com.br) diretamente. Utilize sempre um subdomínio como <strong>agenda.seudominio.com</strong> para evitar erros.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-lg border bg-muted/30">
+                <p className="text-sm text-muted-foreground">
+                  💡 <strong>Dica:</strong> Você pode configurar um redirecionamento do seu domínio principal para o subdomínio no painel do seu provedor.
+                </p>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
