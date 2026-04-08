@@ -78,27 +78,23 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           });
         }
       }
-      // 2. Custom domain lookup
+      // 2. Custom domain lookup (uses security definer function to bypass RLS)
       else if (isCustomDomain && detection.customDomainHost) {
-        const { data, error: err } = await supabase
-          .from("tenants" as any)
-          .select("id, name, slug, logo_url, active, niche, custom_domain")
-          .eq("custom_domain", detection.customDomainHost)
-          .eq("active", true)
-          .maybeSingle();
+        const { data, error: err } = await (supabase.rpc as any)("get_public_tenant_by_custom_domain", { _domain: detection.customDomainHost });
+        const row = Array.isArray(data) ? data[0] : data;
         if (err) {
           setError("Erro ao carregar negócio.");
-        } else if (!data) {
+        } else if (!row) {
           setError("Empresa não encontrada para este domínio.");
         } else {
           setTenant({
-            id: (data as any).id,
-            name: (data as any).name,
-            slug: (data as any).slug,
-            logo_url: (data as any).logo_url,
-            active: (data as any).active,
-            niche: (data as any).niche || null,
-            custom_domain: (data as any).custom_domain,
+            id: row.id,
+            name: row.name,
+            slug: row.slug,
+            logo_url: row.logo_url,
+            active: row.active,
+            niche: row.niche || null,
+            custom_domain: detection.customDomainHost,
             owner_user_id: null,
             phone: null,
             address: null,
