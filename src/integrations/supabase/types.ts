@@ -1581,6 +1581,17 @@ export type Database = {
           slug: string
         }[]
       }
+      get_public_tenant_by_custom_domain: {
+        Args: { _domain: string }
+        Returns: {
+          active: boolean
+          id: string
+          logo_url: string
+          name: string
+          niche: string
+          slug: string
+        }[]
+      }
       get_public_tenant_by_slug: {
         Args: { _slug: string }
         Returns: {
