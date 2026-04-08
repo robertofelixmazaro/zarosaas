@@ -345,60 +345,182 @@ Caso precise cancelar:
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={handleSave} disabled={saving} variant="outline" size="sm">
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? "Salvando..." : "Salvar Configurações WhatsApp"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={testing}
-            onClick={async () => {
-              if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) {
-                toast.error("Preencha todas as informações da API antes de testar a conexão.");
-                return;
-              }
-              setTesting(true);
-              setTestResult(null);
-              try {
-                const url = settings.wa_api_url.replace(/\/+$/, "");
-                const res = await fetch(`${url}/instance/connectionState/${settings.wa_instance_id}`, {
-                  headers: { apikey: settings.wa_api_key },
-                });
-                if (res.ok) {
-                  const data = await res.json();
-                  const state = data?.instance?.state || data?.state || data?.status;
-                  if (state === "open" || state === "connected") {
-                    setTestResult("success");
-                    toast.success("Conexão bem-sucedida! WhatsApp conectado.");
-                  } else {
-                    setTestResult("success");
-                    toast.success(`API respondeu. Estado: ${state || "desconhecido"}. Verifique se o QR Code foi escaneado.`);
-                  }
-                } else {
-                  setTestResult("error");
-                  const text = await res.text().catch(() => "");
-                  toast.error(`Erro na conexão (${res.status})`, { description: text.slice(0, 150) || "Verifique a URL e API Key." });
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSave} disabled={saving} variant="outline" size="sm">
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? "Salvando..." : "Salvar Configurações WhatsApp"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={testing}
+              onClick={async () => {
+                if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) {
+                  toast.error("Preencha todas as informações da API antes de testar a conexão.");
+                  return;
                 }
-              } catch (err: any) {
-                setTestResult("error");
-                toast.error("Falha ao conectar", { description: "Verifique a URL da API e tente novamente." });
-              }
-              setTesting(false);
-            }}
-          >
-            {testing ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : testResult === "success" ? (
-              <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-            ) : testResult === "error" ? (
-              <XCircle className="h-4 w-4 mr-2 text-destructive" />
-            ) : (
-              <Wifi className="h-4 w-4 mr-2" />
-            )}
-            {testing ? "Testando..." : "Testar Conexão"}
-          </Button>
+                setTesting(true);
+                setTestResult(null);
+                setTestLog(null);
+                try {
+                  const { data, error } = await supabase.functions.invoke("test-whatsapp", {
+                    body: {
+                      action: "check_connection",
+                      api_url: settings.wa_api_url,
+                      api_key: settings.wa_api_key,
+                      instance_id: settings.wa_instance_id,
+                    },
+                  });
+                  if (error) {
+                    setTestResult("error");
+                    setTestLog({ type: "error", message: "Erro ao testar conexão", detail: error.message });
+                    toast.error("Erro ao testar conexão");
+                  } else if (data?.success) {
+                    setTestResult(data.connected ? "success" : "success");
+                    setTestLog({
+                      type: data.connected ? "success" : "error",
+                      message: data.message,
+                      detail: `Estado: ${data.state}`,
+                    });
+                    if (data.connected) {
+                      toast.success("Conexão bem-sucedida! WhatsApp conectado.");
+                    } else {
+                      toast.warning(data.message);
+                    }
+                  } else {
+                    setTestResult("error");
+                    setTestLog({
+                      type: "error",
+                      message: data?.error || "Erro desconhecido",
+                      detail: data?.api_response ? `Código: ${data.status_code} — ${data.api_response}` : undefined,
+                    });
+                    toast.error(data?.error || "Falha na conexão");
+                  }
+                } catch (err: any) {
+                  setTestResult("error");
+                  setTestLog({ type: "error", message: "Falha ao conectar", detail: err.message });
+                  toast.error("Falha ao conectar");
+                }
+                setTesting(false);
+              }}
+            >
+              {testing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : testResult === "success" ? (
+                <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+              ) : testResult === "error" ? (
+                <XCircle className="h-4 w-4 mr-2 text-destructive" />
+              ) : (
+                <Wifi className="h-4 w-4 mr-2" />
+              )}
+              {testing ? "Testando..." : "Testar Conexão"}
+            </Button>
+          </div>
+
+          {/* Test Send Section */}
+          <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Testar Envio de Mensagem
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Envie uma mensagem de teste para verificar se a integração está funcionando.
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={testPhone}
+                    onChange={e => setTestPhone(e.target.value)}
+                    placeholder="5516999999999"
+                    className="pl-9"
+                  />
+                </div>
+                {testPhone && (() => {
+                  const digits = testPhone.replace(/\D/g, "");
+                  const withCountry = digits.startsWith("55") ? digits : "55" + digits;
+                  if (withCountry.length < 12 || withCountry.length > 13) {
+                    return <p className="text-xs text-destructive mt-1">Número inválido. Use: 5516999999999</p>;
+                  }
+                  return <p className="text-xs text-green-600 mt-1">Número formatado: {withCountry}</p>;
+                })()}
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                disabled={sendingTest || !testPhone}
+                onClick={async () => {
+                  if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) {
+                    toast.error("Configure a API antes de testar o envio.");
+                    return;
+                  }
+                  setSendingTest(true);
+                  setTestLog(null);
+                  try {
+                    const { data, error } = await supabase.functions.invoke("test-whatsapp", {
+                      body: {
+                        action: "send_test",
+                        api_url: settings.wa_api_url,
+                        api_key: settings.wa_api_key,
+                        instance_id: settings.wa_instance_id,
+                        phone: testPhone,
+                      },
+                    });
+                    if (error) {
+                      setTestLog({ type: "error", message: "Erro ao enviar", detail: error.message });
+                      toast.error("Erro ao enviar mensagem de teste");
+                    } else if (data?.success) {
+                      setTestLog({
+                        type: "success",
+                        message: data.message,
+                        detail: data.api_response ? `Resposta: ${data.api_response}` : undefined,
+                      });
+                      toast.success("Mensagem enviada com sucesso!");
+                    } else {
+                      setTestLog({
+                        type: "error",
+                        message: data?.error || "Erro ao enviar",
+                        detail: data?.api_response ? `Código: ${data.status_code} — ${data.api_response}` : undefined,
+                      });
+                      toast.error(data?.error || "Falha no envio");
+                    }
+                  } catch (err: any) {
+                    setTestLog({ type: "error", message: "Falha ao enviar", detail: err.message });
+                    toast.error("Falha ao enviar");
+                  }
+                  setSendingTest(false);
+                }}
+              >
+                {sendingTest ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                {sendingTest ? "Enviando..." : "Enviar Teste"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Log de resultado */}
+          {testLog && (
+            <div className={`p-3 rounded-lg border text-sm ${
+              testLog.type === "success"
+                ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200"
+                : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200"
+            }`}>
+              <div className="flex items-start gap-2">
+                {testLog.type === "success" ? (
+                  <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                ) : (
+                  <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                )}
+                <div>
+                  <p className="font-medium">{testLog.message}</p>
+                  {testLog.detail && (
+                    <p className="text-xs mt-1 opacity-80 break-all">{testLog.detail}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
