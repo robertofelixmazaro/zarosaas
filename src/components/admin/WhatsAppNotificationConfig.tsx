@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MessageSquare, Save, HelpCircle, ChevronRight, Wifi, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { MessageSquare, Save, HelpCircle, ChevronRight, Wifi, Loader2, CheckCircle2, XCircle, Send, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
