@@ -4,9 +4,14 @@
 
 /**
  * Returns the full external URL for a tenant.
- * Always uses path-based: origin + /t/:slug
+ * Prioritizes custom domain if available, otherwise uses path-based /t/:slug.
  */
-export function getTenantExternalUrl(slug: string): string {
+export function getTenantExternalUrl(slug: string, customDomain?: string | null): string {
+  if (customDomain) {
+    // Ensure protocol is included
+    const domain = customDomain.startsWith("http") ? customDomain : `https://${customDomain}`;
+    return domain;
+  }
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return `${origin}/t/${slug}`;
 }
