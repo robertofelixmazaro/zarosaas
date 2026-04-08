@@ -235,7 +235,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
         <div className="p-3 border-t space-y-1">
           {tenantSlug && (
-            <a href={getTenantExternalUrl(tenantSlug)} target="_blank" rel="noopener noreferrer">
+            <a href={getTenantExternalUrl(tenantSlug, tenant?.custom_domain)} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="w-full justify-start gap-2 text-muted-foreground" size="sm">
                 <ExternalLink className="h-4 w-4" /> Ver Landing Page
               </Button>
