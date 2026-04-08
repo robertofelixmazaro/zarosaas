@@ -46,6 +46,29 @@ const WhatsAppNotificationConfig = () => {
   const [sendingTest, setSendingTest] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [testLog, setTestLog] = useState<{ type: "success" | "error"; message: string; detail?: string } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"unknown" | "checking" | "connected" | "disconnected">("unknown");
+
+  const checkConnectionStatus = async () => {
+    if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) return;
+    setConnectionStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("test-whatsapp", {
+        body: {
+          action: "check_connection",
+          api_url: settings.wa_api_url,
+          api_key: settings.wa_api_key,
+          instance_id: settings.wa_instance_id,
+        },
+      });
+      if (error || !data?.success) {
+        setConnectionStatus("disconnected");
+      } else {
+        setConnectionStatus(data.connected ? "connected" : "disconnected");
+      }
+    } catch {
+      setConnectionStatus("disconnected");
+    }
+  };
 
   useEffect(() => {
     if (!tenantId) return;
@@ -104,6 +127,10 @@ const WhatsAppNotificationConfig = () => {
         }
       }
       toast.success("Configurações de WhatsApp salvas!");
+      // Auto-check connection after saving
+      if (settings.wa_api_url && settings.wa_api_key && settings.wa_instance_id) {
+        checkConnectionStatus();
+      }
     } catch (err: any) {
       toast.error("Erro ao salvar", { description: err.message });
     }
@@ -280,7 +307,61 @@ Caso precise cancelar:
           </div>
         </div>
 
-        {/* Reminder */}
+        {/* Connection Status Banner */}
+        {settings.wa_api_url && settings.wa_api_key && settings.wa_instance_id && (
+          <div className={`flex items-center justify-between p-3 rounded-lg border ${
+            connectionStatus === "connected"
+              ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+              : connectionStatus === "disconnected"
+              ? "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800"
+              : "bg-muted/30 border-border"
+          }`}>
+            <div className="flex items-center gap-2">
+              {connectionStatus === "checking" ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : connectionStatus === "connected" ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              ) : connectionStatus === "disconnected" ? (
+                <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              ) : (
+                <Wifi className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="text-sm font-medium">
+                {connectionStatus === "checking" && "Verificando conexão..."}
+                {connectionStatus === "connected" && "WhatsApp conectado ✅"}
+                {connectionStatus === "disconnected" && "Instância não conectada ❌"}
+                {connectionStatus === "unknown" && "Status da conexão desconhecido"}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={connectionStatus === "checking"}
+              onClick={checkConnectionStatus}
+              className="text-xs"
+            >
+              {connectionStatus === "checking" ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <Wifi className="h-3 w-3 mr-1" />
+              )}
+              Ver status
+            </Button>
+          </div>
+        )}
+        {connectionStatus === "disconnected" && (
+          <div className="p-3 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
+            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+              ⚠️ Sua instância do WhatsApp não está conectada.
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+              Acesse o painel da sua API (Z-API, Evolution API, etc.) e escaneie o QR Code para conectar o WhatsApp. 
+              Sem essa etapa, as mensagens não serão enviadas.
+            </p>
+          </div>
+        )}
+
+
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <Switch
