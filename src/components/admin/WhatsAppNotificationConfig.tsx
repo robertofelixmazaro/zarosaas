@@ -43,6 +43,9 @@ const WhatsAppNotificationConfig = () => {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testPhone, setTestPhone] = useState("");
+  const [testLog, setTestLog] = useState<{ type: "success" | "error"; message: string; detail?: string } | null>(null);
 
   useEffect(() => {
     if (!tenantId) return;
