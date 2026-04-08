@@ -127,6 +127,10 @@ const WhatsAppNotificationConfig = () => {
         }
       }
       toast.success("Configurações de WhatsApp salvas!");
+      // Auto-check connection after saving
+      if (settings.wa_api_url && settings.wa_api_key && settings.wa_instance_id) {
+        checkConnectionStatus();
+      }
     } catch (err: any) {
       toast.error("Erro ao salvar", { description: err.message });
     }
