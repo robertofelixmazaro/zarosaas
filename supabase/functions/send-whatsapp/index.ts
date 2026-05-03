@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
         "wa_confirmation_enabled",
         "wa_reminder_message",
         "wa_confirmation_message",
+        "wa_appointment_template",
         "wa_api_url",
         "wa_api_key",
         "wa_instance_id",
