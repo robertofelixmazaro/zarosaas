@@ -91,26 +91,32 @@ const AdminLembretes = () => {
     return digits;
   };
 
-  const buildWhatsAppMessage = (appt: ReminderAppointment) => {
+  const buildWhatsAppMessage = async (appt: ReminderAppointment) => {
     const dateStr = format(parseISO(appt.appointment_date), "dd/MM/yyyy", { locale: ptBR });
     const timeStr = appt.appointment_time.slice(0, 5);
-    const barberName = (appt.barbers as any)?.name || "nosso profissional";
-    const serviceName = (appt.services as any)?.name || "seu serviço";
-
+    const barberName = (appt.barbers as any)?.name || "";
+    const serviceName = (appt.services as any)?.name || "";
+    const template = tenantId ? await loadAppointmentTemplate(tenantId) : DEFAULT_APPOINTMENT_TEMPLATE;
+    const { data: tenantData } = tenantId
+      ? await supabase.from("tenants").select("name, phone").eq("id", tenantId).maybeSingle()
+      : { data: null as any };
     return encodeURIComponent(
-      `Olá ${appt.client_name}! 👋\n\n` +
-      `🔔 *Lembrete de Agendamento*\n\n` +
-      `📅 Data: *${dateStr}*\n` +
-      `🕐 Horário: *${timeStr}*\n` +
-      `✂️ Serviço: *${serviceName}*\n` +
-      `💈 Profissional: *${barberName}*\n\n` +
-      `Estamos te esperando! 😄`
+      renderTemplate(template, {
+        cliente: appt.client_name,
+        servico: serviceName,
+        profissional: barberName,
+        data: dateStr,
+        horario: timeStr,
+        valor: "",
+        empresa: tenantData?.name || "",
+        telefone_empresa: tenantData?.phone || "",
+      })
     );
   };
 
   const handleSendReminder = async (appt: ReminderAppointment) => {
     const phone = formatPhone(appt.client_phone);
-    const message = buildWhatsAppMessage(appt);
+    const message = await buildWhatsAppMessage(appt);
     const url = `https://wa.me/${phone}?text=${message}`;
 
     // Open WhatsApp
