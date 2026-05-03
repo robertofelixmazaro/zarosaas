@@ -418,11 +418,51 @@ Caso precise cancelar:
           )}
         </div>
 
+        {/* Template unificado da mensagem de agendamento */}
+        <div className="space-y-3 p-4 rounded-lg border bg-card">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" /> Mensagem de Agendamento (WhatsApp)
+            </h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => setSettings({ ...settings, wa_appointment_template: DEFAULT_APPOINTMENT_TEMPLATE })}
+            >
+              Restaurar padrão
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Esta é a mensagem enviada ao cliente quando o agendamento é confirmado. Personalize livremente — sem emojis fixos.
+          </p>
+          <textarea
+            value={settings.wa_appointment_template}
+            onChange={e => setSettings({ ...settings, wa_appointment_template: e.target.value })}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[180px] font-mono"
+          />
+          <div className="p-3 rounded border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Pré-visualização:</p>
+            <p className="text-xs whitespace-pre-wrap">
+              {renderTemplate(settings.wa_appointment_template, {
+                cliente: "João Silva",
+                servico: "Corte Masculino",
+                profissional: "Carlos",
+                data: "15/03/2026",
+                horario: "14:00",
+                valor: "R$ 50,00",
+                empresa: "Sua Empresa",
+                telefone_empresa: "(16) 99999-9999",
+              })}
+            </p>
+          </div>
+        </div>
+
         {/* Variables help */}
         <div className="p-3 rounded-lg border bg-muted/30">
           <p className="text-xs font-medium text-muted-foreground mb-2">Variáveis disponíveis:</p>
           <div className="flex flex-wrap gap-2">
-            {["{{cliente}}", "{{empresa}}", "{{servico}}", "{{data}}", "{{hora}}", "{{link_confirmacao}}", "{{link_cancelamento}}"].map(v => (
+            {TEMPLATE_VARIABLES.map(v => (
               <code key={v} className="text-xs bg-muted px-2 py-1 rounded font-mono">{v}</code>
             ))}
           </div>
