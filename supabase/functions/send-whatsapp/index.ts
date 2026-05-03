@@ -67,17 +67,19 @@ Deno.serve(async (req) => {
       if (!reminderEnabled && !confirmationEnabled) continue;
 
       const reminderHours = parseInt(config.wa_reminder_hours || "2", 10);
+      const appointmentTemplate = config.wa_appointment_template || "";
       const reminderMsg = config.wa_reminder_message || "";
       const confirmationMsg = config.wa_confirmation_message || "";
 
-      // Get tenant name
+      // Get tenant name + phone
       const { data: tenant } = await supabase
         .from("tenants")
-        .select("name, slug")
+        .select("name, slug, phone")
         .eq("id", tenantId)
         .maybeSingle();
       const tenantName = tenant?.name || "Nosso Estabelecimento";
       const tenantSlug = tenant?.slug || "";
+      const tenantPhone = tenant?.phone || "";
 
       // Find appointments in the reminder window
       const fromTime = new Date(now.getTime() + (reminderHours - 0.5) * 60 * 60 * 1000);
