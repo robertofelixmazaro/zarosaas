@@ -107,6 +107,7 @@ const WhatsAppNotificationConfig = () => {
         wa_confirmation_enabled: String(settings.wa_confirmation_enabled),
         wa_reminder_message: settings.wa_reminder_message,
         wa_confirmation_message: settings.wa_confirmation_message,
+        wa_appointment_template: settings.wa_appointment_template,
         wa_api_url: settings.wa_api_url,
         wa_api_key: settings.wa_api_key,
         wa_instance_id: settings.wa_instance_id,
