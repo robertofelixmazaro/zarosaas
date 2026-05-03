@@ -87,6 +87,7 @@ const WhatsAppNotificationConfig = () => {
           wa_confirmation_enabled: map.wa_confirmation_enabled === "true",
           wa_reminder_message: map.wa_reminder_message || defaults.wa_reminder_message,
           wa_confirmation_message: map.wa_confirmation_message || defaults.wa_confirmation_message,
+          wa_appointment_template: map.wa_appointment_template || defaults.wa_appointment_template,
           wa_api_url: map.wa_api_url || "",
           wa_api_key: map.wa_api_key || "",
           wa_instance_id: map.wa_instance_id || "",
