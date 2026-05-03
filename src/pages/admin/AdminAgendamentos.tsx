@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { loadAppointmentTemplate, renderTemplate } from "@/lib/whatsappTemplate";
 
 import AppointmentFilters from "@/components/appointments/AppointmentFilters";
 import AppointmentListView from "@/components/appointments/AppointmentListView";
