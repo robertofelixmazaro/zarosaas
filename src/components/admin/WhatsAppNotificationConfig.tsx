@@ -7,12 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
+import { DEFAULT_APPOINTMENT_TEMPLATE, TEMPLATE_VARIABLES, renderTemplate } from "@/lib/whatsappTemplate";
 
-const DEFAULT_REMINDER_MSG =
-  "Olá {{cliente}} 👋\n\nLembrando do seu horário às {{hora}} na {{empresa}}.\n\n📅 Data: {{data}}\n✂️ Serviço: {{servico}}\n\nTe esperamos! 😄";
-
-const DEFAULT_CONFIRMATION_MSG =
-  "Olá {{cliente}} 👋\n\nSeu horário está marcado para {{data}} às {{hora}} na {{empresa}}.\n\n✅ Confirmar presença:\n{{link_confirmacao}}\n\n❌ Cancelar agendamento:\n{{link_cancelamento}}";
+const DEFAULT_REMINDER_MSG = DEFAULT_APPOINTMENT_TEMPLATE;
+const DEFAULT_CONFIRMATION_MSG = DEFAULT_APPOINTMENT_TEMPLATE;
 
 interface WaSettings {
   wa_reminder_enabled: boolean;
@@ -20,6 +18,7 @@ interface WaSettings {
   wa_confirmation_enabled: boolean;
   wa_reminder_message: string;
   wa_confirmation_message: string;
+  wa_appointment_template: string;
   wa_api_url: string;
   wa_api_key: string;
   wa_instance_id: string;
@@ -31,6 +30,7 @@ const defaults: WaSettings = {
   wa_confirmation_enabled: false,
   wa_reminder_message: DEFAULT_REMINDER_MSG,
   wa_confirmation_message: DEFAULT_CONFIRMATION_MSG,
+  wa_appointment_template: DEFAULT_APPOINTMENT_TEMPLATE,
   wa_api_url: "",
   wa_api_key: "",
   wa_instance_id: "",
@@ -87,6 +87,7 @@ const WhatsAppNotificationConfig = () => {
           wa_confirmation_enabled: map.wa_confirmation_enabled === "true",
           wa_reminder_message: map.wa_reminder_message || defaults.wa_reminder_message,
           wa_confirmation_message: map.wa_confirmation_message || defaults.wa_confirmation_message,
+          wa_appointment_template: map.wa_appointment_template || defaults.wa_appointment_template,
           wa_api_url: map.wa_api_url || "",
           wa_api_key: map.wa_api_key || "",
           wa_instance_id: map.wa_instance_id || "",
@@ -106,6 +107,7 @@ const WhatsAppNotificationConfig = () => {
         wa_confirmation_enabled: String(settings.wa_confirmation_enabled),
         wa_reminder_message: settings.wa_reminder_message,
         wa_confirmation_message: settings.wa_confirmation_message,
+        wa_appointment_template: settings.wa_appointment_template,
         wa_api_url: settings.wa_api_url,
         wa_api_key: settings.wa_api_key,
         wa_instance_id: settings.wa_instance_id,
@@ -416,11 +418,51 @@ Caso precise cancelar:
           )}
         </div>
 
+        {/* Template unificado da mensagem de agendamento */}
+        <div className="space-y-3 p-4 rounded-lg border bg-card">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" /> Mensagem de Agendamento (WhatsApp)
+            </h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => setSettings({ ...settings, wa_appointment_template: DEFAULT_APPOINTMENT_TEMPLATE })}
+            >
+              Restaurar padrão
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Esta é a mensagem enviada ao cliente quando o agendamento é confirmado. Personalize livremente — sem emojis fixos.
+          </p>
+          <textarea
+            value={settings.wa_appointment_template}
+            onChange={e => setSettings({ ...settings, wa_appointment_template: e.target.value })}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[180px] font-mono"
+          />
+          <div className="p-3 rounded border bg-muted/30">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Pré-visualização:</p>
+            <p className="text-xs whitespace-pre-wrap">
+              {renderTemplate(settings.wa_appointment_template, {
+                cliente: "João Silva",
+                servico: "Corte Masculino",
+                profissional: "Carlos",
+                data: "15/03/2026",
+                horario: "14:00",
+                valor: "R$ 50,00",
+                empresa: "Sua Empresa",
+                telefone_empresa: "(16) 99999-9999",
+              })}
+            </p>
+          </div>
+        </div>
+
         {/* Variables help */}
         <div className="p-3 rounded-lg border bg-muted/30">
           <p className="text-xs font-medium text-muted-foreground mb-2">Variáveis disponíveis:</p>
           <div className="flex flex-wrap gap-2">
-            {["{{cliente}}", "{{empresa}}", "{{servico}}", "{{data}}", "{{hora}}", "{{link_confirmacao}}", "{{link_cancelamento}}"].map(v => (
+            {TEMPLATE_VARIABLES.map(v => (
               <code key={v} className="text-xs bg-muted px-2 py-1 rounded font-mono">{v}</code>
             ))}
           </div>

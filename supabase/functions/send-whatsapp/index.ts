@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
         "wa_confirmation_enabled",
         "wa_reminder_message",
         "wa_confirmation_message",
+        "wa_appointment_template",
         "wa_api_url",
         "wa_api_key",
         "wa_instance_id",
@@ -66,17 +67,19 @@ Deno.serve(async (req) => {
       if (!reminderEnabled && !confirmationEnabled) continue;
 
       const reminderHours = parseInt(config.wa_reminder_hours || "2", 10);
+      const appointmentTemplate = config.wa_appointment_template || "";
       const reminderMsg = config.wa_reminder_message || "";
       const confirmationMsg = config.wa_confirmation_message || "";
 
-      // Get tenant name
+      // Get tenant name + phone
       const { data: tenant } = await supabase
         .from("tenants")
-        .select("name, slug")
+        .select("name, slug, phone")
         .eq("id", tenantId)
         .maybeSingle();
       const tenantName = tenant?.name || "Nosso Estabelecimento";
       const tenantSlug = tenant?.slug || "";
+      const tenantPhone = tenant?.phone || "";
 
       // Find appointments in the reminder window
       const fromTime = new Date(now.getTime() + (reminderHours - 0.5) * 60 * 60 * 1000);
@@ -95,7 +98,7 @@ Deno.serve(async (req) => {
 
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("id, client_name, client_phone, appointment_date, appointment_time, whatsapp_reminder_sent, attendance_confirmation_status, barbers(name), services(name)")
+        .select("id, client_name, client_phone, appointment_date, appointment_time, price, whatsapp_reminder_sent, attendance_confirmation_status, barbers(name), services(name)")
         .eq("tenant_id", tenantId)
         .eq("whatsapp_reminder_sent", false)
         .in("status", ["pendente", "confirmado"])
@@ -109,35 +112,36 @@ Deno.serve(async (req) => {
         const dateStr = formatDateBR(appt.appointment_date);
         const timeStr = appt.appointment_time.slice(0, 5);
         const serviceName = (appt.services as any)?.name || "Serviço";
+        const barberName = (appt.barbers as any)?.name || "";
+        const priceStr = appt.price != null
+          ? `R$ ${Number(appt.price).toFixed(2).replace(".", ",")}`
+          : "";
 
         // Build public URL for confirmation/cancellation
         const baseUrl = `https://${siteUrl ? siteUrl + ".lovable.app" : "zarosaas.lovable.app"}`;
         const confirmLink = `${baseUrl}/confirmar-agendamento/${appt.id}`;
         const cancelLink = `${baseUrl}/cancelar-agendamento/${appt.id}`;
 
-        let message = "";
-        if (reminderEnabled && confirmationEnabled) {
-          // Use confirmation message (includes confirmation links)
-          message = replaceVariables(confirmationMsg, {
-            cliente: appt.client_name,
-            empresa: tenantName,
-            servico: serviceName,
-            data: dateStr,
-            hora: timeStr,
-            link_confirmacao: confirmLink,
-            link_cancelamento: cancelLink,
-          });
-        } else if (reminderEnabled) {
-          message = replaceVariables(reminderMsg, {
-            cliente: appt.client_name,
-            empresa: tenantName,
-            servico: serviceName,
-            data: dateStr,
-            hora: timeStr,
-            link_confirmacao: confirmLink,
-            link_cancelamento: cancelLink,
-          });
-        }
+        const vars = {
+          cliente: appt.client_name,
+          empresa: tenantName,
+          telefone_empresa: tenantPhone,
+          servico: serviceName,
+          profissional: barberName,
+          data: dateStr,
+          hora: timeStr,
+          horario: timeStr,
+          valor: priceStr,
+          link_confirmacao: confirmLink,
+          link_cancelamento: cancelLink,
+        };
+
+        // Prefer the new unified template if defined.
+        const baseTemplate = appointmentTemplate
+          || (reminderEnabled && confirmationEnabled ? confirmationMsg : reminderMsg);
+
+        if (!baseTemplate) continue;
+        const message = replaceVariables(baseTemplate, vars);
 
         if (!message) continue;
 
@@ -184,7 +188,9 @@ function formatDateBR(dateStr: string): string {
 function replaceVariables(template: string, vars: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+    const v = value ?? "";
+    result = result.replace(new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g"), v);
+    result = result.replace(new RegExp(`\\{\\s*${key}\\s*\\}`, "g"), v);
   }
   return result;
 }
