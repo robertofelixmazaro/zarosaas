@@ -900,12 +900,29 @@ const AdminConfig = () => {
               disabled={savingAccount || !newEmail}
               onClick={async () => {
                 setSavingAccount(true);
-                const { error } = await supabase.auth.updateUser({ email: newEmail });
-                if (error) {
-                  toast.error("Erro ao alterar email", { description: error.message });
-                } else {
-                  toast.success("Email de confirmação enviado!", { description: "Verifique sua caixa de entrada do novo email para confirmar a alteração." });
+                try {
+                  // 1) Update auth email (sends confirmation email to new address)
+                  const { error: authErr } = await supabase.auth.updateUser({ email: newEmail });
+                  if (authErr) throw authErr;
+
+                  // 2) Update profile email so all notifications use the new address immediately
+                  if (user?.id) {
+                    await supabase
+                      .from("profiles")
+                      .update({ email: newEmail })
+                      .eq("auth_id", user.id);
+                  }
+
+                  // 3) Refresh local session
+                  await supabase.auth.refreshSession();
+
+                  toast.success(
+                    "E-mail atualizado com sucesso. As notificações agora serão enviadas para o novo endereço.",
+                    { description: "Confirme o novo e-mail na caixa de entrada para finalizar a alteração de login." }
+                  );
                   setNewEmail("");
+                } catch (err: any) {
+                  toast.error("Erro ao alterar email", { description: err.message });
                 }
                 setSavingAccount(false);
               }}
