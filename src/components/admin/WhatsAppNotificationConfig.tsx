@@ -7,12 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
+import { DEFAULT_APPOINTMENT_TEMPLATE, TEMPLATE_VARIABLES, renderTemplate } from "@/lib/whatsappTemplate";
 
-const DEFAULT_REMINDER_MSG =
-  "Olá {{cliente}} 👋\n\nLembrando do seu horário às {{hora}} na {{empresa}}.\n\n📅 Data: {{data}}\n✂️ Serviço: {{servico}}\n\nTe esperamos! 😄";
-
-const DEFAULT_CONFIRMATION_MSG =
-  "Olá {{cliente}} 👋\n\nSeu horário está marcado para {{data}} às {{hora}} na {{empresa}}.\n\n✅ Confirmar presença:\n{{link_confirmacao}}\n\n❌ Cancelar agendamento:\n{{link_cancelamento}}";
+const DEFAULT_REMINDER_MSG = DEFAULT_APPOINTMENT_TEMPLATE;
+const DEFAULT_CONFIRMATION_MSG = DEFAULT_APPOINTMENT_TEMPLATE;
 
 interface WaSettings {
   wa_reminder_enabled: boolean;
@@ -20,6 +18,7 @@ interface WaSettings {
   wa_confirmation_enabled: boolean;
   wa_reminder_message: string;
   wa_confirmation_message: string;
+  wa_appointment_template: string;
   wa_api_url: string;
   wa_api_key: string;
   wa_instance_id: string;
@@ -31,6 +30,7 @@ const defaults: WaSettings = {
   wa_confirmation_enabled: false,
   wa_reminder_message: DEFAULT_REMINDER_MSG,
   wa_confirmation_message: DEFAULT_CONFIRMATION_MSG,
+  wa_appointment_template: DEFAULT_APPOINTMENT_TEMPLATE,
   wa_api_url: "",
   wa_api_key: "",
   wa_instance_id: "",
