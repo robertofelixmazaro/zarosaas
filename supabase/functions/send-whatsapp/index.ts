@@ -188,7 +188,9 @@ function formatDateBR(dateStr: string): string {
 function replaceVariables(template: string, vars: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+    const v = value ?? "";
+    result = result.replace(new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g"), v);
+    result = result.replace(new RegExp(`\\{\\s*${key}\\s*\\}`, "g"), v);
   }
   return result;
 }
