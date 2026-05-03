@@ -267,17 +267,27 @@ const AdminAgendamentos = () => {
     }
   };
 
-  const sendWhatsAppConfirmation = (appointment: DbAppointment) => {
-    const serviceName = appointment.services?.name || "serviço";
-    const barberName = appointment.barbers?.name || "";
-    const date = appointment.appointment_date;
-    const time = appointment.appointment_time?.slice(0, 5);
-    const price = Number(appointment.price).toFixed(0);
-    const clientMsg = encodeURIComponent(
-      `✅ *Agendamento Confirmado!*\n\nOlá, ${appointment.client_name}! Seu agendamento foi confirmado:\n\n💈 Serviço: ${serviceName}\n✂️ Profissional: ${barberName}\n📅 Data: ${date}\n🕐 Horário: ${time}\n💰 Valor: R$ ${price}\n\nAguardamos você! 😊`
-    );
+  const sendWhatsAppConfirmation = async (appointment: DbAppointment) => {
+    if (!tenantId) return;
+    const template = await loadAppointmentTemplate(tenantId);
+    const { data: tenantData } = await supabase
+      .from("tenants")
+      .select("name, phone")
+      .eq("id", tenantId)
+      .maybeSingle();
+    const [y, m, d] = appointment.appointment_date.split("-");
+    const message = renderTemplate(template, {
+      cliente: appointment.client_name,
+      servico: appointment.services?.name || "",
+      profissional: appointment.barbers?.name || "",
+      data: `${d}/${m}/${y}`,
+      horario: appointment.appointment_time?.slice(0, 5) || "",
+      valor: `R$ ${Number(appointment.price).toFixed(2).replace(".", ",")}`,
+      empresa: tenantData?.name || "",
+      telefone_empresa: tenantData?.phone || "",
+    });
     const phone = appointment.client_phone.replace(/\D/g, "");
-    if (phone) window.open(`https://wa.me/55${phone}?text=${clientMsg}`, "_blank");
+    if (phone) window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   const handleSaveBlock = async () => {
