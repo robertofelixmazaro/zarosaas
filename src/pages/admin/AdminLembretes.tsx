@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { format, addMinutes, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { playUrgentReminderSound } from "@/lib/notificationSound";
+import { loadAppointmentTemplate, renderTemplate, DEFAULT_APPOINTMENT_TEMPLATE } from "@/lib/whatsappTemplate";
 
 interface ReminderAppointment {
   id: string;
