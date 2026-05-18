@@ -188,6 +188,12 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
 
     setSubmitting(true);
     try {
+      if (!tenantId) {
+        toast.error("Empresa não identificada. Recarregue a página.");
+        setSubmitting(false);
+        return;
+      }
+
       const notes = buildOrderNotes();
 
       const orderId = crypto.randomUUID();
@@ -196,6 +202,7 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         .from("orders" as any)
         .insert({
           id: orderId,
+          tenant_id: tenantId,
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           total: totalPrice,
@@ -211,10 +218,14 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
           referencia: deliveryMode === "entrega" ? addressReference.trim() || null : null,
         } as any);
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error("[ProductCart] orders insert error:", orderError);
+        throw orderError;
+      }
 
       const items = cart.map((item) => ({
         order_id: orderId,
+        tenant_id: tenantId,
         product_id: item.id,
         quantity: item.quantity,
         unit_price: item.price,
@@ -224,7 +235,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         .from("order_items" as any)
         .insert(items as any);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("[ProductCart] order_items insert error:", itemsError);
+        throw itemsError;
+      }
 
       toast.success("Pedido enviado com sucesso! 🎉", {
         description: "Entraremos em contato pelo WhatsApp.",
