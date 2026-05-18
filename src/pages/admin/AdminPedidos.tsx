@@ -53,6 +53,36 @@ const AdminPedidos = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!orderToDelete || !tenantId) return;
+    setDeleting(true);
+    const { error: itemsErr } = await supabase
+      .from("order_items" as any)
+      .delete()
+      .eq("order_id", orderToDelete.id)
+      .eq("tenant_id", tenantId);
+    if (itemsErr) {
+      toast.error("Erro ao excluir itens do pedido", { description: itemsErr.message });
+      setDeleting(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("orders" as any)
+      .delete()
+      .eq("id", orderToDelete.id)
+      .eq("tenant_id", tenantId);
+    setDeleting(false);
+    if (error) {
+      toast.error("Erro ao excluir pedido", { description: error.message });
+      return;
+    }
+    toast.success("Pedido excluído");
+    setOrderToDelete(null);
+    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+  };
 
   const loadOrders = async () => {
     let query = supabase
