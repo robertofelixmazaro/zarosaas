@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantBasePath, getTenantExternalUrl } from "@/lib/tenantUrl";
-import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, ShoppingBag, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
