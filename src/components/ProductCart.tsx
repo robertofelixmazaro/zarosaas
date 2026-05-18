@@ -29,9 +29,10 @@ type DeliveryMode = "entrega" | "retirada";
 type PaymentMethod = "dinheiro" | "debito" | "credito" | "pix";
 
 const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCartProps) => {
-  const { tenantId } = useTenant();
+  const { tenantId, tenant } = useTenant() as any;
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"cart" | "checkout">("cart");
+  const [step, setStep] = useState<"cart" | "checkout" | "contact">("cart");
+  const [contactInfo, setContactInfo] = useState<{ waUrl: string; message: string; negotiationMessage?: string } | null>(null);
 
   // Customer data
   const [customerName, setCustomerName] = useState("");
