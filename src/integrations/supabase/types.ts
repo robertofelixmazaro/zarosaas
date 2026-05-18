@@ -899,31 +899,55 @@ export type Database = {
       }
       orders: {
         Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
           created_at: string | null
           customer_name: string
           customer_phone: string
+          estado: string | null
           id: string
           notes: string | null
+          numero: string | null
+          referencia: string | null
+          rua: string | null
           status: string
           tenant_id: string | null
           total: number
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string | null
           customer_name: string
           customer_phone: string
+          estado?: string | null
           id?: string
           notes?: string | null
+          numero?: string | null
+          referencia?: string | null
+          rua?: string | null
           status?: string
           tenant_id?: string | null
           total?: number
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string | null
           customer_name?: string
           customer_phone?: string
+          estado?: string | null
           id?: string
           notes?: string | null
+          numero?: string | null
+          referencia?: string | null
+          rua?: string | null
           status?: string
           tenant_id?: string | null
           total?: number
@@ -1055,33 +1079,45 @@ export type Database = {
       products: {
         Row: {
           active: boolean | null
+          allow_local_pickup: boolean
+          allow_manual_payment_methods: boolean
           created_at: string | null
           description: string | null
           id: string
           image_url: string | null
           name: string
+          negotiation_message: string | null
+          payment_mode: string
           price: number
           stock: number
           tenant_id: string | null
         }
         Insert: {
           active?: boolean | null
+          allow_local_pickup?: boolean
+          allow_manual_payment_methods?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name: string
+          negotiation_message?: string | null
+          payment_mode?: string
           price: number
           stock?: number
           tenant_id?: string | null
         }
         Update: {
           active?: boolean | null
+          allow_local_pickup?: boolean
+          allow_manual_payment_methods?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name?: string
+          negotiation_message?: string | null
+          payment_mode?: string
           price?: number
           stock?: number
           tenant_id?: string | null
