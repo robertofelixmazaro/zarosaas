@@ -506,7 +506,7 @@ const AgendarPage = () => {
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="ghost" onClick={() => setStep("horario")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
-              <Button onClick={handleConfirm} disabled={!nome || !email || !whatsapp} className="flex-1">Confirmar Agendamento</Button>
+              <Button onClick={handleConfirm} disabled={!nome || !email || !whatsapp || !cep || !endereco || !numero || !bairro || !cidade || !estado} className="flex-1">Confirmar Agendamento</Button>
             </div>
           </div>
         )}
