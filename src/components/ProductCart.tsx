@@ -540,7 +540,7 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
   );
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) setStep("cart"); }}>
+    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setStep("cart"); setContactInfo(null); } }}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 border-0">
           <ShoppingCart className="h-6 w-6" />
@@ -555,11 +555,44 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            {step === "cart" ? "Carrinho" : "Finalizar pedido"}
+            {step === "cart" ? "Carrinho" : step === "checkout" ? "Finalizar pedido" : "Falar com a empresa"}
           </SheetTitle>
         </SheetHeader>
 
-        {cart.length === 0 ? (
+        {step === "contact" && contactInfo ? (
+          <div className="flex-1 flex flex-col gap-4 mt-4">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                <p className="text-sm">
+                  {contactInfo.negotiationMessage || "Forma de pagamento sujeita à negociação com a empresa."}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Seu pedido foi registrado. Para concluir, finalize a forma de pagamento diretamente com a empresa pelo WhatsApp.
+            </p>
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => window.open(contactInfo.waUrl, "_blank")}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Falar com a empresa
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setCart([]);
+                resetForm();
+                setContactInfo(null);
+                setOpen(false);
+              }}
+            >
+              Fechar
+            </Button>
+          </div>
+        ) : cart.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
             Seu carrinho está vazio
           </div>
