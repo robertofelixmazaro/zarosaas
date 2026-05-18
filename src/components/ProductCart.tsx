@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ShoppingCart, Plus, Minus, Trash2, Phone, User, Mail, MapPin, Clock, CreditCard, Banknote, QrCode } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, Phone, User, Mail, MapPin, Clock, CreditCard, Banknote, QrCode, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
