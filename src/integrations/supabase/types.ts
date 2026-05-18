@@ -275,16 +275,23 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           attendance_confirmation_status: string | null
+          bairro: string | null
           barber_id: string
+          cep: string | null
+          cidade: string | null
           client_name: string
           client_phone: string
           client_user_id: string | null
           company_revenue: number | null
+          complemento: string | null
           created_at: string | null
           deposit_amount: number | null
           deposit_paid: boolean | null
           deposit_required: boolean | null
+          endereco: string | null
+          estado: string | null
           id: string
+          numero: string | null
           payment_status: string | null
           price: number
           reminder_24h_sent: boolean
@@ -302,16 +309,23 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           attendance_confirmation_status?: string | null
+          bairro?: string | null
           barber_id: string
+          cep?: string | null
+          cidade?: string | null
           client_name: string
           client_phone: string
           client_user_id?: string | null
           company_revenue?: number | null
+          complemento?: string | null
           created_at?: string | null
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           deposit_required?: boolean | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
+          numero?: string | null
           payment_status?: string | null
           price: number
           reminder_24h_sent?: boolean
@@ -329,16 +343,23 @@ export type Database = {
           appointment_date?: string
           appointment_time?: string
           attendance_confirmation_status?: string | null
+          bairro?: string | null
           barber_id?: string
+          cep?: string | null
+          cidade?: string | null
           client_name?: string
           client_phone?: string
           client_user_id?: string | null
           company_revenue?: number | null
+          complemento?: string | null
           created_at?: string | null
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           deposit_required?: boolean | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
+          numero?: string | null
           payment_status?: string | null
           price?: number
           reminder_24h_sent?: boolean

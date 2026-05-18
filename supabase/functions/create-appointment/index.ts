@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
       cidade,
       estado,
       complemento,
+      notes,
     } = body;
 
     if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
@@ -173,6 +174,8 @@ Deno.serve(async (req) => {
       cidade: cidade || null,
       estado: estado || null,
       complemento: complemento || null,
+      client_email: body.email_cliente || null,
+      notes: notes || null,
     };
 
     const { error: insertError } = await supabase
