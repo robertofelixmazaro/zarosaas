@@ -33,18 +33,6 @@ export interface TemplateVars {
   telefone_empresa?: string;
   endereco_cliente?: string;
 }
-
-export interface TemplateVars {
-  cliente?: string;
-  servico?: string;
-  profissional?: string;
-  data?: string;
-  horario?: string;
-  valor?: string;
-  empresa?: string;
-  telefone_empresa?: string;
-}
-
 export function renderTemplate(template: string, vars: TemplateVars): string {
   let out = template || "";
   for (const [k, v] of Object.entries(vars)) {
