@@ -5,6 +5,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, Package, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
 import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
@@ -16,9 +19,21 @@ const productSchema = z.object({
   price: z.number().min(0.01, "Preço deve ser maior que 0"),
   stock: z.number().int().min(0, "Estoque não pode ser negativo"),
   active: z.boolean(),
+  payment_mode: z.enum(["direct_checkout", "contact_required"]),
+  allow_local_pickup: z.boolean(),
+  negotiation_message: z.string().trim().max(500).optional(),
 });
 
-const emptyForm = { name: "", description: "", price: 0, stock: 0, active: true };
+const emptyForm = {
+  name: "",
+  description: "",
+  price: 0,
+  stock: 0,
+  active: true,
+  payment_mode: "direct_checkout" as "direct_checkout" | "contact_required",
+  allow_local_pickup: true,
+  negotiation_message: "",
+};
 
 const AdminProdutos = () => {
   const { tenantId } = useTenant();
@@ -48,7 +63,16 @@ const AdminProdutos = () => {
   };
 
   const openEdit = (p: DbProduct) => {
-    setForm({ name: p.name, description: p.description || "", price: Number(p.price), stock: p.stock, active: p.active });
+    setForm({
+      name: p.name,
+      description: p.description || "",
+      price: Number(p.price),
+      stock: p.stock,
+      active: p.active,
+      payment_mode: ((p as any).payment_mode === "contact_required" ? "contact_required" : "direct_checkout"),
+      allow_local_pickup: (p as any).allow_local_pickup ?? true,
+      negotiation_message: (p as any).negotiation_message || "",
+    });
     setEditingId(p.id); setErrors({});
     setImageFile(null); setImagePreview(null);
     setCurrentImageUrl(p.image_url || null);
@@ -254,6 +278,50 @@ const AdminProdutos = () => {
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} id="prod-active" className="rounded" />
               <label htmlFor="prod-active" className="text-sm">Produto ativo</label>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Tipo de checkout</label>
+                <Select
+                  value={form.payment_mode}
+                  onValueChange={(v) => setForm({ ...form, payment_mode: v as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="direct_checkout">Checkout direto</SelectItem>
+                    <SelectItem value="contact_required">Requer contato com empresa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define se o cliente finaliza a compra direto ou precisa entrar em contato.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <label htmlFor="prod-pickup" className="text-sm font-medium">Permitir retirada no local</label>
+                  <p className="text-xs text-muted-foreground">Cliente pode optar por retirar este produto na empresa.</p>
+                </div>
+                <Switch
+                  id="prod-pickup"
+                  checked={form.allow_local_pickup}
+                  onCheckedChange={(c) => setForm({ ...form, allow_local_pickup: c })}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1 block">Mensagem personalizada (opcional)</label>
+                <Textarea
+                  value={form.negotiation_message}
+                  onChange={(e) => setForm({ ...form, negotiation_message: e.target.value })}
+                  placeholder='Ex: "Parcelamentos e juros devem ser negociados diretamente com a empresa."'
+                  rows={3}
+                  maxLength={500}
+                />
+              </div>
             </div>
           </div>
           <div className="flex gap-2 justify-end pt-4 border-t">
