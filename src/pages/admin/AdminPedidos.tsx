@@ -360,8 +360,6 @@ const AdminPedidos = () => {
           })()}
         </DialogContent>
       </Dialog>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && setOrderToDelete(null)}>
         <AlertDialogContent>
