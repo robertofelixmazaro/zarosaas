@@ -98,6 +98,37 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const formatCep = (v: string) => {
+    const digits = v.replace(/\D/g, "").slice(0, 8);
+    return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+  };
+
+  const handleCepChange = async (v: string) => {
+    const masked = formatCep(v);
+    setAddressZip(masked);
+    setCepError(null);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data?.erro) {
+        setCepError("CEP não encontrado. Verifique e tente novamente.");
+        return;
+      }
+      setAddressStreet(data.logradouro || "");
+      setAddressNeighborhood(data.bairro || "");
+      setAddressCity(data.localidade || "");
+      setAddressState(data.uf || "");
+    } catch {
+      setCepError("Não foi possível buscar o CEP agora. Preencha manualmente.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setCustomerName("");
     setCustomerPhone("");
