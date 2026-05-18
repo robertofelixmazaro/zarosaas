@@ -265,11 +265,16 @@ const Index = () => {
               </Link>
             )}
             {products.filter((p) => p.active).length > 0 && (
-              <Link to={`${basePath}/comprar`}>
-                <Button size="lg" className="text-base px-8 gap-2" style={btnStyle}>
-                  <ShoppingBag className="h-4 w-4" /> Produtos
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="text-base px-8 gap-2"
+                style={btnStyle}
+                onClick={() => {
+                  document.getElementById("produtos")?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                <ShoppingBag className="h-4 w-4" /> Produtos
+              </Button>
             )}
           </div>
         </div>
