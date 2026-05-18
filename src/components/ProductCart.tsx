@@ -303,7 +303,7 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     setSubmitting(false);
   };
 
-  const buildOrderNotes = (): string => {
+  const buildOrderNotes = (negotiationNote?: string): string => {
     const lines: string[] = [];
     lines.push(`WhatsApp: ${customerWhatsapp}`);
     lines.push(`E-mail: ${customerEmail}`);
