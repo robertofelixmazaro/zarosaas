@@ -279,6 +279,7 @@ export type Database = {
           barber_id: string
           cep: string | null
           cidade: string | null
+          client_email: string | null
           client_name: string
           client_phone: string
           client_user_id: string | null
@@ -291,6 +292,7 @@ export type Database = {
           endereco: string | null
           estado: string | null
           id: string
+          notes: string | null
           numero: string | null
           payment_status: string | null
           price: number
@@ -313,6 +315,7 @@ export type Database = {
           barber_id: string
           cep?: string | null
           cidade?: string | null
+          client_email?: string | null
           client_name: string
           client_phone: string
           client_user_id?: string | null
@@ -325,6 +328,7 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          notes?: string | null
           numero?: string | null
           payment_status?: string | null
           price: number
@@ -347,6 +351,7 @@ export type Database = {
           barber_id?: string
           cep?: string | null
           cidade?: string | null
+          client_email?: string | null
           client_name?: string
           client_phone?: string
           client_user_id?: string | null
@@ -359,6 +364,7 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          notes?: string | null
           numero?: string | null
           payment_status?: string | null
           price?: number
