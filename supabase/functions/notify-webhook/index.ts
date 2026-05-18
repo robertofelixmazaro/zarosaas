@@ -153,6 +153,22 @@ Deno.serve(async (req) => {
     const safeTelefone = escapeHtml(telefone_cliente || "Não informado");
     const safeEmail = escapeHtml(email_cliente || "Não informado");
 
+    // Build address block (plain + html)
+    const addr: any = appointment;
+    const linhaRua = [addr.endereco, addr.numero && `Número ${addr.numero}`].filter(Boolean).join(", ");
+    const linhaCidade = [addr.cidade, addr.estado].filter(Boolean).join(" - ");
+    const linhaCep = addr.cep ? `CEP ${addr.cep}` : "";
+    const linhaCompl = addr.complemento ? `Compl.: ${addr.complemento}` : "";
+    const hasAddress = !!(addr.endereco || addr.cep);
+    const enderecoTexto = hasAddress
+      ? ["📍 Endereço:", linhaRua, addr.bairro, linhaCompl, linhaCidade, linhaCep]
+          .filter(Boolean)
+          .join("\n")
+      : "";
+    const enderecoHtmlRow = hasAddress
+      ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666; vertical-align: top;">Endereço</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(linhaRua)}${addr.bairro ? "<br/>" + escapeHtml(addr.bairro) : ""}${addr.complemento ? "<br/>" + escapeHtml(linhaCompl) : ""}${linhaCidade ? "<br/>" + escapeHtml(linhaCidade) : ""}${linhaCep ? "<br/>" + escapeHtml(linhaCep) : ""}</td></tr>`
+      : "";
+
     const dateFormatted = data_agendamento
       ? String(data_agendamento).split("-").reverse().join("/")
       : "";
