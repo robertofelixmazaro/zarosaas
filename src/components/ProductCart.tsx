@@ -214,6 +214,8 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     if (deliveryMode === "entrega") {
       lines.push(`Endereço: ${addressStreet}, ${addressNumber} - ${addressNeighborhood}`);
       lines.push(`${addressCity}/${addressState} - CEP: ${addressZip}`);
+      if (addressComplement.trim()) lines.push(`Complemento: ${addressComplement}`);
+      if (addressReference.trim()) lines.push(`Referência: ${addressReference}`);
     } else {
       lines.push(`Retirada: ${pickupDate} às ${pickupTime}`);
     }
