@@ -39,6 +39,13 @@ Deno.serve(async (req) => {
       appointment_date,
       appointment_time,
       tenant_id,
+      cep,
+      endereco,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      complemento,
     } = body;
 
     if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
