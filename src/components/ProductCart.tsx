@@ -350,7 +350,20 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
 
         {deliveryMode === "entrega" ? (
           <div className="space-y-2">
-            <Input value={addressZip} onChange={(e) => setAddressZip(e.target.value)} placeholder="CEP *" />
+            <div className="relative">
+              <Input
+                value={addressZip}
+                onChange={(e) => handleCepChange(e.target.value)}
+                placeholder="CEP *"
+                inputMode="numeric"
+                maxLength={9}
+                aria-invalid={!!cepError}
+              />
+              {cepLoading && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+            </div>
+            {cepError && <p className="text-xs text-destructive">{cepError}</p>}
             <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua *" />
             <div className="flex gap-2">
               <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número *" className="w-1/3" />
@@ -358,8 +371,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
             </div>
             <div className="flex gap-2">
               <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade *" className="flex-1" />
-              <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="UF *" className="w-20" />
+              <Input value={addressState} onChange={(e) => setAddressState(e.target.value.toUpperCase().slice(0, 2))} placeholder="UF *" className="w-20" />
             </div>
+            <Input value={addressComplement} onChange={(e) => setAddressComplement(e.target.value)} placeholder="Complemento (opcional)" />
+            <Input value={addressReference} onChange={(e) => setAddressReference(e.target.value)} placeholder="Ponto de referência (opcional)" />
           </div>
         ) : (
           <div className="space-y-2">
