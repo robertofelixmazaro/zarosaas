@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchServices, fetchBarbers, fetchProducts, DbService, DbBarber, DbProduct } from "@/lib/api";
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantBasePath, getTenantExternalUrl } from "@/lib/tenantUrl";
-import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Instagram, ChevronRight, Star, ShoppingCart, ShoppingBag, Camera, Download, Play, X, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -245,7 +245,7 @@ const Index = () => {
               Agende seu horário com os melhores profissionais
             </p>
           )}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
             <Link to={heroPrimaryLink.startsWith("#") ? heroPrimaryLink : heroPrimaryLink}>
               <Button size="lg" className="text-base px-8 gap-2" style={heroPrimaryStyle}>
                 {heroPrimaryText} <ChevronRight className="h-4 w-4" />
@@ -261,6 +261,13 @@ const Index = () => {
               <Link to={heroSecondaryLink}>
                 <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white hover:bg-white/10" style={heroSecondaryStyle}>
                   {heroSecondaryText}
+                </Button>
+              </Link>
+            )}
+            {products.filter((p) => p.active).length > 0 && (
+              <Link to={`${basePath}/comprar`}>
+                <Button size="lg" className="text-base px-8 gap-2" style={btnStyle}>
+                  <ShoppingBag className="h-4 w-4" /> Produtos
                 </Button>
               </Link>
             )}
