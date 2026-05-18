@@ -254,6 +254,13 @@ const AgendarPage = () => {
         appointment_time: selectedTime,
         tenant_id: tenantId || undefined,
         email_cliente: email,
+        cep,
+        endereco,
+        numero,
+        bairro,
+        cidade,
+        estado,
+        complemento,
       });
       toast.success("Agendamento confirmado com sucesso!", {
         description: "Você receberá um e-mail de confirmação.",
