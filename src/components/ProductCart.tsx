@@ -330,6 +330,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
       lines.push(`Troco para: R$ ${changeFor}`);
     }
 
+    if (negotiationNote) {
+      lines.push(`\n[Pagamento sujeito à negociação] ${negotiationNote}`);
+    }
+
     return lines.join("\n");
   };
 
