@@ -179,6 +179,7 @@ Deno.serve(async (req) => {
       profissional: barberName,
       data: dateFormatted,
       hora: hora_agendamento,
+      endereco_cliente: enderecoTexto,
     };
 
     // Load custom template if available
