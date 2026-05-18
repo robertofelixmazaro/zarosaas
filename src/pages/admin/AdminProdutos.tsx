@@ -5,6 +5,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, Package, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
 import { validateImage, optimizeImage, IMAGE_PRESETS } from "@/lib/imageOptimizer";
@@ -16,9 +19,21 @@ const productSchema = z.object({
   price: z.number().min(0.01, "Preço deve ser maior que 0"),
   stock: z.number().int().min(0, "Estoque não pode ser negativo"),
   active: z.boolean(),
+  payment_mode: z.enum(["direct_checkout", "contact_required"]),
+  allow_local_pickup: z.boolean(),
+  negotiation_message: z.string().trim().max(500).optional(),
 });
 
-const emptyForm = { name: "", description: "", price: 0, stock: 0, active: true };
+const emptyForm = {
+  name: "",
+  description: "",
+  price: 0,
+  stock: 0,
+  active: true,
+  payment_mode: "direct_checkout" as "direct_checkout" | "contact_required",
+  allow_local_pickup: true,
+  negotiation_message: "",
+};
 
 const AdminProdutos = () => {
   const { tenantId } = useTenant();
