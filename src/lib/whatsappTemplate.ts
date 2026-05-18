@@ -8,6 +8,7 @@ export const DEFAULT_APPOINTMENT_TEMPLATE =
   `Data: {data}\n` +
   `Horário: {horario}\n` +
   `Valor: {valor}\n\n` +
+  `{endereco_cliente}\n\n` +
   `Aguardamos você.`;
 
 export const TEMPLATE_VARIABLES = [
