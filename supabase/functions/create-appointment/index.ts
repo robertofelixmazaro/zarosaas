@@ -174,6 +174,8 @@ Deno.serve(async (req) => {
       cidade: cidade || null,
       estado: estado || null,
       complemento: complemento || null,
+      client_email: body.email_cliente || null,
+      notes: notes || null,
     };
 
     const { error: insertError } = await supabase
