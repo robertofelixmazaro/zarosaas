@@ -38,8 +38,39 @@ const AgendarPage = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [cep, setCep] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
+
+  const handleCepChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    const masked = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    setCep(masked);
+    if (digits.length === 8) {
+      setCepLoading(true);
+      fetch(`https://viacep.com.br/ws/${digits}/json/`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && !data.erro) {
+            setEndereco(data.logradouro || "");
+            setBairro(data.bairro || "");
+            setCidade(data.localidade || "");
+            setEstado(data.uf || "");
+          } else {
+            toast.error("CEP não encontrado", { description: "Preencha os campos manualmente." });
+          }
+        })
+        .catch(() => toast.error("Erro ao buscar CEP"))
+        .finally(() => setCepLoading(false));
+    }
+  };
 
   // No-show policy
   const [noShowPolicy, setNoShowPolicy] = useState<{ enabled: boolean; deposit: number; retention: number; cancelHours: number }>({
