@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ShoppingCart, Plus, Minus, Trash2, Phone, User, Mail, MapPin, Clock, CreditCard, Banknote, QrCode } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, Phone, User, Mail, MapPin, Clock, CreditCard, Banknote, QrCode, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -45,6 +45,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
   const [addressCity, setAddressCity] = useState("");
   const [addressState, setAddressState] = useState("");
   const [addressZip, setAddressZip] = useState("");
+  const [addressComplement, setAddressComplement] = useState("");
+  const [addressReference, setAddressReference] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
 
   // Pickup
   const [pickupDate, setPickupDate] = useState("");
@@ -94,6 +98,37 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const formatCep = (v: string) => {
+    const digits = v.replace(/\D/g, "").slice(0, 8);
+    return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+  };
+
+  const handleCepChange = async (v: string) => {
+    const masked = formatCep(v);
+    setAddressZip(masked);
+    setCepError(null);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data?.erro) {
+        setCepError("CEP não encontrado. Verifique e tente novamente.");
+        return;
+      }
+      setAddressStreet(data.logradouro || "");
+      setAddressNeighborhood(data.bairro || "");
+      setAddressCity(data.localidade || "");
+      setAddressState(data.uf || "");
+    } catch {
+      setCepError("Não foi possível buscar o CEP agora. Preencha manualmente.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setCustomerName("");
     setCustomerPhone("");
@@ -106,6 +141,9 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     setAddressCity("");
     setAddressState("");
     setAddressZip("");
+    setAddressComplement("");
+    setAddressReference("");
+    setCepError(null);
     setPickupDate("");
     setPickupTime("");
     setPaymentMethod("pix");
@@ -161,6 +199,14 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
           total: totalPrice,
           status: "pendente",
           notes,
+          cep: deliveryMode === "entrega" ? addressZip.trim() || null : null,
+          rua: deliveryMode === "entrega" ? addressStreet.trim() || null : null,
+          numero: deliveryMode === "entrega" ? addressNumber.trim() || null : null,
+          complemento: deliveryMode === "entrega" ? addressComplement.trim() || null : null,
+          bairro: deliveryMode === "entrega" ? addressNeighborhood.trim() || null : null,
+          cidade: deliveryMode === "entrega" ? addressCity.trim() || null : null,
+          estado: deliveryMode === "entrega" ? addressState.trim() || null : null,
+          referencia: deliveryMode === "entrega" ? addressReference.trim() || null : null,
         } as any);
 
       if (orderError) throw orderError;
@@ -199,6 +245,8 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     if (deliveryMode === "entrega") {
       lines.push(`Endereço: ${addressStreet}, ${addressNumber} - ${addressNeighborhood}`);
       lines.push(`${addressCity}/${addressState} - CEP: ${addressZip}`);
+      if (addressComplement.trim()) lines.push(`Complemento: ${addressComplement}`);
+      if (addressReference.trim()) lines.push(`Referência: ${addressReference}`);
     } else {
       lines.push(`Retirada: ${pickupDate} às ${pickupTime}`);
     }
@@ -302,7 +350,20 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
 
         {deliveryMode === "entrega" ? (
           <div className="space-y-2">
-            <Input value={addressZip} onChange={(e) => setAddressZip(e.target.value)} placeholder="CEP *" />
+            <div className="relative">
+              <Input
+                value={addressZip}
+                onChange={(e) => handleCepChange(e.target.value)}
+                placeholder="CEP *"
+                inputMode="numeric"
+                maxLength={9}
+                aria-invalid={!!cepError}
+              />
+              {cepLoading && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+            </div>
+            {cepError && <p className="text-xs text-destructive">{cepError}</p>}
             <Input value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} placeholder="Rua *" />
             <div className="flex gap-2">
               <Input value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="Número *" className="w-1/3" />
@@ -310,8 +371,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
             </div>
             <div className="flex gap-2">
               <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Cidade *" className="flex-1" />
-              <Input value={addressState} onChange={(e) => setAddressState(e.target.value)} placeholder="UF *" className="w-20" />
+              <Input value={addressState} onChange={(e) => setAddressState(e.target.value.toUpperCase().slice(0, 2))} placeholder="UF *" className="w-20" />
             </div>
+            <Input value={addressComplement} onChange={(e) => setAddressComplement(e.target.value)} placeholder="Complemento (opcional)" />
+            <Input value={addressReference} onChange={(e) => setAddressReference(e.target.value)} placeholder="Ponto de referência (opcional)" />
           </div>
         ) : (
           <div className="space-y-2">
