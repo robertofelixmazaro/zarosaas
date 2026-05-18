@@ -5,7 +5,7 @@ import { generateRawSlots, filterAvailableSlots, isDateBlocked, isDayActive, Bus
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantBasePath } from "@/lib/tenantUrl";
 import { getNicheLabels } from "@/lib/nicheLabels";
-import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
