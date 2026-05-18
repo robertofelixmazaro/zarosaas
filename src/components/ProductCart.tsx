@@ -168,6 +168,14 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
           total: totalPrice,
           status: "pendente",
           notes,
+          cep: deliveryMode === "entrega" ? addressZip.trim() || null : null,
+          rua: deliveryMode === "entrega" ? addressStreet.trim() || null : null,
+          numero: deliveryMode === "entrega" ? addressNumber.trim() || null : null,
+          complemento: deliveryMode === "entrega" ? addressComplement.trim() || null : null,
+          bairro: deliveryMode === "entrega" ? addressNeighborhood.trim() || null : null,
+          cidade: deliveryMode === "entrega" ? addressCity.trim() || null : null,
+          estado: deliveryMode === "entrega" ? addressState.trim() || null : null,
+          referencia: deliveryMode === "entrega" ? addressReference.trim() || null : null,
         } as any);
 
       if (orderError) throw orderError;
