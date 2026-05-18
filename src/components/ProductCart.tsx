@@ -110,6 +110,9 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
     setAddressCity("");
     setAddressState("");
     setAddressZip("");
+    setAddressComplement("");
+    setAddressReference("");
+    setCepError(null);
     setPickupDate("");
     setPickupTime("");
     setPaymentMethod("pix");
