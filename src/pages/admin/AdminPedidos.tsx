@@ -4,8 +4,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle, Map } from "lucide-react";
+import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle, Map, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 interface Order {
@@ -52,6 +53,36 @@ const AdminPedidos = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!orderToDelete || !tenantId) return;
+    setDeleting(true);
+    const { error: itemsErr } = await supabase
+      .from("order_items" as any)
+      .delete()
+      .eq("order_id", orderToDelete.id)
+      .eq("tenant_id", tenantId);
+    if (itemsErr) {
+      toast.error("Erro ao excluir itens do pedido", { description: itemsErr.message });
+      setDeleting(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("orders" as any)
+      .delete()
+      .eq("id", orderToDelete.id)
+      .eq("tenant_id", tenantId);
+    setDeleting(false);
+    if (error) {
+      toast.error("Erro ao excluir pedido", { description: error.message });
+      return;
+    }
+    toast.success("Pedido excluído");
+    setOrderToDelete(null);
+    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+  };
 
   const loadOrders = async () => {
     let query = supabase
@@ -200,6 +231,9 @@ const AdminPedidos = () => {
                       <Button variant="ghost" size="icon" className="h-8 w-8" title="Cancelar" onClick={() => updateStatus(o.id, "cancelado")}>
                         <X className="h-4 w-4 text-destructive" />
                       </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10" title="Excluir pedido" onClick={() => setOrderToDelete(o)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -326,6 +360,23 @@ const AdminPedidos = () => {
           })()}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && setOrderToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Excluindo..." : "Excluir pedido"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
