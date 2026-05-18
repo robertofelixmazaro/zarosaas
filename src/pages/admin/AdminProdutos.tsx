@@ -279,6 +279,50 @@ const AdminProdutos = () => {
               <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} id="prod-active" className="rounded" />
               <label htmlFor="prod-active" className="text-sm">Produto ativo</label>
             </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Tipo de checkout</label>
+                <Select
+                  value={form.payment_mode}
+                  onValueChange={(v) => setForm({ ...form, payment_mode: v as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="direct_checkout">Checkout direto</SelectItem>
+                    <SelectItem value="contact_required">Requer contato com empresa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define se o cliente finaliza a compra direto ou precisa entrar em contato.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <label htmlFor="prod-pickup" className="text-sm font-medium">Permitir retirada no local</label>
+                  <p className="text-xs text-muted-foreground">Cliente pode optar por retirar este produto na empresa.</p>
+                </div>
+                <Switch
+                  id="prod-pickup"
+                  checked={form.allow_local_pickup}
+                  onCheckedChange={(c) => setForm({ ...form, allow_local_pickup: c })}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1 block">Mensagem personalizada (opcional)</label>
+                <Textarea
+                  value={form.negotiation_message}
+                  onChange={(e) => setForm({ ...form, negotiation_message: e.target.value })}
+                  placeholder='Ex: "Parcelamentos e juros devem ser negociados diretamente com a empresa."'
+                  rows={3}
+                  maxLength={500}
+                />
+              </div>
+            </div>
           </div>
           <div className="flex gap-2 justify-end pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
