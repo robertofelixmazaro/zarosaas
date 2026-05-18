@@ -194,6 +194,7 @@ Deno.serve(async (req) => {
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Profissional</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeBarber}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Data</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(dateFormatted)}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(hora_agendamento)}</td></tr>
+          ${enderecoHtmlRow}
         </table>
         <p>Estamos te esperando! 😄</p>
         <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
