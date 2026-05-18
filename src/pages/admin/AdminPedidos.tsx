@@ -4,7 +4,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle } from "lucide-react";
+import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle, Map } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -16,6 +16,14 @@ interface Order {
   status: string;
   created_at: string;
   notes: string | null;
+  rua?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  cep?: string | null;
+  referencia?: string | null;
 }
 
 interface OrderItem {
@@ -254,6 +262,32 @@ const AdminPedidos = () => {
                         {selectedOrder.notes?.split("\n").find((l) => l.includes("CEP:")) && (
                           <p>{selectedOrder.notes.split("\n").find((l) => l.includes("CEP:"))}</p>
                         )}
+                        {(() => {
+                          const parts = [
+                            selectedOrder.rua,
+                            selectedOrder.numero,
+                            selectedOrder.bairro,
+                            selectedOrder.cidade,
+                            selectedOrder.estado,
+                            selectedOrder.cep,
+                          ].filter(Boolean);
+                          const fallback = info["Endereço"] || "";
+                          const query = parts.length >= 2
+                            ? parts.join(", ")
+                            : fallback;
+                          if (!query) return null;
+                          const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+                          return (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2 mt-2"
+                              onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+                            >
+                              <Map className="h-3.5 w-3.5" /> Abrir no Google Maps
+                            </Button>
+                          );
+                        })()}
                       </div>
                     ) : (
                       <p className="text-sm">{info["Retirada"] || "-"}</p>
