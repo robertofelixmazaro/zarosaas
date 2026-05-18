@@ -195,8 +195,24 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         return;
       }
 
-      const notes = buildOrderNotes();
+      // Fetch products to check payment_mode / negotiation_message
+      const ids = cart.map((c) => c.id);
+      const { data: productsData } = await supabase
+        .from("products" as any)
+        .select("id, payment_mode, negotiation_message")
+        .in("id", ids);
 
+      const productsMap = new Map<string, any>((productsData || []).map((p: any) => [p.id, p]));
+      const hasContactRequired = cart.some(
+        (c) => productsMap.get(c.id)?.payment_mode === "contact_required"
+      );
+      const requiresContact = hasContactRequired && paymentMethod !== "pix";
+      const negotiationMessage =
+        cart.map((c) => productsMap.get(c.id)?.negotiation_message).find((m) => m && m.trim()) ||
+        "Forma de pagamento sujeita à negociação com a empresa.";
+
+      const notes = buildOrderNotes(requiresContact ? negotiationMessage : undefined);
+      const orderStatus = requiresContact ? "pending_payment_contact" : "pendente";
       const orderId = crypto.randomUUID();
 
       const { error: orderError } = await supabase
@@ -207,7 +223,7 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           total: totalPrice,
-          status: "pendente",
+          status: orderStatus,
           notes,
           cep: deliveryMode === "entrega" ? addressZip.trim() || null : null,
           rua: deliveryMode === "entrega" ? addressStreet.trim() || null : null,
@@ -241,12 +257,46 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         throw itemsError;
       }
 
-      toast.success("Pedido enviado com sucesso! 🎉", {
-        description: "Entraremos em contato pelo WhatsApp.",
-      });
-      setCart([]);
-      resetForm();
-      setOpen(false);
+      if (requiresContact) {
+        // Build WhatsApp message
+        const payLabels: Record<PaymentMethod, string> = {
+          dinheiro: "Dinheiro",
+          debito: "Cartão de Débito",
+          credito: "Cartão de Crédito",
+          pix: "PIX",
+        };
+        const itemsTxt = cart
+          .map((c) => `• ${c.name} x${c.quantity} - R$ ${(c.price * c.quantity).toFixed(2)}`)
+          .join("\n");
+        const addressTxt =
+          deliveryMode === "entrega"
+            ? `Endereço: ${addressStreet}, ${addressNumber} - ${addressNeighborhood}, ${addressCity}/${addressState} - CEP ${addressZip}`
+            : "Retirada na loja";
+        const msg =
+          `Olá! Acabei de fazer um pedido e gostaria de negociar a forma de pagamento.\n\n` +
+          `Cliente: ${customerName}\n` +
+          `WhatsApp: ${customerWhatsapp}\n\n` +
+          `Itens:\n${itemsTxt}\n\n` +
+          `Total: R$ ${totalPrice.toFixed(2)}\n` +
+          `Forma desejada: ${payLabels[paymentMethod]}\n` +
+          `${addressTxt}\n\n` +
+          `Pedido: ${orderId.slice(0, 8)}`;
+        const tenantPhone = (tenant?.phone || "").replace(/\D/g, "");
+        const waUrl = tenantPhone
+          ? `https://wa.me/${tenantPhone.startsWith("55") ? tenantPhone : "55" + tenantPhone}?text=${encodeURIComponent(msg)}`
+          : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+        setContactInfo({ waUrl, message: msg, negotiationMessage });
+        setStep("contact");
+        toast.success("Pedido registrado! Fale com a empresa para concluir.");
+      } else {
+        toast.success("Pedido enviado com sucesso! 🎉", {
+          description: "Entraremos em contato pelo WhatsApp.",
+        });
+        setCart([]);
+        resetForm();
+        setOpen(false);
+      }
     } catch (err: any) {
       toast.error("Erro ao enviar pedido", { description: err.message });
     }
