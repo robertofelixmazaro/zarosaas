@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("id, client_name, client_phone, appointment_date, appointment_time, price, whatsapp_reminder_sent, attendance_confirmation_status, barbers(name), services(name)")
+        .select("id, client_name, client_phone, appointment_date, appointment_time, price, whatsapp_reminder_sent, attendance_confirmation_status, cep, endereco, numero, bairro, cidade, estado, complemento, barbers(name), services(name)")
         .eq("tenant_id", tenantId)
         .eq("whatsapp_reminder_sent", false)
         .in("status", ["pendente", "confirmado"])
