@@ -262,6 +262,32 @@ const AdminPedidos = () => {
                         {selectedOrder.notes?.split("\n").find((l) => l.includes("CEP:")) && (
                           <p>{selectedOrder.notes.split("\n").find((l) => l.includes("CEP:"))}</p>
                         )}
+                        {(() => {
+                          const parts = [
+                            selectedOrder.rua,
+                            selectedOrder.numero,
+                            selectedOrder.bairro,
+                            selectedOrder.cidade,
+                            selectedOrder.estado,
+                            selectedOrder.cep,
+                          ].filter(Boolean);
+                          const fallback = info["Endereço"] || "";
+                          const query = parts.length >= 2
+                            ? parts.join(", ")
+                            : fallback;
+                          if (!query) return null;
+                          const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+                          return (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2 mt-2"
+                              onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+                            >
+                              <Map className="h-3.5 w-3.5" /> Abrir no Google Maps
+                            </Button>
+                          );
+                        })()}
                       </div>
                     ) : (
                       <p className="text-sm">{info["Retirada"] || "-"}</p>
