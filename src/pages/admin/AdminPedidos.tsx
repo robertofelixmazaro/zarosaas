@@ -4,7 +4,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle } from "lucide-react";
+import { Search, Check, X, Eye, Package, MapPin, CreditCard, Phone, Mail, MessageCircle, Map } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -16,6 +16,14 @@ interface Order {
   status: string;
   created_at: string;
   notes: string | null;
+  rua?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  cep?: string | null;
+  referencia?: string | null;
 }
 
 interface OrderItem {
