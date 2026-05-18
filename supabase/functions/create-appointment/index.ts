@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
       cidade,
       estado,
       complemento,
+      notes,
     } = body;
 
     if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
