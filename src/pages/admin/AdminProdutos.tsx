@@ -63,7 +63,16 @@ const AdminProdutos = () => {
   };
 
   const openEdit = (p: DbProduct) => {
-    setForm({ name: p.name, description: p.description || "", price: Number(p.price), stock: p.stock, active: p.active });
+    setForm({
+      name: p.name,
+      description: p.description || "",
+      price: Number(p.price),
+      stock: p.stock,
+      active: p.active,
+      payment_mode: ((p as any).payment_mode === "contact_required" ? "contact_required" : "direct_checkout"),
+      allow_local_pickup: (p as any).allow_local_pickup ?? true,
+      negotiation_message: (p as any).negotiation_message || "",
+    });
     setEditingId(p.id); setErrors({});
     setImageFile(null); setImagePreview(null);
     setCurrentImageUrl(p.image_url || null);
