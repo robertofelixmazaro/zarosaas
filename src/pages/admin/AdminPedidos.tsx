@@ -231,6 +231,9 @@ const AdminPedidos = () => {
                       <Button variant="ghost" size="icon" className="h-8 w-8" title="Cancelar" onClick={() => updateStatus(o.id, "cancelado")}>
                         <X className="h-4 w-4 text-destructive" />
                       </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10" title="Excluir pedido" onClick={() => setOrderToDelete(o)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
