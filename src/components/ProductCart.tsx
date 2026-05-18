@@ -45,6 +45,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
   const [addressCity, setAddressCity] = useState("");
   const [addressState, setAddressState] = useState("");
   const [addressZip, setAddressZip] = useState("");
+  const [addressComplement, setAddressComplement] = useState("");
+  const [addressReference, setAddressReference] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
 
   // Pickup
   const [pickupDate, setPickupDate] = useState("");
