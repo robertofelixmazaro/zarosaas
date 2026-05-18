@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useTenant } from "@/contexts/TenantContext";
 
 export interface CartItem {
   id: string;
@@ -28,6 +29,7 @@ type DeliveryMode = "entrega" | "retirada";
 type PaymentMethod = "dinheiro" | "debito" | "credito" | "pix";
 
 const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCartProps) => {
+  const { tenantId } = useTenant();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"cart" | "checkout">("cart");
 
@@ -186,6 +188,12 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
 
     setSubmitting(true);
     try {
+      if (!tenantId) {
+        toast.error("Empresa não identificada. Recarregue a página.");
+        setSubmitting(false);
+        return;
+      }
+
       const notes = buildOrderNotes();
 
       const orderId = crypto.randomUUID();
@@ -194,6 +202,7 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         .from("orders" as any)
         .insert({
           id: orderId,
+          tenant_id: tenantId,
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           total: totalPrice,
@@ -209,10 +218,14 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
           referencia: deliveryMode === "entrega" ? addressReference.trim() || null : null,
         } as any);
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error("[ProductCart] orders insert error:", orderError);
+        throw orderError;
+      }
 
       const items = cart.map((item) => ({
         order_id: orderId,
+        tenant_id: tenantId,
         product_id: item.id,
         quantity: item.quantity,
         unit_price: item.price,
@@ -222,7 +235,10 @@ const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCart
         .from("order_items" as any)
         .insert(items as any);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("[ProductCart] order_items insert error:", itemsError);
+        throw itemsError;
+      }
 
       toast.success("Pedido enviado com sucesso! 🎉", {
         description: "Entraremos em contato pelo WhatsApp.",
