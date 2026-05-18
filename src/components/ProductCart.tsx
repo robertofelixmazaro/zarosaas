@@ -29,6 +29,7 @@ type DeliveryMode = "entrega" | "retirada";
 type PaymentMethod = "dinheiro" | "debito" | "credito" | "pix";
 
 const ProductCart = ({ cart, setCart, autoOpen, onAutoOpenHandled }: ProductCartProps) => {
+  const { tenantId } = useTenant();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"cart" | "checkout">("cart");
 
