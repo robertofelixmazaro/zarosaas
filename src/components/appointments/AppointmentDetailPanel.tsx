@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { User, Scissors, Clock, DollarSign, MessageCircle, Phone } from "lucide-react";
+import { User, Scissors, Clock, DollarSign, MessageCircle, Phone, MapPin } from "lucide-react";
 import AppointmentStatusBadge, { allStatuses, statusConfig } from "./AppointmentStatusBadge";
 import { DbAppointment } from "@/lib/api";
 import { format } from "date-fns";
@@ -125,6 +125,28 @@ const AppointmentDetailPanel = ({ appointment, open, onClose, onStatusChange }: 
           </div>
 
           <Separator />
+
+          {/* Address */}
+          {((appointment as any).endereco || (appointment as any).cep) && (
+            <>
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> Endereço</h4>
+                <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-0.5">
+                  <p>
+                    {(appointment as any).endereco}
+                    {(appointment as any).numero ? `, Nº ${(appointment as any).numero}` : ""}
+                  </p>
+                  {(appointment as any).bairro && <p>{(appointment as any).bairro}</p>}
+                  {(appointment as any).complemento && <p className="text-muted-foreground">Compl.: {(appointment as any).complemento}</p>}
+                  {((appointment as any).cidade || (appointment as any).estado) && (
+                    <p>{(appointment as any).cidade}{(appointment as any).estado ? ` - ${(appointment as any).estado}` : ""}</p>
+                  )}
+                  {(appointment as any).cep && <p>CEP {(appointment as any).cep}</p>}
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
 
           {/* Price */}
           <div className="space-y-3">

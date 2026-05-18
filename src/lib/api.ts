@@ -210,6 +210,13 @@ export async function createAppointment(data: {
   appointment_time: string;
   tenant_id?: string;
   email_cliente?: string;
+  cep?: string;
+  endereco?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  complemento?: string;
 }): Promise<string> {
   if (!data.tenant_id) {
     throw new Error("Tenant não identificado para o agendamento.");

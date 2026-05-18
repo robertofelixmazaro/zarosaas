@@ -5,7 +5,7 @@ import { generateRawSlots, filterAvailableSlots, isDateBlocked, isDayActive, Bus
 import { useTenant } from "@/contexts/TenantContext";
 import { getTenantBasePath } from "@/lib/tenantUrl";
 import { getNicheLabels } from "@/lib/nicheLabels";
-import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, Clock, User, Phone, Mail, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -38,8 +38,39 @@ const AgendarPage = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [cep, setCep] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
+
+  const handleCepChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    const masked = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    setCep(masked);
+    if (digits.length === 8) {
+      setCepLoading(true);
+      fetch(`https://viacep.com.br/ws/${digits}/json/`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && !data.erro) {
+            setEndereco(data.logradouro || "");
+            setBairro(data.bairro || "");
+            setCidade(data.localidade || "");
+            setEstado(data.uf || "");
+          } else {
+            toast.error("CEP não encontrado", { description: "Preencha os campos manualmente." });
+          }
+        })
+        .catch(() => toast.error("Erro ao buscar CEP"))
+        .finally(() => setCepLoading(false));
+    }
+  };
 
   // No-show policy
   const [noShowPolicy, setNoShowPolicy] = useState<{ enabled: boolean; deposit: number; retention: number; cancelHours: number }>({
@@ -223,6 +254,13 @@ const AgendarPage = () => {
         appointment_time: selectedTime,
         tenant_id: tenantId || undefined,
         email_cliente: email,
+        cep,
+        endereco,
+        numero,
+        bairro,
+        cidade,
+        estado,
+        complemento,
       });
       toast.success("Agendamento confirmado com sucesso!", {
         description: "Você receberá um e-mail de confirmação.",
@@ -372,7 +410,7 @@ const AgendarPage = () => {
           <div className="animate-fade-in">
             <h2 className="text-2xl font-bold mb-2">Seus Dados</h2>
             <p className="text-muted-foreground mb-6">Preencha para confirmar o agendamento</p>
-            <div className="space-y-4 max-w-sm">
+            <div className="space-y-4 max-w-xl">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Nome completo</label>
                 <div className="relative">
@@ -392,6 +430,53 @@ const AgendarPage = () => {
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(11) 99999-0000" className="pl-10" />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
+                  <MapPin className="h-4 w-4" /> Endereço
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="text-sm font-medium mb-1.5 block">CEP</label>
+                    <div className="relative">
+                      <Input
+                        value={cep}
+                        onChange={(e) => handleCepChange(e.target.value)}
+                        placeholder="00000-000"
+                        inputMode="numeric"
+                        maxLength={9}
+                      />
+                      {cepLoading && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium mb-1.5 block">Rua</label>
+                    <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua / Avenida" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Número</label>
+                    <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Nº" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium mb-1.5 block">Bairro</label>
+                    <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Bairro" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium mb-1.5 block">Cidade</label>
+                    <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Estado (UF)</label>
+                    <Input value={estado} onChange={(e) => setEstado(e.target.value.toUpperCase().slice(0, 2))} placeholder="UF" maxLength={2} />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="text-sm font-medium mb-1.5 block">Complemento <span className="text-muted-foreground font-normal">(opcional)</span></label>
+                    <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Apto, bloco, referência..." />
+                  </div>
                 </div>
               </div>
             </div>
@@ -421,7 +506,7 @@ const AgendarPage = () => {
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="ghost" onClick={() => setStep("horario")}><ArrowLeft className="h-4 w-4 mr-2" /> Voltar</Button>
-              <Button onClick={handleConfirm} disabled={!nome || !email || !whatsapp} className="flex-1">Confirmar Agendamento</Button>
+              <Button onClick={handleConfirm} disabled={!nome || !email || !whatsapp || !cep || !endereco || !numero || !bairro || !cidade || !estado} className="flex-1">Confirmar Agendamento</Button>
             </div>
           </div>
         )}

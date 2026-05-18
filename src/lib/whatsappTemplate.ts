@@ -8,6 +8,7 @@ export const DEFAULT_APPOINTMENT_TEMPLATE =
   `Data: {data}\n` +
   `Horário: {horario}\n` +
   `Valor: {valor}\n\n` +
+  `{endereco_cliente}\n\n` +
   `Aguardamos você.`;
 
 export const TEMPLATE_VARIABLES = [
@@ -19,6 +20,7 @@ export const TEMPLATE_VARIABLES = [
   "{valor}",
   "{empresa}",
   "{telefone_empresa}",
+  "{endereco_cliente}",
 ];
 
 export interface TemplateVars {
@@ -30,8 +32,8 @@ export interface TemplateVars {
   valor?: string;
   empresa?: string;
   telefone_empresa?: string;
+  endereco_cliente?: string;
 }
-
 export function renderTemplate(template: string, vars: TemplateVars): string {
   let out = template || "";
   for (const [k, v] of Object.entries(vars)) {

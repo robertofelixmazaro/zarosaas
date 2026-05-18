@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("id, client_name, client_phone, appointment_date, appointment_time, price, whatsapp_reminder_sent, attendance_confirmation_status, barbers(name), services(name)")
+        .select("id, client_name, client_phone, appointment_date, appointment_time, price, whatsapp_reminder_sent, attendance_confirmation_status, cep, endereco, numero, bairro, cidade, estado, complemento, barbers(name), services(name)")
         .eq("tenant_id", tenantId)
         .eq("whatsapp_reminder_sent", false)
         .in("status", ["pendente", "confirmado"])
@@ -122,6 +122,14 @@ Deno.serve(async (req) => {
         const confirmLink = `${baseUrl}/confirmar-agendamento/${appt.id}`;
         const cancelLink = `${baseUrl}/cancelar-agendamento/${appt.id}`;
 
+        const linhaRua = [appt.endereco, appt.numero && `Número ${appt.numero}`].filter(Boolean).join(", ");
+        const linhaCidade = [appt.cidade, appt.estado].filter(Boolean).join(" - ");
+        const linhaCep = appt.cep ? `CEP ${appt.cep}` : "";
+        const linhaCompl = appt.complemento ? `Compl.: ${appt.complemento}` : "";
+        const enderecoCliente = (appt.endereco || appt.cep)
+          ? ["📍 Endereço:", linhaRua, appt.bairro, linhaCompl, linhaCidade, linhaCep].filter(Boolean).join("\n")
+          : "";
+
         const vars = {
           cliente: appt.client_name,
           empresa: tenantName,
@@ -134,6 +142,7 @@ Deno.serve(async (req) => {
           valor: priceStr,
           link_confirmacao: confirmLink,
           link_cancelamento: cancelLink,
+          endereco_cliente: enderecoCliente,
         };
 
         // Prefer the new unified template if defined.

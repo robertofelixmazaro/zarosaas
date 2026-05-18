@@ -39,6 +39,13 @@ Deno.serve(async (req) => {
       appointment_date,
       appointment_time,
       tenant_id,
+      cep,
+      endereco,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      complemento,
     } = body;
 
     if (!client_name || !barber_id || !service_id || !appointment_date || !appointment_time) {
@@ -159,6 +166,13 @@ Deno.serve(async (req) => {
       appointment_time,
       price: validatedPrice,
       tenant_id,
+      cep: cep || null,
+      endereco: endereco || null,
+      numero: numero || null,
+      bairro: bairro || null,
+      cidade: cidade || null,
+      estado: estado || null,
+      complemento: complemento || null,
     };
 
     const { error: insertError } = await supabase

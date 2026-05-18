@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     // Load appointment data from DB instead of trusting request body
     const { data: appointment, error: apptError } = await supabase
       .from("appointments")
-      .select("id, client_name, client_phone, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id")
+      .select("id, client_name, client_phone, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id, cep, endereco, numero, bairro, cidade, estado, complemento")
       .eq("id", id_agendamento)
       .single();
 
@@ -153,6 +153,22 @@ Deno.serve(async (req) => {
     const safeTelefone = escapeHtml(telefone_cliente || "Não informado");
     const safeEmail = escapeHtml(email_cliente || "Não informado");
 
+    // Build address block (plain + html)
+    const addr: any = appointment;
+    const linhaRua = [addr.endereco, addr.numero && `Número ${addr.numero}`].filter(Boolean).join(", ");
+    const linhaCidade = [addr.cidade, addr.estado].filter(Boolean).join(" - ");
+    const linhaCep = addr.cep ? `CEP ${addr.cep}` : "";
+    const linhaCompl = addr.complemento ? `Compl.: ${addr.complemento}` : "";
+    const hasAddress = !!(addr.endereco || addr.cep);
+    const enderecoTexto = hasAddress
+      ? ["📍 Endereço:", linhaRua, addr.bairro, linhaCompl, linhaCidade, linhaCep]
+          .filter(Boolean)
+          .join("\n")
+      : "";
+    const enderecoHtmlRow = hasAddress
+      ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666; vertical-align: top;">Endereço</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(linhaRua)}${addr.bairro ? "<br/>" + escapeHtml(addr.bairro) : ""}${addr.complemento ? "<br/>" + escapeHtml(linhaCompl) : ""}${linhaCidade ? "<br/>" + escapeHtml(linhaCidade) : ""}${linhaCep ? "<br/>" + escapeHtml(linhaCep) : ""}</td></tr>`
+      : "";
+
     const dateFormatted = data_agendamento
       ? String(data_agendamento).split("-").reverse().join("/")
       : "";
@@ -163,6 +179,7 @@ Deno.serve(async (req) => {
       profissional: barberName,
       data: dateFormatted,
       hora: hora_agendamento,
+      endereco_cliente: enderecoTexto,
     };
 
     // Load custom template if available
@@ -177,6 +194,7 @@ Deno.serve(async (req) => {
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Profissional</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeBarber}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Data</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(dateFormatted)}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(hora_agendamento)}</td></tr>
+          ${enderecoHtmlRow}
         </table>
         <p>Estamos te esperando! 😄</p>
         <p style="color: #999; font-size: 12px; margin-top: 30px;">Zaro Agendamentos</p>
@@ -276,6 +294,7 @@ Deno.serve(async (req) => {
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Serviço</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${safeServico}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Data</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(dateFormatted)}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Horário</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${escapeHtml(hora_agendamento)}</td></tr>
+                ${enderecoHtmlRow}
               </table>
               <p style="color: #999; font-size: 12px;">ID: ${escapeHtml(id_agendamento)}</p>
             </div>
