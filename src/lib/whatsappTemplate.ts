@@ -19,7 +19,20 @@ export const TEMPLATE_VARIABLES = [
   "{valor}",
   "{empresa}",
   "{telefone_empresa}",
+  "{endereco_cliente}",
 ];
+
+export interface TemplateVars {
+  cliente?: string;
+  servico?: string;
+  profissional?: string;
+  data?: string;
+  horario?: string;
+  valor?: string;
+  empresa?: string;
+  telefone_empresa?: string;
+  endereco_cliente?: string;
+}
 
 export interface TemplateVars {
   cliente?: string;
