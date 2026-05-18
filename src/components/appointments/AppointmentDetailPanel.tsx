@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { User, Scissors, Clock, DollarSign, MessageCircle, Phone } from "lucide-react";
+import { User, Scissors, Clock, DollarSign, MessageCircle, Phone, MapPin } from "lucide-react";
 import AppointmentStatusBadge, { allStatuses, statusConfig } from "./AppointmentStatusBadge";
 import { DbAppointment } from "@/lib/api";
 import { format } from "date-fns";
