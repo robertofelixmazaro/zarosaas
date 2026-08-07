@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,6 +136,8 @@ const LandingPage = () => {
   const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
 
   return (
+    <>
+      <Seo title="Zaro Sistemas — Sistema de Agendamento Online" description="Plataforma completa de agendamento online para barbearias, salões, clínicas e prestadores de serviços. Agenda 24h, lembretes automáticos e loja virtual." path="/" />
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navbar */}
       <motion.header
@@ -587,6 +590,7 @@ const LandingPage = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

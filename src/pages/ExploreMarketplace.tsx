@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { useState, useEffect } from "react";
 import { Search, MapPin, Star, Store, ArrowRight, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -72,6 +73,8 @@ const ExploreMarketplace = () => {
   };
 
   return (
+    <>
+      <Seo title="Explorar Empresas — Zaro Sistemas" description="Encontre barbearias, salões, clínicas e estúdios perto de você e agende seu horário online em poucos cliques pelo Zaro Sistemas." path="/explorar" />
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
@@ -234,6 +237,7 @@ const ExploreMarketplace = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

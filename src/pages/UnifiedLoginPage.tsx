@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -171,6 +172,8 @@ const UnifiedLoginPage = () => {
   }
 
   return (
+    <>
+      <Seo title="Entrar na sua conta — Zaro Sistemas" description="Acesse o painel da sua empresa no Zaro Sistemas para gerenciar agendamentos, clientes, equipe e vendas em um só lugar." path="/login" />
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -257,6 +260,7 @@ const UnifiedLoginPage = () => {
         </motion.div>
       </motion.div>
     </div>
+    </>
   );
 };
 

@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -246,6 +247,8 @@ const SaasSignupPage = () => {
   const showAdminFields = accountType === "admin";
 
   return (
+    <>
+      <Seo title="Criar conta grátis — Zaro Sistemas" description="Crie sua conta no Zaro Sistemas e comece a receber agendamentos online hoje mesmo. Teste grátis, sem cartão de crédito." path="/cadastrar" />
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -489,6 +492,7 @@ const SaasSignupPage = () => {
         </div>
       </motion.div>
     </div>
+    </>
   );
 };
 
