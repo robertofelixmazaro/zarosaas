@@ -585,8 +585,13 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer className="border-t py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Zaro Sistemas. Todos os direitos reservados.
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground space-y-3">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+            <Link to="/sistema-para-barbearia" className="hover:text-foreground transition-colors">Sistema para barbearia</Link>
+            <Link to="/explorar" className="hover:text-foreground transition-colors">Explorar empresas</Link>
+            <Link to="/politica-de-privacidade" className="hover:text-foreground transition-colors">Política de Privacidade</Link>
+          </div>
+          <p>© {new Date().getFullYear()} Zaro Sistemas. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

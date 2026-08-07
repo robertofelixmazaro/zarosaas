@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy load all pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const BarbeariaLandingPage = lazy(() => import("./pages/BarbeariaLandingPage"));
 const UnifiedLoginPage = lazy(() => import("./pages/UnifiedLoginPage"));
 const SaasSignupPage = lazy(() => import("./pages/SaasSignupPage"));
 const Index = lazy(() => import("./pages/Index"));
@@ -191,6 +192,7 @@ const AppRoutes = () => {
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/explorar" element={<ExploreMarketplace />} />
+        <Route path="/sistema-para-barbearia" element={<BarbeariaLandingPage />} />
         <Route path="/login" element={<UnifiedLoginPage />} />
         <Route path="/cadastrar" element={<SaasSignupPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
