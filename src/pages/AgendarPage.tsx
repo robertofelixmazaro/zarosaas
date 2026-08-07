@@ -283,7 +283,7 @@ const AgendarPage = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto flex items-center h-16 px-4 gap-4">
-          <Link to={basePath || "/"}><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to={basePath || "/"} aria-label="Voltar para a página inicial"><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
             {tenant?.logo_url ? (
               <img src={tenant.logo_url} alt={tenant.name} className="h-8 w-8 rounded-full object-cover" />

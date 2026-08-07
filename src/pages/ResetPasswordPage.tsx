@@ -93,6 +93,7 @@ const ResetPasswordPage = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                aria-label="Nova senha"
                 placeholder="Nova senha"
                 className="pl-10 pr-11 h-11"
                 required
@@ -101,6 +102,7 @@ const ResetPasswordPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -112,6 +114,7 @@ const ResetPasswordPage = () => {
                 type={showPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                aria-label="Confirmar nova senha"
                 placeholder="Confirmar nova senha"
                 className="pl-10 h-11"
                 required

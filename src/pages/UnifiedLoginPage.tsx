@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -171,6 +172,8 @@ const UnifiedLoginPage = () => {
   }
 
   return (
+    <>
+      <Seo title="Entrar na sua conta — Zaro Sistemas" description="Acesse o painel da sua empresa no Zaro Sistemas para gerenciar agendamentos, clientes, equipe e vendas em um só lugar." path="/login" />
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -201,6 +204,7 @@ const UnifiedLoginPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-label="Seu e-mail"
                 placeholder="Seu e-mail"
                 className="pl-10"
                 required
@@ -212,6 +216,7 @@ const UnifiedLoginPage = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                aria-label="Sua senha"
                 placeholder="Sua senha"
                 className="pl-10 pr-10"
                 required
@@ -219,6 +224,7 @@ const UnifiedLoginPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -254,6 +260,7 @@ const UnifiedLoginPage = () => {
         </motion.div>
       </motion.div>
     </div>
+    </>
   );
 };
 
