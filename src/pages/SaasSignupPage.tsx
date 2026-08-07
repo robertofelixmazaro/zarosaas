@@ -267,7 +267,7 @@ const SaasSignupPage = () => {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Rocket className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-bold">Crie sua conta</h2>
+              <h1 className="text-xl font-bold">Crie sua conta</h1>
             </div>
             <p className="text-sm text-muted-foreground">
               Preencha todos os campos para criar sua conta
@@ -306,6 +306,7 @@ const SaasSignupPage = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onBlur={() => markTouched("name")}
+                  aria-label="Nome completo"
                   placeholder="Nome completo *"
                   className={`pl-10 ${touched.name && errors.name ? "border-destructive" : ""}`}
                 />
@@ -322,6 +323,7 @@ const SaasSignupPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => markTouched("email")}
+                  aria-label="E-mail"
                   placeholder="E-mail *"
                   className={`pl-10 ${touched.email && errors.email ? "border-destructive" : ""}`}
                 />
@@ -337,6 +339,7 @@ const SaasSignupPage = () => {
                   value={phone}
                   onChange={(e) => setPhone(formatPhone(e.target.value))}
                   onBlur={() => markTouched("phone")}
+                  aria-label="Telefone / WhatsApp"
                   placeholder="Telefone / WhatsApp *"
                   className={`pl-10 ${touched.phone && errors.phone ? "border-destructive" : ""}`}
                 />
@@ -352,6 +355,7 @@ const SaasSignupPage = () => {
                   value={cpfCnpj}
                   onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
                   onBlur={() => markTouched("cpfCnpj")}
+                  aria-label="CPF ou CNPJ"
                   placeholder="CPF ou CNPJ *"
                   className={`pl-10 ${touched.cpfCnpj && errors.cpfCnpj ? "border-destructive" : ""}`}
                 />
@@ -369,6 +373,7 @@ const SaasSignupPage = () => {
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
                       onBlur={() => markTouched("storeName")}
+                      aria-label="Nome da empresa ou loja"
                       placeholder="Nome da empresa ou loja *"
                       className={`pl-10 ${touched.storeName && errors.storeName ? "border-destructive" : ""}`}
                     />
@@ -386,6 +391,7 @@ const SaasSignupPage = () => {
                         setSlugManuallyEdited(true);
                       }}
                       onBlur={() => markTouched("slug")}
+                      aria-label="slug-da-loja"
                       placeholder="slug-da-loja *"
                       className={`pl-10 ${touched.slug && errors.slug ? "border-destructive" : ""}`}
                     />
@@ -409,11 +415,12 @@ const SaasSignupPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => markTouched("password")}
+                  aria-label="Senha (mín. 6 caracteres)"
                   placeholder="Senha (mín. 6 caracteres) *"
                   className={`pl-10 pr-10 ${touched.password && errors.password ? "border-destructive" : ""}`}
                   minLength={6}
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -429,10 +436,11 @@ const SaasSignupPage = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => markTouched("confirmPassword")}
+                  aria-label="Confirmar senha"
                   placeholder="Confirmar senha *"
                   className={`pl-10 pr-10 ${touched.confirmPassword && errors.confirmPassword ? "border-destructive" : ""}`}
                 />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                <button type="button" aria-label={showConfirm ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"} onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>

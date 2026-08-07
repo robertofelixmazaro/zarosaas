@@ -77,7 +77,7 @@ const ExploreMarketplace = () => {
       <header className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
         <div className="container mx-auto px-4 py-6">
           <Link to="/" className="flex items-center gap-2 mb-6">
-            <img src="/zaro-favicon.png" alt="Zaro" className="h-8 w-8" />
+            <img src="/zaro-favicon.png" alt="Zaro Agendamentos" className="h-8 w-8" />
             <span className="font-bold text-xl">Zaro Agendamentos</span>
           </Link>
           <div className="max-w-2xl">
