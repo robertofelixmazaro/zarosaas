@@ -626,28 +626,31 @@ function WalkinReviewForm({ barbers, onSuccess, tenantId, buttonStyle }: { barbe
 
   const mutation = useMutation({
     mutationFn: async () => {
-      let photoUrl: string | null = null;
+      let photoBase64: string | null = null;
+      let photoMime: string | null = null;
       if (photoFile) {
-        const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-        const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
-        const path = `${tenantId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${safeExt}`;
-        const { error: uploadError } = await supabase.storage.from("review-photos").upload(path, photoFile);
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("review-photos").getPublicUrl(path);
-        photoUrl = urlData.publicUrl;
+        photoMime = photoFile.type;
+        photoBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("read_error"));
+          reader.readAsDataURL(photoFile);
+        });
       }
-      const { error } = await supabase.from("reviews" as any).insert({
-        barber_id: barberId,
-        rating,
-        comment: comment.trim() || null,
-        appointment_id: null,
-        client_user_id: null,
-        client_name: clientName.trim(),
-        client_photo_url: photoUrl,
-        tenant_id: tenantId || null,
-        approved: false,
-      } as any);
+
+      const { data, error } = await supabase.functions.invoke("submit-review", {
+        body: {
+          tenant_id: tenantId,
+          barber_id: barberId,
+          rating,
+          comment: comment.trim() || null,
+          client_name: clientName.trim(),
+          photo_base64: photoBase64,
+          photo_mime: photoMime,
+        },
+      });
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       toast.success("Avaliação enviada! Será exibida após aprovação.");

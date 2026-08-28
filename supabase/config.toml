@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.search-places]
 verify_jwt = false
+
+[functions.submit-review]
+verify_jwt = false
