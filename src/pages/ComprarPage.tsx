@@ -134,6 +134,11 @@ const ComprarPage = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Escolha o plano ideal para o seu negócio e comece a gerenciar agendamentos de forma profissional.
           </p>
+          {trialEnabled && (
+            <Badge variant="secondary" className="text-sm">
+              <Check className="h-3 w-3 mr-1" /> Teste grátis disponível — sem cartão de crédito
+            </Badge>
+          )}
           {refCode && (
             <Badge variant="secondary" className="text-sm">
               <Star className="h-3 w-3 mr-1" /> Indicado por um parceiro
