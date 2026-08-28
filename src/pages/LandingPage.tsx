@@ -404,7 +404,7 @@ const LandingPage = () => {
                         ))}
                       </ul>
                     </div>
-                    <Link to="/comprar">
+                    <Link to={`/comprar?plan=${plan.id}`}>
                       <Button className="w-full" variant={isPopular ? "default" : "outline"}>
                         {plan.price === 0 ? "Começar grátis" : "Assinar agora"}
                       </Button>

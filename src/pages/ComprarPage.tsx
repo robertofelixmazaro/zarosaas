@@ -46,7 +46,13 @@ const ComprarPage = () => {
       .gt("price", 0)
       .order("price", { ascending: true })
       .then(({ data }) => {
-        setPlans((data || []) as any[]);
+        const list = (data || []) as any[];
+        setPlans(list);
+        const preselect = searchParams.get("plan");
+        if (preselect) {
+          const found = list.find((p) => p.id === preselect);
+          if (found) setSelectedPlan(found);
+        }
         setLoading(false);
       });
   }, []);

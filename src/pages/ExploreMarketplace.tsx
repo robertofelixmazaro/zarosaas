@@ -228,7 +228,7 @@ const ExploreMarketplace = () => {
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
             Cadastre sua empresa no Zaro e apareça para milhares de clientes em busca de agendamentos.
           </p>
-          <Link to="/cadastrar">
+          <Link to="/comprar">
             <Button size="lg" className="gap-2">
               Criar minha agenda online
               <ArrowRight className="h-4 w-4" />
