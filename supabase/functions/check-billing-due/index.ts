@@ -14,6 +14,16 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Internal-only function: require the service role key
+    const token = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+    if (!serviceRoleKey || token !== serviceRoleKey) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Get all active subscriptions with their tenant owners
