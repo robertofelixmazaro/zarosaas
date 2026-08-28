@@ -153,7 +153,7 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Link to="/cadastrar" className="hidden sm:inline-flex">
+            <Link to="/comprar" className="hidden sm:inline-flex">
               <Button size="sm">Cadastrar</Button>
             </Link>
           </div>
@@ -183,7 +183,7 @@ const LandingPage = () => {
               </p>
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Link to="/cadastrar">
+                  <Link to="/comprar">
                     <Button
                       size="lg"
                       className="text-base px-8 gap-2 w-full sm:w-auto platform-btn-primary"
@@ -404,7 +404,7 @@ const LandingPage = () => {
                         ))}
                       </ul>
                     </div>
-                    <Link to="/cadastrar">
+                    <Link to="/comprar">
                       <Button className="w-full" variant={isPopular ? "default" : "outline"}>
                         {plan.price === 0 ? "Começar grátis" : "Assinar agora"}
                       </Button>
@@ -431,7 +431,7 @@ const LandingPage = () => {
           ) : tenants.length === 0 ? (
             <div className="text-center text-muted-foreground">
               Nenhum negócio cadastrado ainda.{" "}
-              <Link to="/cadastrar" className="text-primary underline">Seja o primeiro!</Link>
+              <Link to="/comprar" className="text-primary underline">Seja o primeiro!</Link>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -571,7 +571,7 @@ const LandingPage = () => {
             <p className="text-lg text-muted-foreground mb-8">
               {landingContent?.landing_cta_subtitle || "Crie sua página de agendamento e comece a receber clientes hoje mesmo."}
             </p>
-            <Link to="/cadastrar">
+            <Link to="/comprar">
               <Button
                 size="lg"
                 className="text-base px-10 gap-2 platform-btn-primary"

@@ -112,7 +112,7 @@ const BarbeariaLandingPage = () => {
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
               <ThemeToggle />
-              <Link to="/cadastrar" className="hidden sm:inline-flex">
+              <Link to="/comprar" className="hidden sm:inline-flex">
                 <Button size="sm">Cadastrar</Button>
               </Link>
             </div>
@@ -139,7 +139,7 @@ const BarbeariaLandingPage = () => {
                   e acompanhe o faturamento da barbearia em um só lugar.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link to="/cadastrar">
+                  <Link to="/comprar">
                     <Button size="lg" className="text-base px-8 gap-2 platform-btn-primary w-full sm:w-auto">
                       Criar agenda da minha barbearia <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -273,7 +273,7 @@ const BarbeariaLandingPage = () => {
               <p className="text-lg text-muted-foreground mb-8">
                 Crie a página de agendamento da sua barbearia e comece a receber clientes hoje mesmo.
               </p>
-              <Link to="/cadastrar">
+              <Link to="/comprar">
                 <Button size="lg" className="text-base px-10 gap-2 platform-btn-primary">
                   Começar agora <ArrowRight className="h-4 w-4" />
                 </Button>
