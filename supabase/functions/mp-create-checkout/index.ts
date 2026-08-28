@@ -16,17 +16,37 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const globalMpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN") || "";
 
-    const { plan_id, plan_name, plan_price, client_email, client_name, ref_code, tenant_id } = await req.json();
+    const { plan_id, client_email, client_name, ref_code, tenant_id } = await req.json();
 
-    if (!plan_id || !plan_price || !client_email) {
+    if (!plan_id || !client_email) {
       return new Response(JSON.stringify({ error: "Dados incompletos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const adminDb = createClient(supabaseUrl, serviceRoleKey);
+
+    // Price ALWAYS comes from the database, never from the browser
+    const { data: planRow } = await adminDb
+      .from("plans")
+      .select("id, name, price, active")
+      .eq("id", plan_id)
+      .maybeSingle();
+
+    if (!planRow || planRow.active !== true || Number(planRow.price) <= 0) {
+      return new Response(JSON.stringify({ error: "Plano inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const plan_name = planRow.name;
+    const plan_price = Number(planRow.price);
+
     // Resolve MP access token: tenant_secrets takes priority over global
     let mpAccessToken = globalMpAccessToken;
+
 
     if (tenant_id) {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
