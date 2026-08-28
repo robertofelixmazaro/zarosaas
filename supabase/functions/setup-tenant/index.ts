@@ -62,6 +62,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    // === Contracting flow guard ===
+    // Trial availability is defined by the "Teste" plan being active (admin setting).
+    const { data: testePlan } = await adminClient
+      .from("plans")
+      .select("id")
+      .eq("name", "Teste")
+      .eq("active", true)
+      .maybeSingle();
+
+    const trialEnabled = !!testePlan;
+
+    // Paid flow: a confirmed Mercado Pago payment is required
+    let paidSignup: any = null;
+    if (payment_id) {
+      const { data: ps } = await adminClient
+        .from("paid_signups")
+        .select("*")
+        .eq("transaction_id", String(payment_id))
+        .maybeSingle();
+
+      if (!ps || ps.status !== "approved" || ps.consumed_at) {
+        return new Response(JSON.stringify({ error: "Pagamento não confirmado" }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      paidSignup = ps;
+    }
+
+    if (!paidSignup && !trialEnabled) {
+      return new Response(JSON.stringify({ error: "É necessário concluir o pagamento antes de criar a conta" }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     // Resolve referral affiliate from user metadata
     let referredByAffiliateId: string | null = null;
     const refCode = user.user_metadata?.ref_code;
