@@ -332,6 +332,29 @@ const SaasSignupPage = () => {
 
           <AccountTypeSelector value={accountType} onChange={setAccountType} />
 
+          {accountType === "admin" && checkingPayment && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground text-center">
+              Confirmando seu pagamento...
+            </div>
+          )}
+
+          {accountType === "admin" && paidPlan && (
+            <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm text-center">
+              Pagamento confirmado — plano <strong>{paidPlan.plan_name || "contratado"}</strong>
+            </div>
+          )}
+
+          {accountType === "admin" && storeBlocked && (
+            <div className="rounded-lg border bg-muted/40 p-4 text-sm text-center space-y-3">
+              <p className="text-muted-foreground">
+                Para criar sua loja, escolha um plano e conclua o pagamento.
+              </p>
+              <Button className="w-full" onClick={() => navigate("/comprar")}>
+                Escolher meu plano
+              </Button>
+            </div>
+          )}
+
           <Button
             variant="outline"
             className="w-full gap-3 h-11"
@@ -525,7 +548,7 @@ const SaasSignupPage = () => {
               {touched.acceptTerms && <FieldError error={errors.acceptTerms} />}
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading || (accountType === "admin" && (storeBlocked || checkingPayment))}>
               {loading ? "Criando conta..." : accountType === "affiliate" ? "Criar conta de afiliado" : "Criar minha loja"}
             </Button>
           </form>
