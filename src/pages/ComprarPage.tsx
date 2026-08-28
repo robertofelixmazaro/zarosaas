@@ -26,8 +26,11 @@ interface Plan {
 
 const ComprarPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { trialEnabled } = useTrialEnabled();
   const refCode = searchParams.get("ref") || "";
   const status = searchParams.get("status") || "";
+
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
