@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTrialEnabled } from "@/hooks/useTrialEnabled";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,8 +26,11 @@ interface Plan {
 
 const ComprarPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { trialEnabled } = useTrialEnabled();
   const refCode = searchParams.get("ref") || "";
   const status = searchParams.get("status") || "";
+
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +46,13 @@ const ComprarPage = () => {
       .gt("price", 0)
       .order("price", { ascending: true })
       .then(({ data }) => {
-        setPlans((data || []) as any[]);
+        const list = (data || []) as any[];
+        setPlans(list);
+        const preselect = searchParams.get("plan");
+        if (preselect) {
+          const found = list.find((p) => p.id === preselect);
+          if (found) setSelectedPlan(found);
+        }
         setLoading(false);
       });
   }, []);
@@ -53,6 +64,14 @@ const ComprarPage = () => {
       toast.info("Pagamento pendente. Você receberá acesso assim que for confirmado.");
     }
   }, [status]);
+
+  const handleSelectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+    // Free trial enabled: no Mercado Pago, user goes straight to signup
+    if (trialEnabled) {
+      navigate(`/cadastrar?trial=1${refCode ? `&ref=${encodeURIComponent(refCode)}` : ""}`);
+    }
+  };
 
   const handleCheckout = async () => {
     if (!selectedPlan) return;
@@ -66,8 +85,6 @@ const ComprarPage = () => {
       const { data, error } = await supabase.functions.invoke("mp-create-checkout", {
         body: {
           plan_id: selectedPlan.id,
-          plan_name: selectedPlan.name,
-          plan_price: selectedPlan.price,
           client_email: form.email.trim(),
           client_name: form.name.trim(),
           ref_code: refCode,
@@ -123,6 +140,11 @@ const ComprarPage = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Escolha o plano ideal para o seu negócio e comece a gerenciar agendamentos de forma profissional.
           </p>
+          {trialEnabled && (
+            <Badge variant="secondary" className="text-sm">
+              <Check className="h-3 w-3 mr-1" /> Teste grátis disponível — sem cartão de crédito
+            </Badge>
+          )}
           {refCode && (
             <Badge variant="secondary" className="text-sm">
               <Star className="h-3 w-3 mr-1" /> Indicado por um parceiro
@@ -147,7 +169,7 @@ const ComprarPage = () => {
                     className={`cursor-pointer transition-all hover:shadow-lg ${
                       selectedPlan?.id === plan.id ? "ring-2 ring-primary border-primary" : ""
                     }`}
-                    onClick={() => setSelectedPlan(plan)}
+                    onClick={() => handleSelectPlan(plan)}
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -176,7 +198,7 @@ const ComprarPage = () => {
             </div>
 
             {/* Checkout Form */}
-            {selectedPlan && (
+            {selectedPlan && !trialEnabled && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useTrialEnabled } from "@/hooks/useTrialEnabled";
 import { formatCpfCnpj, validateCpfCnpj, formatPhone, generateSlug } from "@/lib/cpfValidator";
 import zaroLogo from "@/assets/zaro-logo.png";
 
@@ -73,6 +74,51 @@ const SaasSignupPage = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const refCode = searchParams.get("ref") || localStorage.getItem("zaro_ref_code") || "";
+
+  // === Contracting flow gating ===
+  const { trialEnabled } = useTrialEnabled();
+  const paymentIdParam = searchParams.get("payment_id") || searchParams.get("collection_id") || "";
+  const [paidPlan, setPaidPlan] = useState<{ payment_id: string; plan_id: string; plan_name: string | null; email?: string; name?: string } | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState(!!paymentIdParam);
+
+  useEffect(() => {
+    if (!paymentIdParam) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("verify-signup-payment", {
+          body: { payment_id: paymentIdParam },
+        });
+        if (!mounted) return;
+        if (data?.approved) {
+          setPaidPlan({
+            payment_id: data.payment_id,
+            plan_id: data.plan_id,
+            plan_name: data.plan_name,
+            email: data.email,
+            name: data.name,
+          });
+          if (data.email) setEmail((prev) => prev || data.email);
+          if (data.name) setName((prev) => prev || data.name);
+          toast.success("Pagamento confirmado! Finalize a criação da sua conta.");
+        } else if (data?.reason === "already_used") {
+          toast.error("Este pagamento já foi utilizado para criar uma conta.");
+        } else {
+          toast.error("Pagamento ainda não confirmado. Aguarde alguns instantes e tente novamente.");
+        }
+      } catch {
+        toast.error("Não foi possível confirmar o pagamento.");
+      } finally {
+        if (mounted) setCheckingPayment(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [paymentIdParam]);
+
+  // Store account creation requires either an active free trial or a confirmed payment
+  const storeBlocked = trialEnabled === false && !paidPlan && !checkingPayment;
 
   useEffect(() => {
     if (refCode) localStorage.setItem("zaro_ref_code", refCode);
@@ -155,6 +201,12 @@ const SaasSignupPage = () => {
       return;
     }
 
+    if (accountType === "admin" && storeBlocked) {
+      toast.error("Escolha um plano e conclua o pagamento antes de criar sua conta.");
+      navigate("/comprar");
+      return;
+    }
+
     setLoading(true);
 
     // Check for duplicate CPF before creating the account
@@ -216,6 +268,7 @@ const SaasSignupPage = () => {
             name: storeName.trim(),
             slug: slug.trim().toLowerCase(),
             phone: phone.replace(/\D/g, ""),
+            payment_id: paidPlan?.payment_id || undefined,
           },
         });
 
@@ -278,6 +331,29 @@ const SaasSignupPage = () => {
           </div>
 
           <AccountTypeSelector value={accountType} onChange={setAccountType} />
+
+          {accountType === "admin" && checkingPayment && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground text-center">
+              Confirmando seu pagamento...
+            </div>
+          )}
+
+          {accountType === "admin" && paidPlan && (
+            <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm text-center">
+              Pagamento confirmado — plano <strong>{paidPlan.plan_name || "contratado"}</strong>
+            </div>
+          )}
+
+          {accountType === "admin" && storeBlocked && (
+            <div className="rounded-lg border bg-muted/40 p-4 text-sm text-center space-y-3">
+              <p className="text-muted-foreground">
+                Para criar sua loja, escolha um plano e conclua o pagamento.
+              </p>
+              <Button className="w-full" onClick={() => navigate("/comprar")}>
+                Escolher meu plano
+              </Button>
+            </div>
+          )}
 
           <Button
             variant="outline"
@@ -472,7 +548,7 @@ const SaasSignupPage = () => {
               {touched.acceptTerms && <FieldError error={errors.acceptTerms} />}
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading || (accountType === "admin" && (storeBlocked || checkingPayment))}>
               {loading ? "Criando conta..." : accountType === "affiliate" ? "Criar conta de afiliado" : "Criar minha loja"}
             </Button>
           </form>
