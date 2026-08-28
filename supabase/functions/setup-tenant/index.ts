@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { name, slug, phone, address, business_type } = await req.json();
+    const { name, slug, phone, address, business_type, payment_id } = await req.json();
 
     if (!name?.trim() || !slug?.trim()) {
       return new Response(JSON.stringify({ error: "Nome e slug são obrigatórios" }), {
@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     // Check if user already has a tenant
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
