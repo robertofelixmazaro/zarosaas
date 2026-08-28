@@ -59,6 +59,14 @@ const ComprarPage = () => {
     }
   }, [status]);
 
+  const handleSelectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+    // Free trial enabled: no Mercado Pago, user goes straight to signup
+    if (trialEnabled) {
+      navigate(`/cadastrar?trial=1${refCode ? `&ref=${encodeURIComponent(refCode)}` : ""}`);
+    }
+  };
+
   const handleCheckout = async () => {
     if (!selectedPlan) return;
     if (!form.email.trim()) {
@@ -71,8 +79,6 @@ const ComprarPage = () => {
       const { data, error } = await supabase.functions.invoke("mp-create-checkout", {
         body: {
           plan_id: selectedPlan.id,
-          plan_name: selectedPlan.name,
-          plan_price: selectedPlan.price,
           client_email: form.email.trim(),
           client_name: form.name.trim(),
           ref_code: refCode,
@@ -152,7 +158,7 @@ const ComprarPage = () => {
                     className={`cursor-pointer transition-all hover:shadow-lg ${
                       selectedPlan?.id === plan.id ? "ring-2 ring-primary border-primary" : ""
                     }`}
-                    onClick={() => setSelectedPlan(plan)}
+                    onClick={() => handleSelectPlan(plan)}
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -181,7 +187,7 @@ const ComprarPage = () => {
             </div>
 
             {/* Checkout Form */}
-            {selectedPlan && (
+            {selectedPlan && !trialEnabled && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
