@@ -1194,6 +1194,27 @@ export type Database = {
           },
         ]
       }
+      public_setting_keys: {
+        Row: {
+          created_at: string
+          description: string | null
+          is_prefix: boolean
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          is_prefix?: boolean
+          key: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          is_prefix?: boolean
+          key?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           active: boolean
@@ -1676,6 +1697,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_barber_user: { Args: { _barber_id: string }; Returns: boolean }
+      is_public_setting_key: { Args: { _key: string }; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
     }
