@@ -64,10 +64,13 @@ Deno.serve(async (req) => {
         name: client_name || "",
       },
       back_urls: {
-        success: `${supabaseUrl}/functions/v1/mp-payment-success?plan_id=${plan_id}&email=${encodeURIComponent(client_email)}&name=${encodeURIComponent(client_name || "")}&ref=${encodeURIComponent(ref_code || "")}`,
+        success: tenant_id
+          ? `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/comprar?status=success`
+          : `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/cadastrar?flow=paid`,
         failure: `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/comprar?status=failure`,
         pending: `${req.headers.get("origin") || "https://zarosaas.lovable.app"}/comprar?status=pending`,
       },
+
       auto_return: "approved",
       external_reference: JSON.stringify({
         plan_id,
