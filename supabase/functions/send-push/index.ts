@@ -12,9 +12,20 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Internal-only function: require the service role key
+    const callerToken = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+    if (!serviceKey || callerToken !== serviceKey) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceKey
     );
 
     const { tenant_id, title, body, url, tag } = await req.json();
