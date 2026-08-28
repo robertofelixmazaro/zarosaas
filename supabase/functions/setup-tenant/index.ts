@@ -163,15 +163,84 @@ Deno.serve(async (req) => {
         .insert({ user_id: user.id, role: "admin", tenant_id: tenantId });
     }
 
-    // 4. Create trial subscription with "Teste" plan
-    const { data: testePlan } = await adminClient
-      .from("plans")
-      .select("id")
-      .eq("name", "Teste")
-      .eq("active", true)
-      .maybeSingle();
+    // 4. Activate subscription: paid plan (confirmed payment) or free trial
+    if (paidSignup) {
+      const now = new Date();
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-    if (testePlan) {
+      await adminClient.from("subscriptions").insert({
+        tenant_id: tenantId,
+        plan_id: paidSignup.plan_id,
+        status: "active",
+        payment_method: "online",
+        current_period_start: now.toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        trial_ends_at: null,
+      });
+
+      await adminClient.from("tenants").update({ plan_id: paidSignup.plan_id }).eq("id", tenantId);
+
+      await adminClient.from("payments").insert({
+        tenant_id: tenantId,
+        plan_id: paidSignup.plan_id,
+        amount: paidSignup.amount,
+        status: "approved",
+        payment_method: paidSignup.payment_method || "mercadopago",
+        transaction_id: String(paidSignup.transaction_id),
+      });
+
+      await adminClient
+        .from("paid_signups")
+        .update({ consumed_at: new Date().toISOString(), tenant_id: tenantId })
+        .eq("id", paidSignup.id);
+
+      // Affiliate commission for the confirmed sale
+      const affRefCode = paidSignup.ref_code || refCode || null;
+      if (affRefCode) {
+        const { data: affiliate } = await adminClient
+          .from("affiliates")
+          .select("id, commission_percent")
+          .eq("ref_code", affRefCode)
+          .maybeSingle();
+
+        if (affiliate) {
+          const commissionAmount = (Number(paidSignup.amount) * Number(affiliate.commission_percent)) / 100;
+          const { data: sale } = await adminClient
+            .from("affiliate_sales")
+            .insert({
+              affiliate_id: affiliate.id,
+              client_email: paidSignup.email,
+              client_name: paidSignup.name || null,
+              store_name: name.trim(),
+              payment_status: "paid",
+              access_released: true,
+              amount: paidSignup.amount,
+              commission_amount: commissionAmount,
+              plan_id: paidSignup.plan_id,
+              created_user_id: user.id,
+            })
+            .select("id")
+            .single();
+
+          if (sale) {
+            await adminClient.from("affiliate_commissions").insert({
+              affiliate_id: affiliate.id,
+              sale_id: sale.id,
+              amount: commissionAmount,
+              status: "pendente",
+            });
+          }
+
+          if (!referredByAffiliateId) {
+            await adminClient
+              .from("tenants")
+              .update({ referred_by_affiliate_id: affiliate.id })
+              .eq("id", tenantId);
+          }
+        }
+      }
+    } else if (testePlan) {
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + 7);
       await adminClient.from("subscriptions").insert({
@@ -186,6 +255,7 @@ Deno.serve(async (req) => {
       // Also set the plan_id on the tenant
       await adminClient.from("tenants").update({ plan_id: testePlan.id }).eq("id", tenantId);
     }
+
 
     // 5. Store business settings in landing_page_settings (JSON)
     const lpSettings: Record<string, string> = {
