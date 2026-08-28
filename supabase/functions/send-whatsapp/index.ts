@@ -11,9 +11,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Accept both service role key and anon key (for cron job calls)
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
+  // Internal-only function (cron): require the service role key
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const callerToken = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+  if (!serviceKey || callerToken !== serviceKey) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceKey
     );
 
     const now = new Date();

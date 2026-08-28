@@ -146,6 +146,26 @@ Deno.serve(async (req) => {
     let staffUserId = barber.user_id;
 
     if (staffUserId) {
+      // Prevent hijacking an account that is not a staff account of this tenant
+      const { data: existingRoles } = await adminClient
+        .from("user_roles")
+        .select("role, tenant_id")
+        .eq("user_id", staffUserId);
+
+      const hijackRisk = (existingRoles || []).some(
+        (r: any) =>
+          r.role === "super_admin" ||
+          r.role === "affiliate" ||
+          (r.tenant_id && r.tenant_id !== callerProfile.tenant_id)
+      );
+
+      if (hijackRisk) {
+        return new Response(JSON.stringify({ error: "Esta conta não pode ser gerenciada por este painel." }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const metadata = await syncStaffAccess(staffUserId);
       const { error: updateErr } = await adminClient.auth.admin.updateUserById(staffUserId, {
         email,

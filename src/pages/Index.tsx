@@ -628,8 +628,9 @@ function WalkinReviewForm({ barbers, onSuccess, tenantId, buttonStyle }: { barbe
     mutationFn: async () => {
       let photoUrl: string | null = null;
       if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+        const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
+        const path = `${tenantId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${safeExt}`;
         const { error: uploadError } = await supabase.storage.from("review-photos").upload(path, photoFile);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from("review-photos").getPublicUrl(path);

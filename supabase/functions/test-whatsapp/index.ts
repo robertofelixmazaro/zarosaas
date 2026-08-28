@@ -35,6 +35,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Only tenant admins / super admins may use this connectivity tester
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    const { data: isSuperAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "super_admin" });
+    if (!isAdmin && !isSuperAdmin) {
+      return new Response(JSON.stringify({ error: "Sem permissão" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     const body = await req.json();
     const { action, api_url, api_key, instance_id, phone, message } = body;
 
