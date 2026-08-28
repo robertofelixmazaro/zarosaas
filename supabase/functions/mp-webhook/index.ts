@@ -180,82 +180,26 @@ async function processNewTenant(
   payment: any,
   paymentId: string | number
 ) {
-  const randomPassword = crypto.randomUUID().slice(0, 12);
-
-  const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
+  // Payment approved for a NEW customer: do NOT create the account here.
+  // Store the confirmed payment so the "Crie sua conta" page can be unlocked
+  // and the paid plan activated when the user finishes the signup.
+  const { error: insertErr } = await adminClient.from("paid_signups").insert({
+    transaction_id: String(paymentId),
+    plan_id: refData.plan_id,
     email: refData.client_email,
-    password: randomPassword,
-    email_confirm: true,
-    user_metadata: { name: refData.client_name || refData.client_email },
+    name: refData.client_name || null,
+    ref_code: refData.ref_code || null,
+    amount: payment.transaction_amount,
+    payment_method: payment.payment_method_id || "mercadopago",
+    status: "approved",
   });
 
-  if (createErr) {
-    console.error("Error creating user:", createErr.message);
-    if (!createErr.message?.includes("already been registered")) {
-      throw new Error("Erro ao criar usuário");
-    }
-  }
-
-  const newUserId = newUser?.user?.id;
-  if (!newUserId) return;
-
-  const slug = (refData.client_name || "loja")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    + "-" + Date.now().toString(36);
-
-  const { data: tenant, error: tenantErr } = await adminClient
-    .from("tenants")
-    .insert({
-      name: refData.client_name || "Minha Loja",
-      slug,
-      owner_user_id: newUserId,
-      plan_id: refData.plan_id,
-    })
-    .select("id")
-    .single();
-
-  if (tenantErr) {
-    console.error("Error creating tenant:", tenantErr.message);
+  if (insertErr && !insertErr.message?.includes("duplicate")) {
+    console.error("Error storing paid signup:", insertErr.message);
     return;
   }
 
-  // Update profile, role, payment, subscription, settings
-  await adminClient.from("profiles").update({ tenant_id: tenant.id }).eq("auth_id", newUserId);
-  await adminClient.from("user_roles").update({ role: "admin", tenant_id: tenant.id }).eq("user_id", newUserId);
-
-  await adminClient.from("payments").insert({
-    tenant_id: tenant.id,
-    plan_id: refData.plan_id,
-    amount: payment.transaction_amount,
-    status: "approved",
-    payment_method: payment.payment_method_id || "mercadopago",
-    transaction_id: String(paymentId),
-  });
-
-  const now = new Date();
-  const periodEnd = new Date(now);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-  await adminClient.from("subscriptions").insert({
-    tenant_id: tenant.id,
-    plan_id: refData.plan_id,
-    status: "active",
-    payment_method: "online",
-    current_period_start: now.toISOString(),
-    current_period_end: periodEnd.toISOString(),
-    trial_ends_at: null,
-  });
-
-  await adminClient.from("site_settings").insert([
-    { key: "shop_name", value: refData.client_name || "Minha Loja", tenant_id: tenant.id },
-  ]);
-
-  // Handle affiliate commission for new tenant
-  await createAffiliateCommission(adminClient, tenant.id, refData, payment);
+  console.log("Paid signup stored, awaiting account creation:", refData.client_email);
 }
 
 async function createAffiliateCommission(
