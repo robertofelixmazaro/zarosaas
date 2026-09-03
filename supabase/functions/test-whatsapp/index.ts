@@ -6,6 +6,57 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+/**
+ * Evolution API instance names are free-form strings chosen by the provider.
+ * We only reject values that could break the URL path — no format/pattern rule,
+ * no UUID requirement, no hardcoded instance.
+ */
+function normalizeInstance(raw: unknown): { ok: true; value: string } | { ok: false; error: string } {
+  if (typeof raw !== "string") return { ok: false, error: "Nome da instância inválido." };
+  const value = raw.trim();
+  if (!value) return { ok: false, error: "Informe o ID/nome da instância." };
+  if (value.length > 200) return { ok: false, error: "Nome da instância muito longo." };
+  if (/[\s/\\?#]/.test(value)) {
+    return { ok: false, error: "O nome da instância não pode conter espaços ou os caracteres / \\ ? #." };
+  }
+  return { ok: true, value };
+}
+
+function normalizeApiUrl(raw: unknown): { ok: true; value: string } | { ok: false; error: string } {
+  if (typeof raw !== "string" || !raw.trim()) return { ok: false, error: "Informe a URL da API." };
+  const value = raw.trim().replace(/\/+$/, "");
+  try {
+    const u = new URL(value);
+    if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error("protocol");
+  } catch {
+    return { ok: false, error: "URL da API inválida." };
+  }
+  return { ok: true, value };
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, ms = 15000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function httpErrorMessage(status: number): string {
+  if (status === 401 || status === 403) return "Token/API Key inválido ou sem permissão para esta instância.";
+  if (status === 404) return "Instância não encontrada nesta API. Verifique o nome da instância.";
+  if (status >= 500) return "A API do WhatsApp está indisponível no momento (erro no servidor).";
+  return "Erro ao comunicar com a API do WhatsApp.";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,176 +68,169 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify user is authenticated and is admin
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return json({ error: "Não autorizado" }, 401);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (authError || !user) return json({ error: "Sessão inválida" }, 401);
 
-    // Only tenant admins / super admins may use this connectivity tester
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
     const { data: isSuperAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "super_admin" });
-    if (!isAdmin && !isSuperAdmin) {
-      return new Response(JSON.stringify({ error: "Sem permissão" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!isAdmin && !isSuperAdmin) return json({ error: "Sem permissão" }, 403);
+
+    const body = await req.json().catch(() => ({}));
+    const { action, phone, message } = body ?? {};
+
+    // ---- Multi-tenant resolution -------------------------------------------
+    // The tenant is ALWAYS derived from the authenticated caller's profile.
+    // A tenant can never read or use another tenant's credentials/instance.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("auth_id", user.id)
+      .maybeSingle();
+
+    let tenantId: string | null = profile?.tenant_id ?? null;
+    if (isSuperAdmin && typeof body?.tenant_id === "string" && body.tenant_id) {
+      tenantId = body.tenant_id; // super admin may inspect a specific tenant
     }
+    if (!tenantId) return json({ error: "Nenhum negócio associado a este usuário." }, 400);
 
+    const { data: rows } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .eq("tenant_id", tenantId)
+      .in("key", ["wa_api_url", "wa_api_key", "wa_instance_id"]);
 
-    const body = await req.json();
-    const { action, api_url, api_key, instance_id, phone, message } = body;
+    const stored: Record<string, string> = {};
+    (rows || []).forEach((r: any) => { stored[r.key] = r.value; });
 
-    if (!api_url || !api_key) {
-      return new Response(JSON.stringify({ error: "URL da API e API Key são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Unsaved values typed in the admin screen may be passed as overrides,
+    // but they are only ever applied to the caller's own tenant.
+    const apiUrlRes = normalizeApiUrl(body?.api_url ?? stored.wa_api_url);
+    if (!apiUrlRes.ok) return json({ success: false, error: apiUrlRes.error }, 200);
+    const baseUrl = apiUrlRes.value;
 
-    const baseUrl = api_url.replace(/\/+$/, "");
+    const apiKey = (typeof body?.api_key === "string" && body.api_key.trim())
+      ? body.api_key.trim()
+      : (stored.wa_api_key || "").trim();
+    if (!apiKey) return json({ success: false, error: "Informe a API Key / Token." }, 200);
 
+    const instRes = normalizeInstance(body?.instance_id ?? stored.wa_instance_id);
+    if (!instRes.ok) return json({ success: false, error: instRes.error }, 200);
+    const instanceName = instRes.value;
+    const instancePath = encodeURIComponent(instanceName);
+
+    // ---- Actions ------------------------------------------------------------
     if (action === "check_connection") {
-      // Test connection state
-      const url = `${baseUrl}/instance/connectionState/${instance_id || ""}`;
-      const res = await fetch(url, {
-        headers: { apikey: api_key },
-      });
+      let res: Response;
+      try {
+        res = await fetchWithTimeout(`${baseUrl}/instance/connectionState/${instancePath}`, {
+          headers: { apikey: apiKey },
+        });
+      } catch (e: any) {
+        return json({
+          success: false,
+          error: e?.name === "AbortError"
+            ? "Tempo esgotado ao contatar a API do WhatsApp."
+            : "Não foi possível contatar a API do WhatsApp.",
+        });
+      }
 
       const responseText = await res.text();
       let responseData: any = null;
       try { responseData = JSON.parse(responseText); } catch { /* ignore */ }
 
       if (!res.ok) {
-        let errorMsg = "Erro ao conectar na API";
-        if (res.status === 401 || res.status === 403) {
-          errorMsg = "Token/API Key inválido. Verifique suas credenciais.";
-        } else if (res.status === 404) {
-          errorMsg = "Instância não encontrada. Verifique o ID da instância.";
-        }
-        return new Response(JSON.stringify({
+        return json({
           success: false,
-          error: errorMsg,
+          error: httpErrorMessage(res.status),
           status_code: res.status,
+          instance: instanceName,
           api_response: responseText.slice(0, 300),
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      const state = responseData?.instance?.state || responseData?.state || responseData?.status;
-      const connected = state === "open" || state === "connected";
+      const rawState = String(
+        responseData?.instance?.state ?? responseData?.state ?? responseData?.status ?? ""
+      ).toLowerCase();
 
-      return new Response(JSON.stringify({
+      const connected = rawState === "open" || rawState === "connected";
+      const connecting = rawState === "connecting" || rawState === "qrcode" || rawState === "pairing";
+
+      return json({
         success: true,
         connected,
-        state: state || "desconhecido",
+        connecting,
+        state: rawState || "desconhecido",
+        instance: instanceName,
         message: connected
-          ? "WhatsApp conectado e pronto para enviar mensagens!"
-          : `API respondeu, mas o estado é: ${state || "desconhecido"}. Verifique se o QR Code foi escaneado.`,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+          ? `Instância "${instanceName}" conectada e pronta para enviar mensagens!`
+          : connecting
+          ? `Instância "${instanceName}" está conectando. Escaneie o QR Code para concluir.`
+          : rawState === "close" || rawState === "closed" || rawState === "disconnected"
+          ? `Instância "${instanceName}" desconectada. Escaneie o QR Code novamente.`
+          : `A API respondeu, mas o estado é: ${rawState || "desconhecido"}.`,
       });
     }
 
     if (action === "send_test") {
-      if (!phone) {
-        return new Response(JSON.stringify({ error: "Número de telefone é obrigatório" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      if (!phone) return json({ error: "Número de telefone é obrigatório" }, 400);
 
-      // Normalize phone
-      let digits = phone.replace(/\D/g, "");
-      if (!digits) {
-        return new Response(JSON.stringify({ error: "Número de telefone inválido" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      let digits = String(phone).replace(/\D/g, "");
+      if (!digits) return json({ error: "Número de telefone inválido" }, 400);
       if (!digits.startsWith("55")) digits = "55" + digits;
-
       if (digits.length < 12 || digits.length > 13) {
-        return new Response(JSON.stringify({
-          error: `Número inválido (${digits.length} dígitos). Formato esperado: 5516999999999`,
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return json({ error: `Número inválido (${digits.length} dígitos). Formato esperado: 5516999999999` }, 400);
       }
 
-      const testMsg = message || "✅ Mensagem de teste do Zaro Agendamentos. Se você recebeu, a integração está funcionando!";
+      const testMsg = (typeof message === "string" && message.trim())
+        ? message
+        : "✅ Mensagem de teste do seu sistema de agendamentos. Se você recebeu, a integração está funcionando!";
 
-      const sendUrl = `${baseUrl}/message/sendText/${instance_id || ""}`;
-      const res = await fetch(sendUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: api_key,
-        },
-        body: JSON.stringify({
-          number: digits,
-          text: testMsg,
-        }),
-      });
+      let res: Response;
+      try {
+        res = await fetchWithTimeout(`${baseUrl}/message/sendText/${instancePath}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: apiKey },
+          body: JSON.stringify({ number: digits, text: testMsg }),
+        });
+      } catch (e: any) {
+        return json({
+          success: false,
+          error: e?.name === "AbortError"
+            ? "Tempo esgotado ao enviar a mensagem."
+            : "Não foi possível contatar a API do WhatsApp.",
+        });
+      }
 
       const responseText = await res.text();
 
       if (!res.ok) {
-        let errorMsg = "Erro ao enviar mensagem";
-        if (res.status === 401 || res.status === 403) {
-          errorMsg = "Token inválido";
-        } else if (res.status === 404) {
-          errorMsg = "Instância não encontrada ou endpoint incorreto";
-        } else if (res.status === 400) {
-          errorMsg = "Instância não conectada ou número inválido";
-        }
-
-        return new Response(JSON.stringify({
+        const errorMsg = res.status === 400
+          ? "Instância não conectada ou número inválido."
+          : httpErrorMessage(res.status);
+        return json({
           success: false,
           error: errorMsg,
           status_code: res.status,
+          instance: instanceName,
           api_response: responseText.slice(0, 300),
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({
+      return json({
         success: true,
-        message: `Mensagem enviada com sucesso para ${digits}!`,
+        instance: instanceName,
+        message: `Mensagem enviada com sucesso para ${digits} usando a instância "${instanceName}"!`,
         api_response: responseText.slice(0, 300),
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ error: "Ação inválida. Use 'check_connection' ou 'send_test'." }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Ação inválida. Use 'check_connection' ou 'send_test'." }, 400);
   } catch (error: any) {
     console.error("test-whatsapp error:", error);
-    return new Response(JSON.stringify({ error: "Erro interno do servidor" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Erro interno do servidor" }, 500);
   }
 });

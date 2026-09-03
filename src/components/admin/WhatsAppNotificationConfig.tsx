@@ -47,18 +47,33 @@ const WhatsAppNotificationConfig = () => {
   const [testPhone, setTestPhone] = useState("");
   const [testLog, setTestLog] = useState<{ type: "success" | "error"; message: string; detail?: string } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<"unknown" | "checking" | "connected" | "disconnected">("unknown");
+  const [storedApiKey, setStoredApiKey] = useState("");
+
+  /**
+   * Build the payload for the test-whatsapp function.
+   * The tenant (and its stored credentials) is always resolved server-side.
+   * The API key is only sent when the admin typed a value that is not saved yet,
+   * so the secret is not round-tripped unnecessarily.
+   */
+  const buildTestBody = (action: string, extra: Record<string, unknown> = {}) => {
+    const body: Record<string, unknown> = {
+      action,
+      api_url: settings.wa_api_url.trim(),
+      instance_id: settings.wa_instance_id.trim(),
+      ...extra,
+    };
+    if (settings.wa_api_key && settings.wa_api_key !== storedApiKey) {
+      body.api_key = settings.wa_api_key;
+    }
+    return body;
+  };
 
   const checkConnectionStatus = async () => {
     if (!settings.wa_api_url || !settings.wa_api_key || !settings.wa_instance_id) return;
     setConnectionStatus("checking");
     try {
       const { data, error } = await supabase.functions.invoke("test-whatsapp", {
-        body: {
-          action: "check_connection",
-          api_url: settings.wa_api_url,
-          api_key: settings.wa_api_key,
-          instance_id: settings.wa_instance_id,
-        },
+        body: buildTestBody("check_connection"),
       });
       if (error || !data?.success) {
         setConnectionStatus("disconnected");
@@ -92,6 +107,7 @@ const WhatsAppNotificationConfig = () => {
           wa_api_key: map.wa_api_key || "",
           wa_instance_id: map.wa_instance_id || "",
         });
+        setStoredApiKey(map.wa_api_key || "");
       }
       setLoading(false);
     };
@@ -488,12 +504,7 @@ Caso precise cancelar:
                 setTestLog(null);
                 try {
                   const { data, error } = await supabase.functions.invoke("test-whatsapp", {
-                    body: {
-                      action: "check_connection",
-                      api_url: settings.wa_api_url,
-                      api_key: settings.wa_api_key,
-                      instance_id: settings.wa_instance_id,
-                    },
+                    body: buildTestBody("check_connection"),
                   });
                   if (error) {
                     setTestResult("error");
@@ -583,13 +594,7 @@ Caso precise cancelar:
                   setTestLog(null);
                   try {
                     const { data, error } = await supabase.functions.invoke("test-whatsapp", {
-                      body: {
-                        action: "send_test",
-                        api_url: settings.wa_api_url,
-                        api_key: settings.wa_api_key,
-                        instance_id: settings.wa_instance_id,
-                        phone: testPhone,
-                      },
+                      body: buildTestBody("send_test", { phone: testPhone }),
                     });
                     if (error) {
                       setTestLog({ type: "error", message: "Erro ao enviar", detail: error.message });
