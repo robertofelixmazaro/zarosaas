@@ -504,12 +504,7 @@ Caso precise cancelar:
                 setTestLog(null);
                 try {
                   const { data, error } = await supabase.functions.invoke("test-whatsapp", {
-                    body: {
-                      action: "check_connection",
-                      api_url: settings.wa_api_url,
-                      api_key: settings.wa_api_key,
-                      instance_id: settings.wa_instance_id,
-                    },
+                    body: buildTestBody("check_connection"),
                   });
                   if (error) {
                     setTestResult("error");
