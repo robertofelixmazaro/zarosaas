@@ -1700,39 +1700,104 @@ export type Database = {
           },
         ]
       }
-      whatsapp_evolution_configs: {
+      whatsapp_go_configs: {
         Row: {
-          api_key: string
-          api_url: string
+          base_url: string
           created_at: string
           id: string
-          instance_name: string
+          instance_id: string | null
+          instance_name: string | null
+          instance_token: string
           tenant_id: string
           updated_at: string
         }
         Insert: {
-          api_key: string
-          api_url: string
+          base_url: string
           created_at?: string
           id?: string
-          instance_name: string
+          instance_id?: string | null
+          instance_name?: string | null
+          instance_token: string
           tenant_id: string
           updated_at?: string
         }
         Update: {
-          api_key?: string
-          api_url?: string
+          base_url?: string
           created_at?: string
           id?: string
-          instance_name?: string
+          instance_id?: string | null
+          instance_name?: string | null
+          instance_token?: string
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "whatsapp_evolution_configs_tenant_id_fkey"
+            foreignKeyName: "whatsapp_go_configs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_go_events: {
+        Row: {
+          chat: string | null
+          created_at: string
+          event: string
+          from_number: string | null
+          id: string
+          instance_id: string | null
+          instance_name: string | null
+          is_from_me: boolean
+          is_group: boolean
+          message_id: string | null
+          message_text: string | null
+          message_type: string | null
+          push_name: string | null
+          raw: Json
+          tenant_id: string
+        }
+        Insert: {
+          chat?: string | null
+          created_at?: string
+          event: string
+          from_number?: string | null
+          id?: string
+          instance_id?: string | null
+          instance_name?: string | null
+          is_from_me?: boolean
+          is_group?: boolean
+          message_id?: string | null
+          message_text?: string | null
+          message_type?: string | null
+          push_name?: string | null
+          raw: Json
+          tenant_id: string
+        }
+        Update: {
+          chat?: string | null
+          created_at?: string
+          event?: string
+          from_number?: string | null
+          id?: string
+          instance_id?: string | null
+          instance_name?: string | null
+          is_from_me?: boolean
+          is_group?: boolean
+          message_id?: string | null
+          message_text?: string | null
+          message_type?: string | null
+          push_name?: string | null
+          raw?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_go_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
