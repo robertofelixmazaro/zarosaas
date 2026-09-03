@@ -327,7 +327,8 @@ Deno.serve(async (req) => {
             </div>
           `,
         });
-        console.log("Admin email sent to " + adminEmail);
+        if (adminSendErr) throw new Error(adminSendErr.message || "Resend error");
+        console.log("Admin email accepted by provider");
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: adminEmail,
@@ -337,7 +338,7 @@ Deno.serve(async (req) => {
           status: "sent",
         });
       } catch (emailErr: any) {
-        console.error("Failed to send admin email:", emailErr);
+        console.error("Failed to send admin email:", emailErr?.message);
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: adminEmail,
@@ -345,10 +346,13 @@ Deno.serve(async (req) => {
           email_type: "notification",
           subject: adminSubject,
           status: "failed",
-          error_message: emailErr.message,
+          error_message: emailErr?.message,
         });
       }
+    } else {
+      console.log(`No admin email resolved for tenant ${appointment.tenant_id} — skipping admin email`);
     }
+
 
     // Also send to n8n webhook if configured
     if (appointment.tenant_id) {
