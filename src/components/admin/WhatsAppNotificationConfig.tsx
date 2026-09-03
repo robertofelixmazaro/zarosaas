@@ -107,6 +107,7 @@ const WhatsAppNotificationConfig = () => {
           wa_api_key: map.wa_api_key || "",
           wa_instance_id: map.wa_instance_id || "",
         });
+        setStoredApiKey(map.wa_api_key || "");
       }
       setLoading(false);
     };
