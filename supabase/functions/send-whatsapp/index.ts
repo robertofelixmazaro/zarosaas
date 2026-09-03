@@ -60,11 +60,12 @@ Deno.serve(async (req) => {
     for (const [tenantId, config] of Object.entries(tenantSettings)) {
       const reminderEnabled = config.wa_reminder_enabled === "true";
       const confirmationEnabled = config.wa_confirmation_enabled === "true";
-      const apiUrl = config.wa_api_url;
-      const apiKey = config.wa_api_key;
-      const instanceId = config.wa_instance_id;
+      // Every tenant uses exclusively its own API URL, key and instance name.
+      const apiUrl = (config.wa_api_url || "").trim().replace(/\/+$/, "");
+      const apiKey = (config.wa_api_key || "").trim();
+      const instanceId = (config.wa_instance_id || "").trim();
 
-      if (!apiUrl || !apiKey) continue;
+      if (!apiUrl || !apiKey || !instanceId) continue;
       if (!reminderEnabled && !confirmationEnabled) continue;
 
       const reminderHours = parseInt(config.wa_reminder_hours || "2", 10);
