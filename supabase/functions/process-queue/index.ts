@@ -177,6 +177,20 @@ async function processJob(
       break;
     }
 
+    case "whatsapp_auto_new": {
+      const res = await fetch(`${supabaseUrl}/functions/v1/whatsapp-auto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({ mode: "new_appointment", ...payload }),
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`whatsapp-auto: ${res.status} ${text}`);
+      break;
+    }
+
     case "log_activity": {
       console.log(`[Activity Log] tenant=${job.tenant_id}`, JSON.stringify(payload));
       break;
