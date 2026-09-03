@@ -168,7 +168,6 @@ const CustomDomainTenantRoutes = () => (
         <Route path="admin/horarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminHorarios /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/seguranca" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminSeguranca /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/whatsapp" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminWhatsApp /></AdminLayout></ProtectedRoute>} />
-      <Route path="admin/whatsapp" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminWhatsApp /></AdminLayout></ProtectedRoute>} />
         <Route path="admin/staff/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout><AdminStaffReport /></AdminLayout></ProtectedRoute>} />
         <Route path="staff" element={<Navigate to="/staff/dashboard" replace />} />
         <Route path="staff/dashboard" element={<ProtectedRoute allowedRoles={["staff"]}><StaffLayout><StaffDashboard /></StaffLayout></ProtectedRoute>} />
