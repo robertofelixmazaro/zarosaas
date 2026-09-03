@@ -8,14 +8,12 @@ import { Button } from "@/components/ui/button";
 
 interface ChannelSettings {
   reminder_email_enabled: boolean;
-  reminder_whatsapp_enabled: boolean;
   reminder_push_enabled: boolean;
   reminder_sms_enabled: boolean;
 }
 
 const defaultChannels: ChannelSettings = {
   reminder_email_enabled: true,
-  reminder_whatsapp_enabled: true,
   reminder_push_enabled: true,
   reminder_sms_enabled: false,
 };
@@ -24,7 +22,6 @@ const channelKeys = Object.keys(defaultChannels) as (keyof ChannelSettings)[];
 
 const channels = [
   { key: "reminder_email_enabled" as const, label: "E-mail", desc: "Envia lembrete por e-mail ao cliente", icon: Mail },
-  { key: "reminder_whatsapp_enabled" as const, label: "WhatsApp", desc: "Envia lembrete automático via WhatsApp", icon: MessageSquare },
   { key: "reminder_push_enabled" as const, label: "Notificação Push", desc: "Notificação push para o administrador/equipe", icon: Bell },
   { key: "reminder_sms_enabled" as const, label: "SMS", desc: "Envia lembrete por SMS ao cliente (requer integração)", icon: Smartphone },
 ];
@@ -63,8 +60,7 @@ const ReminderChannelConfig = () => {
   const toggleAllNotifications = (status: boolean) => {
     const updated: ChannelSettings = {
       reminder_email_enabled: status,
-      reminder_whatsapp_enabled: status,
-      reminder_push_enabled: status,
+          reminder_push_enabled: status,
       reminder_sms_enabled: status,
     };
     setSettings(updated);

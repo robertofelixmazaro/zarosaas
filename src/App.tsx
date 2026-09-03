@@ -62,7 +62,6 @@ const PlatformAffiliates = lazy(() => import("./pages/platform/PlatformAffiliate
 const ComprarPage = lazy(() => import("./pages/ComprarPage"));
 const ConfirmAppointmentPage = lazy(() => import("./pages/ConfirmAppointmentPage"));
 const CancelAppointmentPage = lazy(() => import("./pages/CancelAppointmentPage"));
-const PlatformWhatsApp = lazy(() => import("./pages/platform/PlatformWhatsApp"));
 const PlatformLandingPage = lazy(() => import("./pages/platform/PlatformLandingPage"));
 const PlatformHelpCenter = lazy(() => import("./pages/platform/PlatformHelpCenter"));
 const PlatformCommissions = lazy(() => import("./pages/platform/PlatformCommissions"));
@@ -226,7 +225,6 @@ const AppRoutes = () => {
         <Route path="/superadmin/users/:id" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformUserDetail /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/pagamentos" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformPayments /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/affiliates" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformAffiliates /></SuperAdminLayout></ProtectedRoute>} />
-        <Route path="/superadmin/whatsapp" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformWhatsApp /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/landing" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformLandingPage /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/help-center" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformHelpCenter /></SuperAdminLayout></ProtectedRoute>} />
         <Route path="/superadmin/commissions" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminLayout><PlatformCommissions /></SuperAdminLayout></ProtectedRoute>} />
