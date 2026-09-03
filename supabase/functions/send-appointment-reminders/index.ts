@@ -14,7 +14,6 @@ interface ReminderResult {
 
 interface TenantChannelSettings {
   reminder_email_enabled: boolean;
-  reminder_whatsapp_enabled: boolean;
   reminder_push_enabled: boolean;
   reminder_sms_enabled: boolean;
 }
@@ -22,7 +21,6 @@ interface TenantChannelSettings {
 async function getTenantChannelSettings(supabase: any, tenantId: string): Promise<TenantChannelSettings> {
   const defaults: TenantChannelSettings = {
     reminder_email_enabled: true,
-    reminder_whatsapp_enabled: true,
     reminder_push_enabled: true,
     reminder_sms_enabled: false,
   };
@@ -310,22 +308,6 @@ Deno.serve(async (req) => {
             await logEmail(supabase, { appointment_id: appt.id, recipient_email: clientEmail, recipient_name: appt.client_name, email_type: `reminder_${reminderType}`, subject, status: "failed", error_message: emailErr.message, tenant_id: tenantId });
           }
         }
-      }
-
-      // ── WHATSAPP ── (enqueue via job_queue)
-      if (channelSettings?.reminder_whatsapp_enabled && appt.client_phone && tenantId) {
-        try {
-          await supabase.from("job_queue").insert({
-            tenant_id: tenantId,
-            type: "send_whatsapp",
-            payload: {
-              tenant_id: tenantId,
-              phone: appt.client_phone,
-              message: `Olá ${appt.client_name}! 🔔 Lembrete: seu agendamento de ${serviceName} é ${reminderType === "24h" ? "amanhã" : "em breve"} (${dateStr} às ${timeStr}) em ${businessName}. Te esperamos! 😄`,
-            },
-          });
-          didSend = true;
-        } catch (e) { console.error("Failed to enqueue WhatsApp reminder:", e); }
       }
 
       // ── PUSH ── (enqueue via job_queue)

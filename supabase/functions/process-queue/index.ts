@@ -157,20 +157,6 @@ async function processJob(
       break;
     }
 
-    case "send_whatsapp": {
-      const res = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const text = await res.text();
-      if (!res.ok) throw new Error(`send-whatsapp: ${res.status} ${text}`);
-      break;
-    }
-
     case "send_sms": {
       const res = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
         method: "POST",

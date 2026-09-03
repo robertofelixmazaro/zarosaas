@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { Settings, Clock, Calendar, Save, Upload, X, Image, Mail, Lock, User, Eye, EyeOff, QrCode, Download, Truck, MessageSquare, CreditCard, Bell, Store, Globe, Loader2 } from "lucide-react";
-import WhatsAppNotificationConfig from "@/components/admin/WhatsAppNotificationConfig";
 import PushNotificationSection from "@/components/admin/PushNotificationSection";
 import ReminderChannelConfig from "@/components/admin/ReminderChannelConfig";
 import EmailTemplatesEditor from "@/components/admin/EmailTemplatesEditor";
@@ -851,7 +850,6 @@ const AdminConfig = () => {
       <ReminderChannelConfig />
 
       {/* WhatsApp Notifications */}
-      <WhatsAppNotificationConfig />
 
       {/* Taxa de entrega */}
       <div className="rounded-lg border bg-card p-5">
