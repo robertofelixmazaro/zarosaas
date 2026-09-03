@@ -228,13 +228,14 @@ Deno.serve(async (req) => {
     // Send confirmation email to client
     if (email_cliente) {
       try {
-        await resend.emails.send({
+        const { error: sendErr } = await resend.emails.send({
           from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [email_cliente],
           subject: clientSubject,
           html: clientBodyHtml,
         });
-        console.log(`Client email sent to ${email_cliente}`);
+        if (sendErr) throw new Error(sendErr.message || "Resend error");
+        console.log("Client email accepted by provider");
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: email_cliente,
@@ -244,7 +245,7 @@ Deno.serve(async (req) => {
           status: "sent",
         });
       } catch (emailErr: any) {
-        console.error("Failed to send client email:", emailErr);
+        console.error("Failed to send client email:", emailErr?.message);
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: email_cliente,
@@ -252,10 +253,13 @@ Deno.serve(async (req) => {
           email_type: "confirmation",
           subject: clientSubject,
           status: "failed",
-          error_message: emailErr.message,
+          error_message: emailErr?.message,
         });
       }
+    } else {
+      console.log(`No valid client email for appointment ${id_agendamento} — skipping client email`);
     }
+
 
     // Send notification to tenant admin - look up from tenant settings
     let adminEmail: string | null = null;
