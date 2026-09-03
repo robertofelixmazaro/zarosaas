@@ -73,8 +73,12 @@ Deno.serve(async (req) => {
 
     const trialEnabled = !!testePlan;
 
-    // Paid flow: a confirmed Mercado Pago payment is required
+    // Paid flow: a confirmed Mercado Pago payment is required.
+    // The payment is bound to the authenticated user by e-mail: a browser-supplied
+    // payment_id is never enough on its own.
+    const userEmail = (user.email || "").trim().toLowerCase();
     let paidSignup: any = null;
+
     if (payment_id) {
       const { data: ps } = await adminClient
         .from("paid_signups")
@@ -82,13 +86,35 @@ Deno.serve(async (req) => {
         .eq("transaction_id", String(payment_id))
         .maybeSingle();
 
-      if (!ps || ps.status !== "approved" || ps.consumed_at) {
+      if (!ps || ps.status !== "approved" || ps.consumed_at || ps.tenant_id) {
         return new Response(JSON.stringify({ error: "Pagamento não confirmado" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      // The payment must belong to the authenticated account
+      if ((ps.email || "").trim().toLowerCase() !== userEmail) {
+        return new Response(
+          JSON.stringify({ error: "Este pagamento pertence a outra conta. Entre com o e-mail utilizado no pagamento." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       paidSignup = ps;
+    } else if (!trialEnabled && userEmail) {
+      // The payment reference can be lost during OAuth redirects. Recover it
+      // server-side using the authenticated e-mail (never trusting the client).
+      const { data: byEmail } = await adminClient
+        .from("paid_signups")
+        .select("*")
+        .eq("email", userEmail)
+        .eq("status", "approved")
+        .is("consumed_at", null)
+        .is("tenant_id", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (byEmail) paidSignup = byEmail;
     }
 
     if (!paidSignup && !trialEnabled) {
@@ -97,6 +123,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
 
     // Resolve referral affiliate from user metadata
