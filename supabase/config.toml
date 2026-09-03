@@ -64,3 +64,6 @@ verify_jwt = false
 verify_jwt = false
 [functions.verify-signup-payment]
 verify_jwt = false
+
+[functions.whatsapp-go-webhook]
+verify_jwt = false

@@ -3,25 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageCircle, PlugZap, Save } from "lucide-react";
+import { Loader2, MessageCircle, PlugZap, Save, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type StatusCode =
   | "connected"
-  | "connecting"
   | "disconnected"
+  | "logged_out"
   | "auth_error"
-  | "instance_not_found"
+  | "not_found"
   | "api_unavailable";
 
 const STATUS_UI: Record<StatusCode, { dot: string; label: string; className: string }> = {
-  connected: { dot: "🟢", label: "WhatsApp conectado", className: "bg-green-500/10 text-green-600 border-green-500/30" },
-  connecting: { dot: "🟡", label: "Conectando", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30" },
-  disconnected: { dot: "🔴", label: "WhatsApp desconectado", className: "bg-destructive/10 text-destructive border-destructive/30" },
+  connected: { dot: "🟢", label: "Conectado", className: "bg-green-500/10 text-green-600 border-green-500/30" },
+  logged_out: { dot: "🟡", label: "Aguardando login do WhatsApp", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30" },
+  disconnected: { dot: "🔴", label: "Desconectado", className: "bg-destructive/10 text-destructive border-destructive/30" },
   auth_error: { dot: "⚠️", label: "Erro de autenticação", className: "bg-destructive/10 text-destructive border-destructive/30" },
-  instance_not_found: { dot: "⚠️", label: "Instância não encontrada", className: "bg-destructive/10 text-destructive border-destructive/30" },
+  not_found: { dot: "⚠️", label: "Instância não encontrada", className: "bg-destructive/10 text-destructive border-destructive/30" },
   api_unavailable: { dot: "⚠️", label: "API indisponível", className: "bg-muted text-muted-foreground border-border" },
 };
 
@@ -29,21 +30,32 @@ const AdminWhatsApp = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [apiUrl, setApiUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const [baseUrl, setBaseUrl] = useState("");
+  const [instanceToken, setInstanceToken] = useState("");
   const [instanceName, setInstanceName] = useState("");
-  const [hasApiKey, setHasApiKey] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+
   const [status, setStatus] = useState<StatusCode | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
+  const [testNumber, setTestNumber] = useState("");
+  const [testMessage, setTestMessage] = useState("Teste de integração Evolution Go.");
+
   const call = async (payload: Record<string, unknown>) => {
-    const { data, error } = await supabase.functions.invoke("whatsapp-evolution", { body: payload });
+    const { data, error } = await supabase.functions.invoke("whatsapp-go", { body: payload });
     if (error) {
       let message = "Falha ao comunicar com o servidor.";
       try {
         const ctx = (error as any).context;
-        if (ctx?.json) message = (await ctx.json())?.error || message;
-        else if (ctx?.text) message = JSON.parse(await ctx.text())?.error || message;
+        if (ctx?.json) {
+          const body = await ctx.json();
+          message = body?.error || body?.message || message;
+        } else if (ctx?.text) {
+          const body = JSON.parse(await ctx.text());
+          message = body?.error || body?.message || message;
+        }
       } catch { /* keep default message */ }
       throw new Error(message);
     }
@@ -54,9 +66,9 @@ const AdminWhatsApp = () => {
     (async () => {
       try {
         const data = await call({ action: "get" });
-        setApiUrl(data.api_url || "");
+        setBaseUrl(data.base_url || "");
         setInstanceName(data.instance_name || "");
-        setHasApiKey(!!data.has_api_key);
+        setHasToken(!!data.has_token);
       } catch (e: any) {
         toast.error(e.message);
       } finally {
@@ -70,14 +82,14 @@ const AdminWhatsApp = () => {
     try {
       const data = await call({
         action: "save",
-        api_url: apiUrl,
-        api_key: apiKey,
+        base_url: baseUrl,
+        instance_token: instanceToken,
         instance_name: instanceName,
       });
-      setApiUrl(data.api_url);
-      setInstanceName(data.instance_name);
-      setHasApiKey(true);
-      setApiKey("");
+      setBaseUrl(data.base_url);
+      setInstanceName(data.instance_name || "");
+      setHasToken(true);
+      setInstanceToken("");
       setStatus(null);
       setStatusMessage(null);
       toast.success("Configuração salva.");
@@ -103,6 +115,19 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleSendTest = async () => {
+    setSending(true);
+    try {
+      const data = await call({ action: "send", number: testNumber, text: testMessage });
+      if (data?.sent) toast.success(data.message || "Mensagem enviada.");
+      else toast.error(data?.message || "Não foi possível enviar a mensagem.");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -121,38 +146,38 @@ const AdminWhatsApp = () => {
         </div>
         <div>
           <h2 className="text-xl font-semibold tracking-tight">WhatsApp</h2>
-          <p className="text-sm text-muted-foreground">Integração da sua empresa com a Evolution API.</p>
+          <p className="text-sm text-muted-foreground">Integração da sua empresa com a What's Evolution Go.</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Configuração da Evolution API</CardTitle>
+          <CardTitle className="text-base">Conexão com Evolution Go</CardTitle>
           <CardDescription>
-            Os dados abaixo são usados somente pela sua empresa. A API Key fica armazenada no servidor e nunca é
-            exibida novamente.
+            Estes dados pertencem somente à sua empresa. O token fica armazenado no servidor e nunca é exibido
+            novamente.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="wa-url">URL Base</Label>
+            <Label htmlFor="wa-url">URL Base da Evolution Go</Label>
             <Input
               id="wa-url"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-              placeholder="https://sua-evolution-api.com"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="https://sua-evolution-go.com"
               autoComplete="off"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="wa-key">API Key</Label>
+            <Label htmlFor="wa-token">Token da Instância</Label>
             <Input
-              id="wa-key"
+              id="wa-token"
               type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={hasApiKey ? "•••••••• (salva — preencha para substituir)" : "Sua API Key da Evolution API"}
+              value={instanceToken}
+              onChange={(e) => setInstanceToken(e.target.value)}
+              placeholder={hasToken ? "•••••••• (salvo — preencha para substituir)" : "Token da sua instância"}
               autoComplete="new-password"
             />
           </div>
@@ -163,9 +188,12 @@ const AdminWhatsApp = () => {
               id="wa-instance"
               value={instanceName}
               onChange={(e) => setInstanceName(e.target.value)}
-              placeholder="nome-da-sua-instancia"
+              placeholder="apenas identificação (opcional)"
               autoComplete="off"
             />
+            <p className="text-xs text-muted-foreground">
+              Usado apenas para identificação no painel. O envio é autorizado pelo token da instância.
+            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -173,7 +201,7 @@ const AdminWhatsApp = () => {
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar configuração
             </Button>
-            <Button variant="outline" onClick={handleVerify} disabled={verifying || !hasApiKey} className="gap-2">
+            <Button variant="outline" onClick={handleVerify} disabled={verifying || !hasToken} className="gap-2">
               {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
               Verificar conexão
             </Button>
@@ -194,6 +222,44 @@ const AdminWhatsApp = () => {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Testar envio</CardTitle>
+          <CardDescription>
+            Usa exatamente a mesma função de envio que será utilizada pelos lembretes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="wa-number">Número de destino</Label>
+            <Input
+              id="wa-number"
+              value={testNumber}
+              onChange={(e) => setTestNumber(e.target.value)}
+              placeholder="5511999999999"
+              inputMode="numeric"
+              autoComplete="off"
+            />
+            <p className="text-xs text-muted-foreground">Somente dígitos com DDI, sem espaços ou símbolos.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wa-message">Mensagem</Label>
+            <Textarea
+              id="wa-message"
+              value={testMessage}
+              onChange={(e) => setTestMessage(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <Button onClick={handleSendTest} disabled={sending || !hasToken} className="gap-2">
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            Enviar teste
+          </Button>
         </CardContent>
       </Card>
     </div>
