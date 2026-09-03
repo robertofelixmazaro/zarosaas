@@ -594,13 +594,7 @@ Caso precise cancelar:
                   setTestLog(null);
                   try {
                     const { data, error } = await supabase.functions.invoke("test-whatsapp", {
-                      body: {
-                        action: "send_test",
-                        api_url: settings.wa_api_url,
-                        api_key: settings.wa_api_key,
-                        instance_id: settings.wa_instance_id,
-                        phone: testPhone,
-                      },
+                      body: buildTestBody("send_test", { phone: testPhone }),
                     });
                     if (error) {
                       setTestLog({ type: "error", message: "Erro ao enviar", detail: error.message });
