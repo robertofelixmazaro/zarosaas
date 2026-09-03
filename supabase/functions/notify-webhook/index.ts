@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     // Load appointment data from DB instead of trusting request body
     const { data: appointment, error: apptError } = await supabase
       .from("appointments")
-      .select("id, client_name, client_phone, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id, cep, endereco, numero, bairro, cidade, estado, complemento")
+      .select("id, client_name, client_phone, client_email, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id, cep, endereco, numero, bairro, cidade, estado, complemento")
       .eq("id", id_agendamento)
       .single();
 
@@ -123,15 +123,22 @@ Deno.serve(async (req) => {
     const data_agendamento = appointment.appointment_date;
     const hora_agendamento = appointment.appointment_time?.slice(0, 5) || "";
 
-    // Look up client email from profiles
-    let email_cliente: string | null = null;
-    if (appointment.client_user_id) {
+    // Resolve client email: appointment record first, then profile, then body fallback
+    const isValidEmail = (v: unknown) =>
+      typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+    let email_cliente: string | null =
+      isValidEmail((appointment as any).client_email)
+        ? String((appointment as any).client_email).trim()
+        : null;
+
+    if (!email_cliente && appointment.client_user_id) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("email")
         .eq("auth_id", appointment.client_user_id)
-        .single();
-      email_cliente = profile?.email || null;
+        .maybeSingle();
+      email_cliente = isValidEmail(profile?.email) ? profile!.email.trim() : null;
     }
     if (!email_cliente && telefone_cliente) {
       const { data: profile } = await supabase
@@ -139,12 +146,13 @@ Deno.serve(async (req) => {
         .select("email")
         .eq("phone", telefone_cliente)
         .maybeSingle();
-      email_cliente = profile?.email || null;
+      email_cliente = isValidEmail(profile?.email) ? profile!.email.trim() : null;
     }
     // Also accept email from body as fallback
-    if (!email_cliente && body.email_cliente) {
-      email_cliente = body.email_cliente;
+    if (!email_cliente && isValidEmail(body.email_cliente)) {
+      email_cliente = String(body.email_cliente).trim();
     }
+
 
     // Escape all values for HTML
     const safeNome = escapeHtml(nome_cliente);
@@ -220,13 +228,14 @@ Deno.serve(async (req) => {
     // Send confirmation email to client
     if (email_cliente) {
       try {
-        await resend.emails.send({
+        const { error: sendErr } = await resend.emails.send({
           from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [email_cliente],
           subject: clientSubject,
           html: clientBodyHtml,
         });
-        console.log(`Client email sent to ${email_cliente}`);
+        if (sendErr) throw new Error(sendErr.message || "Resend error");
+        console.log("Client email accepted by provider");
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: email_cliente,
@@ -236,7 +245,7 @@ Deno.serve(async (req) => {
           status: "sent",
         });
       } catch (emailErr: any) {
-        console.error("Failed to send client email:", emailErr);
+        console.error("Failed to send client email:", emailErr?.message);
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: email_cliente,
@@ -244,10 +253,13 @@ Deno.serve(async (req) => {
           email_type: "confirmation",
           subject: clientSubject,
           status: "failed",
-          error_message: emailErr.message,
+          error_message: emailErr?.message,
         });
       }
+    } else {
+      console.log(`No valid client email for appointment ${id_agendamento} — skipping client email`);
     }
+
 
     // Send notification to tenant admin - look up from tenant settings
     let adminEmail: string | null = null;
@@ -258,7 +270,7 @@ Deno.serve(async (req) => {
         .eq("key", "admin_email")
         .eq("tenant_id", appointment.tenant_id)
         .maybeSingle();
-      adminEmail = setting?.value || null;
+      adminEmail = isValidEmail(setting?.value) ? String(setting!.value).trim() : null;
 
       if (!adminEmail) {
         // Fallback: get tenant owner email from profiles
@@ -266,21 +278,36 @@ Deno.serve(async (req) => {
           .from("tenants")
           .select("owner_user_id")
           .eq("id", appointment.tenant_id)
-          .single();
+          .maybeSingle();
         if (tenant?.owner_user_id) {
           const { data: ownerProfile } = await supabase
             .from("profiles")
             .select("email")
             .eq("auth_id", tenant.owner_user_id)
-            .single();
-          adminEmail = ownerProfile?.email || null;
+            .maybeSingle();
+          adminEmail = isValidEmail(ownerProfile?.email) ? ownerProfile!.email.trim() : null;
         }
+      }
+
+      // Last fallback: tenant admin profile within the same tenant
+      if (!adminEmail) {
+        const { data: adminProfile } = await supabase
+          .from("profiles")
+          .select("email, auth_id, user_roles!inner(role)")
+          .eq("tenant_id", appointment.tenant_id)
+          .eq("user_roles.role", "admin")
+          .limit(1)
+          .maybeSingle();
+        adminEmail = isValidEmail((adminProfile as any)?.email)
+          ? String((adminProfile as any).email).trim()
+          : null;
       }
     }
 
     if (adminEmail) {
       try {
-        await resend.emails.send({
+        const { error: adminSendErr } = await resend.emails.send({
+
           from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [adminEmail],
           subject: adminSubject,
@@ -300,7 +327,8 @@ Deno.serve(async (req) => {
             </div>
           `,
         });
-        console.log("Admin email sent to " + adminEmail);
+        if (adminSendErr) throw new Error(adminSendErr.message || "Resend error");
+        console.log("Admin email accepted by provider");
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: adminEmail,
@@ -310,7 +338,7 @@ Deno.serve(async (req) => {
           status: "sent",
         });
       } catch (emailErr: any) {
-        console.error("Failed to send admin email:", emailErr);
+        console.error("Failed to send admin email:", emailErr?.message);
         await logEmail(supabase, {
           appointment_id: id_agendamento,
           recipient_email: adminEmail,
@@ -318,10 +346,13 @@ Deno.serve(async (req) => {
           email_type: "notification",
           subject: adminSubject,
           status: "failed",
-          error_message: emailErr.message,
+          error_message: emailErr?.message,
         });
       }
+    } else {
+      console.log(`No admin email resolved for tenant ${appointment.tenant_id} — skipping admin email`);
     }
+
 
     // Also send to n8n webhook if configured
     if (appointment.tenant_id) {
