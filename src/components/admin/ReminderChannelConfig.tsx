@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, Mail, MessageSquare, Smartphone, Send, Power } from "lucide-react";
+import { Bell, Mail, Smartphone, Send, Power } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
