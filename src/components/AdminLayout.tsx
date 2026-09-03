@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, Download, Image, ExternalLink, CreditCard, AlertTriangle, Clock, Shield } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Package, BarChart3, Settings, Menu, X, LogOut, Sparkles, Bell, Star, ShoppingBag, MessageSquare, MessageCircle, Download, Image, ExternalLink, CreditCard, AlertTriangle, Clock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -29,6 +29,7 @@ const getNavItems = (staffLabel: string) => [
   { icon: BarChart3, label: "Relatórios", path: "/admin/relatorios", roles: ["admin"] },
   { icon: Star, label: "Avaliações", path: "/admin/avaliacoes", roles: ["admin"] },
   { icon: MessageSquare, label: "Lembretes", path: "/admin/lembretes", roles: ["admin"] },
+  { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp", roles: ["admin"] },
   { icon: Clock, label: "Horários", path: "/admin/horarios", roles: ["admin"] },
   { icon: Image, label: "Galeria", path: "/admin/galeria", roles: ["admin"] },
   { icon: ExternalLink, label: "Landing Page", path: "/admin/landing", roles: ["admin"] },
