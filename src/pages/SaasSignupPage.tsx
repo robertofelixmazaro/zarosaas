@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users, Globe, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -284,8 +285,22 @@ const SaasSignupPage = () => {
 
         if (storeErr) {
           console.error("Store creation error:", storeErr);
-          toast.error("Conta criada, mas houve erro ao criar a loja. Configure no painel.");
-          navigate("/dashboard", { replace: true });
+          let status = 0;
+          let backendMsg = "";
+          if (storeErr instanceof FunctionsHttpError) {
+            status = storeErr.context?.status ?? 0;
+            try {
+              const body = await storeErr.context.json();
+              backendMsg = body?.error || "";
+            } catch { /* ignore */ }
+          }
+          if (status === 402 || status === 403) {
+            toast.error(backendMsg || "É necessário concluir o pagamento antes de criar a conta");
+            navigate("/comprar", { replace: true });
+          } else {
+            toast.error(backendMsg || "Conta criada, mas houve erro ao criar a loja. Configure no painel.");
+            navigate("/dashboard", { replace: true });
+          }
           setLoading(false);
           return;
         }
