@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
         .eq("key", "admin_email")
         .eq("tenant_id", appointment.tenant_id)
         .maybeSingle();
-      adminEmail = setting?.value || null;
+      adminEmail = isValidEmail(setting?.value) ? String(setting!.value).trim() : null;
 
       if (!adminEmail) {
         // Fallback: get tenant owner email from profiles
@@ -278,21 +278,36 @@ Deno.serve(async (req) => {
           .from("tenants")
           .select("owner_user_id")
           .eq("id", appointment.tenant_id)
-          .single();
+          .maybeSingle();
         if (tenant?.owner_user_id) {
           const { data: ownerProfile } = await supabase
             .from("profiles")
             .select("email")
             .eq("auth_id", tenant.owner_user_id)
-            .single();
-          adminEmail = ownerProfile?.email || null;
+            .maybeSingle();
+          adminEmail = isValidEmail(ownerProfile?.email) ? ownerProfile!.email.trim() : null;
         }
+      }
+
+      // Last fallback: tenant admin profile within the same tenant
+      if (!adminEmail) {
+        const { data: adminProfile } = await supabase
+          .from("profiles")
+          .select("email, auth_id, user_roles!inner(role)")
+          .eq("tenant_id", appointment.tenant_id)
+          .eq("user_roles.role", "admin")
+          .limit(1)
+          .maybeSingle();
+        adminEmail = isValidEmail((adminProfile as any)?.email)
+          ? String((adminProfile as any).email).trim()
+          : null;
       }
     }
 
     if (adminEmail) {
       try {
-        await resend.emails.send({
+        const { error: adminSendErr } = await resend.emails.send({
+
           from: "Zaro Agendamentos <noreply@zarosistemas.com.br>",
           to: [adminEmail],
           subject: adminSubject,
