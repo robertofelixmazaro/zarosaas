@@ -1850,6 +1850,7 @@ export type Database = {
           slug: string
         }[]
       }
+      get_queue_cron_secret: { Args: never; Returns: string }
       get_user_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {
