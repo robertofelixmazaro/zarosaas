@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { Mail, Lock, Eye, EyeOff, User, Phone, CreditCard, Rocket, Store, Users, Globe, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +92,8 @@ const SaasSignupPage = () => {
         });
         if (!mounted) return;
         if (data?.approved) {
+          // Keep the payment reference so it survives OAuth redirects
+          localStorage.setItem("zaro_payment_id", String(data.payment_id));
           setPaidPlan({
             payment_id: data.payment_id,
             plan_id: data.plan_id,
@@ -101,6 +104,14 @@ const SaasSignupPage = () => {
           if (data.email) setEmail((prev) => prev || data.email);
           if (data.name) setName((prev) => prev || data.name);
           toast.success("Pagamento confirmado! Finalize a criação da sua conta.");
+
+          // Already authenticated (e.g. paid after signing in with Google):
+          // continue in the setup wizard instead of creating a new account.
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session) {
+            navigate("/dashboard", { replace: true });
+            return;
+          }
         } else if (data?.reason === "already_used") {
           toast.error("Este pagamento já foi utilizado para criar uma conta.");
         } else {
@@ -115,7 +126,7 @@ const SaasSignupPage = () => {
     return () => {
       mounted = false;
     };
-  }, [paymentIdParam]);
+  }, [paymentIdParam, navigate]);
 
   // Store account creation requires either an active free trial or a confirmed payment
   const storeBlocked = trialEnabled === false && !paidPlan && !checkingPayment;
@@ -274,12 +285,27 @@ const SaasSignupPage = () => {
 
         if (storeErr) {
           console.error("Store creation error:", storeErr);
-          toast.error("Conta criada, mas houve erro ao criar a loja. Configure no painel.");
-          navigate("/dashboard", { replace: true });
+          let status = 0;
+          let backendMsg = "";
+          if (storeErr instanceof FunctionsHttpError) {
+            status = storeErr.context?.status ?? 0;
+            try {
+              const body = await storeErr.context.json();
+              backendMsg = body?.error || "";
+            } catch { /* ignore */ }
+          }
+          if (status === 402 || status === 403) {
+            toast.error(backendMsg || "É necessário concluir o pagamento antes de criar a conta");
+            navigate("/comprar", { replace: true });
+          } else {
+            toast.error(backendMsg || "Conta criada, mas houve erro ao criar a loja. Configure no painel.");
+            navigate("/dashboard", { replace: true });
+          }
           setLoading(false);
           return;
         }
 
+        localStorage.removeItem("zaro_payment_id");
         const tenantSlug = data?.slug || slug.trim().toLowerCase();
         toast.success("Conta e loja criadas com sucesso!");
         navigate(`/t/${tenantSlug}/admin`, { replace: true });

@@ -20,16 +20,18 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const mpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN") || "";
 
-    const { payment_id } = await req.json();
-    if (!payment_id) return json({ approved: false, reason: "missing_payment_id" }, 400);
+    let body: any = {};
+    try { body = await req.json(); } catch { /* empty body allowed */ }
+    const payment_id = body?.payment_id;
 
     const admin = createClient(supabaseUrl, serviceRoleKey);
 
     const respond = async (row: any) => {
       if (!row) return json({ approved: false, reason: "not_found" });
-      if (row.consumed_at) return json({ approved: false, reason: "already_used" });
+      if (row.consumed_at || row.tenant_id) return json({ approved: false, reason: "already_used" });
       const { data: plan } = await admin
         .from("plans")
         .select("id, name, price")
@@ -46,6 +48,34 @@ Deno.serve(async (req) => {
       });
     };
 
+    // No payment_id: recover the payment of the authenticated user by e-mail.
+    // This keeps the payment reference alive across OAuth redirects without
+    // ever trusting a browser-supplied identifier.
+    if (!payment_id) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) return json({ approved: false, reason: "missing_payment_id" }, 400);
+
+      const anonClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await anonClient.auth.getUser();
+      const email = (user?.email || "").trim().toLowerCase();
+      if (!email) return json({ approved: false, reason: "unauthenticated" }, 401);
+
+      const { data: byEmail } = await admin
+        .from("paid_signups")
+        .select("*")
+        .ilike("email", email)
+        .eq("status", "approved")
+        .is("consumed_at", null)
+        .is("tenant_id", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return await respond(byEmail);
+    }
+
     // 1. Trust the webhook-confirmed record first
     const { data: existing } = await admin
       .from("paid_signups")
@@ -54,6 +84,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) return await respond(existing);
+
 
     // 2. Webhook may not have arrived yet: confirm directly with Mercado Pago
     if (!mpAccessToken) return json({ approved: false, reason: "pending" });

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
+import { useTrialEnabled } from "@/hooks/useTrialEnabled";
 import { getTenantAdminUrl } from "@/lib/tenantUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { Store, Phone, MapPin, Building2, Scissors, Sparkles, Stethoscope, Briefcase, LayoutGrid, Check, Zap, Crown, Copy, Share2, ArrowRight, PartyPopper } from "lucide-react";
@@ -80,6 +82,56 @@ const AdminSetupWizard = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
+  // === Payment gating (mirrors the backend rule in setup-tenant) ===
+  const { trialEnabled } = useTrialEnabled();
+  const [gateChecking, setGateChecking] = useState(true);
+  const [paymentRequired, setPaymentRequired] = useState(false);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [paidPlanName, setPaidPlanName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (trialEnabled === null) return;
+    let mounted = true;
+
+    (async () => {
+      if (trialEnabled) {
+        if (mounted) { setPaymentRequired(false); setGateChecking(false); }
+        return;
+      }
+
+      // Trial disabled: the account may only be created with a confirmed payment.
+      // The backend resolves the payment from the authenticated e-mail, so the
+      // reference survives Google OAuth redirects.
+      const stored = localStorage.getItem("zaro_payment_id") || undefined;
+      try {
+        const { data } = await supabase.functions.invoke("verify-signup-payment", {
+          body: stored ? { payment_id: stored } : {},
+        });
+        if (!mounted) return;
+        if (data?.approved) {
+          setPaymentId(data.payment_id);
+          setPaidPlanName(data.plan_name || null);
+          setPaymentRequired(false);
+        } else {
+          localStorage.removeItem("zaro_payment_id");
+          setPaymentRequired(true);
+          setStep(4);
+          loadPlans();
+        }
+      } catch {
+        if (mounted) {
+          setPaymentRequired(true);
+          setStep(4);
+          loadPlans();
+        }
+      } finally {
+        if (mounted) setGateChecking(false);
+      }
+    })();
+
+    return () => { mounted = false; };
+  }, [trialEnabled]);
+
   const generateSlug = (name: string) =>
     name
       .toLowerCase()
@@ -110,11 +162,32 @@ const AdminSetupWizard = () => {
           phone: phone || null,
           address: address || null,
           business_type: businessType,
+          payment_id: paymentId || undefined,
         },
       });
 
       if (fnErr) {
-        toast.error("Erro ao criar negócio: " + fnErr.message);
+        // Edge Function HTTP errors carry the real message in the response body
+        let status = 0;
+        let backendMsg = "";
+        if (fnErr instanceof FunctionsHttpError) {
+          status = fnErr.context?.status ?? 0;
+          try {
+            const body = await fnErr.context.json();
+            backendMsg = body?.error || "";
+          } catch { /* keep default */ }
+        }
+
+        if (status === 402 || status === 403) {
+          toast.error(backendMsg || "É necessário concluir o pagamento antes de criar a conta");
+          setPaymentRequired(true);
+          setStep(4);
+          loadPlans();
+          setLoading(false);
+          return;
+        }
+
+        toast.error(backendMsg || "Erro ao criar negócio: " + fnErr.message);
         setLoading(false);
         return;
       }
@@ -188,7 +261,7 @@ const AdminSetupWizard = () => {
           plan_price: selectedPlan.price,
           client_email: user.email,
           client_name: user.user_metadata?.name || user.email,
-          tenant_id: createdTenantId,
+          tenant_id: createdTenantId || undefined,
         },
       });
 
@@ -249,7 +322,11 @@ const AdminSetupWizard = () => {
             ))}
           </div>
 
-          {step === 1 && (
+          {gateChecking && (
+            <p className="text-center text-muted-foreground py-8">Verificando sua assinatura...</p>
+          )}
+
+          {!gateChecking && !paymentRequired && step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-1">Tipo de Negócio</h2>
@@ -290,7 +367,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 2 && (
+          {!gateChecking && !paymentRequired && step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -332,6 +409,12 @@ const AdminSetupWizard = () => {
                 </div>
               )}
 
+              {paidPlanName && (
+                <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm text-center">
+                  Pagamento confirmado — plano <strong>{paidPlanName}</strong>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Voltar</Button>
                 <Button className="flex-1 h-11" onClick={handleCreate} disabled={loading || !shopName.trim() || !slug.trim()}>
@@ -341,7 +424,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 3 && (
+          {!gateChecking && step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-3">
@@ -387,7 +470,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 4 && (
+          {!gateChecking && step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -395,7 +478,9 @@ const AdminSetupWizard = () => {
                   <h2 className="text-2xl font-bold">Escolha seu Plano</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Escolha um plano para desbloquear todos os recursos.
+                  {paymentRequired
+                    ? "Para criar seu negócio, escolha um plano e conclua o pagamento."
+                    : "Escolha um plano para desbloquear todos os recursos."}
                 </p>
               </div>
 
@@ -404,7 +489,7 @@ const AdminSetupWizard = () => {
               ) : plans.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">Nenhum plano disponível no momento.</p>
-                  <Button onClick={handleSkipPlan}>Ir para o painel</Button>
+                  {!paymentRequired && <Button onClick={handleSkipPlan}>Ir para o painel</Button>}
                 </div>
               ) : (
                 <>
@@ -451,13 +536,15 @@ const AdminSetupWizard = () => {
                     >
                       {checkoutLoading ? "Processando..." : selectedPlan ? `Assinar ${selectedPlan.name} — R$ ${selectedPlan.price.toFixed(2)}/mês` : "Selecione um plano"}
                     </Button>
-                    <button
-                      type="button"
-                      onClick={handleSkipPlan}
-                      className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                      Começar com o teste grátis →
-                    </button>
+                    {!paymentRequired && (
+                      <button
+                        type="button"
+                        onClick={handleSkipPlan}
+                        className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        Começar com o teste grátis →
+                      </button>
+                    )}
                   </div>
                 </>
               )}
