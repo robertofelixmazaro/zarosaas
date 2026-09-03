@@ -14,16 +14,22 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  // Internal-only function: require the service role key
+  // Internal-only function: accept the service role key OR the cron secret stored in Vault
   const callerToken = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
-  if (!serviceKey || callerToken !== serviceKey) {
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  let authorized = !!serviceKey && callerToken === serviceKey;
+  if (!authorized && callerToken) {
+    const { data: cronSecret } = await supabase.rpc("get_queue_cron_secret");
+    authorized = !!cronSecret && callerToken === cronSecret;
+  }
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "Não autorizado" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey);
 
   const BATCH_SIZE = 20;
   const LOCK_TIMEOUT_MINUTES = 5;
