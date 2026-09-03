@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
       const { data: byEmail } = await adminClient
         .from("paid_signups")
         .select("*")
-        .eq("email", userEmail)
+        .ilike("email", userEmail)
         .eq("status", "approved")
         .is("consumed_at", null)
         .is("tenant_id", null)
