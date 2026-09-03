@@ -213,10 +213,10 @@ async function sendWhatsAppMessage(
   phone: string,
   message: string
 ): Promise<void> {
-  // Support multiple API formats (Evolution API, Z-API, generic)
-  const url = apiUrl.endsWith("/")
-    ? `${apiUrl}message/sendText/${instanceId}`
-    : `${apiUrl}/message/sendText/${instanceId}`;
+  // Instance name is an arbitrary provider-defined string (per tenant).
+  const base = apiUrl.replace(/\/+$/, "");
+  const url = `${base}/message/sendText/${encodeURIComponent(instanceId)}`;
+
 
   const res = await fetch(url, {
     method: "POST",
