@@ -143,6 +143,8 @@ export async function sendAutoMessage(
 ): Promise<{ skipped?: string; sent?: boolean; error?: string }> {
   const { tenantId, appointmentId, type, text, scheduledFor, config } = params;
 
+  const MAX_ATTEMPTS = 3;
+
   const { error: claimErr } = await admin.from("whatsapp_auto_logs").insert({
     tenant_id: tenantId,
     appointment_id: appointmentId,
@@ -150,12 +152,33 @@ export async function sendAutoMessage(
     recipient: null,
     scheduled_for: scheduledFor ?? new Date().toISOString(),
     status: "processing",
+    attempts: 1,
   });
 
   if (claimErr) {
-    // Unique violation = already handled by a previous run.
-    return { skipped: "duplicate" };
+    // Row already exists: only a previously FAILED send may be retried.
+    const { data: existing } = await admin
+      .from("whatsapp_auto_logs")
+      .select("status, attempts")
+      .eq("appointment_id", appointmentId)
+      .eq("message_type", type)
+      .maybeSingle();
+
+    if (!existing || existing.status !== "failed" || (existing.attempts ?? 0) >= MAX_ATTEMPTS) {
+      return { skipped: "duplicate" };
+    }
+
+    const { error: retryErr, data: retryRows } = await admin
+      .from("whatsapp_auto_logs")
+      .update({ status: "processing", attempts: (existing.attempts ?? 0) + 1 })
+      .eq("appointment_id", appointmentId)
+      .eq("message_type", type)
+      .eq("status", "failed")
+      .select("id");
+
+    if (retryErr || !retryRows || retryRows.length === 0) return { skipped: "duplicate" };
   }
+
 
   const finish = async (patch: Record<string, unknown>) => {
     await admin
