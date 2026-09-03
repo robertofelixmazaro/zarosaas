@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     // Load appointment data from DB instead of trusting request body
     const { data: appointment, error: apptError } = await supabase
       .from("appointments")
-      .select("id, client_name, client_phone, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id, cep, endereco, numero, bairro, cidade, estado, complemento")
+      .select("id, client_name, client_phone, client_email, appointment_date, appointment_time, webhook_sent, client_user_id, services(name), barbers(name), tenant_id, cep, endereco, numero, bairro, cidade, estado, complemento")
       .eq("id", id_agendamento)
       .single();
 
