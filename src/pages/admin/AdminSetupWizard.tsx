@@ -322,7 +322,11 @@ const AdminSetupWizard = () => {
             ))}
           </div>
 
-          {step === 1 && (
+          {gateChecking && (
+            <p className="text-center text-muted-foreground py-8">Verificando sua assinatura...</p>
+          )}
+
+          {!gateChecking && !paymentRequired && step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-1">Tipo de Negócio</h2>
@@ -363,7 +367,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 2 && (
+          {!gateChecking && !paymentRequired && step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -405,6 +409,12 @@ const AdminSetupWizard = () => {
                 </div>
               )}
 
+              {paidPlanName && (
+                <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm text-center">
+                  Pagamento confirmado — plano <strong>{paidPlanName}</strong>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Voltar</Button>
                 <Button className="flex-1 h-11" onClick={handleCreate} disabled={loading || !shopName.trim() || !slug.trim()}>
@@ -414,7 +424,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 3 && (
+          {!gateChecking && step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-3">
@@ -460,7 +470,7 @@ const AdminSetupWizard = () => {
             </motion.div>
           )}
 
-          {step === 4 && (
+          {!gateChecking && step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -468,7 +478,9 @@ const AdminSetupWizard = () => {
                   <h2 className="text-2xl font-bold">Escolha seu Plano</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Escolha um plano para desbloquear todos os recursos.
+                  {paymentRequired
+                    ? "Para criar seu negócio, escolha um plano e conclua o pagamento."
+                    : "Escolha um plano para desbloquear todos os recursos."}
                 </p>
               </div>
 
@@ -477,7 +489,7 @@ const AdminSetupWizard = () => {
               ) : plans.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">Nenhum plano disponível no momento.</p>
-                  <Button onClick={handleSkipPlan}>Ir para o painel</Button>
+                  {!paymentRequired && <Button onClick={handleSkipPlan}>Ir para o painel</Button>}
                 </div>
               ) : (
                 <>
@@ -524,13 +536,15 @@ const AdminSetupWizard = () => {
                     >
                       {checkoutLoading ? "Processando..." : selectedPlan ? `Assinar ${selectedPlan.name} — R$ ${selectedPlan.price.toFixed(2)}/mês` : "Selecione um plano"}
                     </Button>
-                    <button
-                      type="button"
-                      onClick={handleSkipPlan}
-                      className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                      Começar com o teste grátis →
-                    </button>
+                    {!paymentRequired && (
+                      <button
+                        type="button"
+                        onClick={handleSkipPlan}
+                        className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        Começar com o teste grátis →
+                      </button>
+                    )}
                   </div>
                 </>
               )}
