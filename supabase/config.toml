@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.whatsapp-go-webhook]
 verify_jwt = false
+
+[functions.whatsapp-auto]
+verify_jwt = false
