@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MessageCircle, PlugZap, Save, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import WhatsAppAutoMessages from "@/components/admin/WhatsAppAutoMessages";
 
 type StatusCode =
   | "connected"
@@ -262,6 +263,8 @@ const AdminWhatsApp = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <WhatsAppAutoMessages />
     </div>
   );
 };

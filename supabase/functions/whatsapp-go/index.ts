@@ -163,6 +163,58 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── AUTOMATIC MESSAGES: GET SETTINGS ──
+    if (action === "get_auto") {
+      const { data } = await admin
+        .from("whatsapp_auto_settings")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (!data) {
+        const { data: created } = await admin
+          .from("whatsapp_auto_settings")
+          .insert({ tenant_id: tenantId })
+          .select("*")
+          .maybeSingle();
+        return json({ settings: created });
+      }
+      return json({ settings: data });
+    }
+
+    // ── AUTOMATIC MESSAGES: SAVE SETTINGS ──
+    if (action === "save_auto") {
+      const s = (body.settings ?? {}) as Record<string, unknown>;
+      const str = (v: unknown, max = 4000) => String(v ?? "").slice(0, max);
+      const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(str(s.reminder_1d_time, 5))
+        ? str(s.reminder_1d_time, 5)
+        : "09:00";
+
+      const patch = {
+        tenant_id: tenantId,
+        confirm_client_enabled: !!s.confirm_client_enabled,
+        confirm_client_template: str(s.confirm_client_template),
+        confirm_owner_enabled: !!s.confirm_owner_enabled,
+        confirm_owner_template: str(s.confirm_owner_template),
+        owner_phone: str(s.owner_phone, 30).replace(/\D+/g, "") || null,
+        reminder_1d_enabled: !!s.reminder_1d_enabled,
+        reminder_1d_time: time,
+        reminder_1d_template: str(s.reminder_1d_template),
+        reminder_2h_enabled: !!s.reminder_2h_enabled,
+        reminder_2h_template: str(s.reminder_2h_template),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await admin
+        .from("whatsapp_auto_settings")
+        .upsert(patch, { onConflict: "tenant_id" })
+        .select("*")
+        .maybeSingle();
+
+      if (error) return json({ error: "Não foi possível salvar as mensagens automáticas." }, 500);
+      return json({ saved: true, settings: data });
+    }
+
     return json({ error: "Ação inválida." }, 400);
   } catch (_e) {
     // Never log credentials or raw provider bodies.

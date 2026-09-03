@@ -225,6 +225,13 @@ Deno.serve(async (req) => {
       },
       {
         tenant_id,
+        type: "whatsapp_auto_new",
+        payload: {
+          appointment_id: insertData.id,
+        },
+      },
+      {
+        tenant_id,
         type: "log_activity",
         payload: {
           action: "appointment_created",
