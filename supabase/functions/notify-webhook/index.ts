@@ -123,15 +123,22 @@ Deno.serve(async (req) => {
     const data_agendamento = appointment.appointment_date;
     const hora_agendamento = appointment.appointment_time?.slice(0, 5) || "";
 
-    // Look up client email from profiles
-    let email_cliente: string | null = null;
-    if (appointment.client_user_id) {
+    // Resolve client email: appointment record first, then profile, then body fallback
+    const isValidEmail = (v: unknown) =>
+      typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+    let email_cliente: string | null =
+      isValidEmail((appointment as any).client_email)
+        ? String((appointment as any).client_email).trim()
+        : null;
+
+    if (!email_cliente && appointment.client_user_id) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("email")
         .eq("auth_id", appointment.client_user_id)
-        .single();
-      email_cliente = profile?.email || null;
+        .maybeSingle();
+      email_cliente = isValidEmail(profile?.email) ? profile!.email.trim() : null;
     }
     if (!email_cliente && telefone_cliente) {
       const { data: profile } = await supabase
@@ -139,12 +146,13 @@ Deno.serve(async (req) => {
         .select("email")
         .eq("phone", telefone_cliente)
         .maybeSingle();
-      email_cliente = profile?.email || null;
+      email_cliente = isValidEmail(profile?.email) ? profile!.email.trim() : null;
     }
     // Also accept email from body as fallback
-    if (!email_cliente && body.email_cliente) {
-      email_cliente = body.email_cliente;
+    if (!email_cliente && isValidEmail(body.email_cliente)) {
+      email_cliente = String(body.email_cliente).trim();
     }
+
 
     // Escape all values for HTML
     const safeNome = escapeHtml(nome_cliente);
