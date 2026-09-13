@@ -1700,6 +1700,128 @@ export type Database = {
           },
         ]
       }
+      whatsapp_auto_logs: {
+        Row: {
+          appointment_id: string | null
+          attempts: number
+          created_at: string
+          error_message: string | null
+          id: string
+          message_type: string
+          provider_message_id: string | null
+          recipient: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type: string
+          provider_message_id?: string | null
+          recipient?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type?: string
+          provider_message_id?: string | null
+          recipient?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_auto_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_auto_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_auto_settings: {
+        Row: {
+          confirm_client_enabled: boolean
+          confirm_client_template: string
+          confirm_owner_enabled: boolean
+          confirm_owner_template: string
+          created_at: string
+          id: string
+          owner_phone: string | null
+          reminder_1d_enabled: boolean
+          reminder_1d_template: string
+          reminder_1d_time: string
+          reminder_2h_enabled: boolean
+          reminder_2h_template: string
+          tenant_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          confirm_client_enabled?: boolean
+          confirm_client_template?: string
+          confirm_owner_enabled?: boolean
+          confirm_owner_template?: string
+          created_at?: string
+          id?: string
+          owner_phone?: string | null
+          reminder_1d_enabled?: boolean
+          reminder_1d_template?: string
+          reminder_1d_time?: string
+          reminder_2h_enabled?: boolean
+          reminder_2h_template?: string
+          tenant_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          confirm_client_enabled?: boolean
+          confirm_client_template?: string
+          confirm_owner_enabled?: boolean
+          confirm_owner_template?: string
+          created_at?: string
+          id?: string
+          owner_phone?: string | null
+          reminder_1d_enabled?: boolean
+          reminder_1d_template?: string
+          reminder_1d_time?: string
+          reminder_2h_enabled?: boolean
+          reminder_2h_template?: string
+          tenant_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_auto_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_go_configs: {
         Row: {
           base_url: string

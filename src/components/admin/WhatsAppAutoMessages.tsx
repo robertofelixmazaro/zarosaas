@@ -65,6 +65,7 @@ const WhatsAppAutoMessages = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [s, setS] = useState<AutoSettings | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const set = <K extends keyof AutoSettings>(key: K, value: AutoSettings[K]) =>
     setS((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -85,17 +86,22 @@ const WhatsAppAutoMessages = () => {
     return data as any;
   };
 
+  const load = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const data = await call({ action: "get_auto" });
+      if (!data?.settings) throw new Error("Não foi possível carregar as mensagens automáticas.");
+      setS(data.settings);
+    } catch (e: any) {
+      setLoadError(e?.message || "Não foi possível carregar as mensagens automáticas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await call({ action: "get_auto" });
-        setS(data.settings);
-      } catch (e: any) {
-        toast.error(e.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    load();
   }, []);
 
   const handleSave = async () => {
@@ -134,7 +140,24 @@ const WhatsAppAutoMessages = () => {
     );
   }
 
-  if (!s) return null;
+  if (!s) {
+    return (
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-base">Mensagens Automáticas</CardTitle>
+          <CardDescription>
+            {loadError || "Não foi possível carregar as mensagens automáticas."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={load} className="gap-2">
+            <Loader2 className="h-4 w-4" />
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
