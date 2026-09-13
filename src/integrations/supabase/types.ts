@@ -1937,6 +1937,18 @@ export type Database = {
           duration_minutes: number
         }[]
       }
+      get_affiliate_referred_tenants: {
+        Args: never
+        Returns: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          plan_id: string
+          plan_name: string
+          slug: string
+        }[]
+      }
       get_marketplace_listings: {
         Args: never
         Returns: {
