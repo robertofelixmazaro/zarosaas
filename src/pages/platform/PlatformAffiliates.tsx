@@ -84,6 +84,7 @@ const PlatformAffiliates = () => {
     const { data: affs, error } = await supabase
       .from("affiliates")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -266,9 +267,19 @@ const PlatformAffiliates = () => {
   const confirmDelete = async () => {
     if (!deleteAffiliate) return;
     setDeleting(true);
-    const { error } = await supabase.from("affiliates").delete().eq("id", deleteAffiliate.id);
-    if (error) { toast.error("Erro ao excluir afiliado"); }
-    else { toast.success("Afiliado excluído"); fetchAffiliates(); }
+    try {
+      // Rotina única de exclusão: remove afiliado + perfil + vínculos + conta de acesso,
+      // preservando vendas, comissões e saques já registrados.
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { affiliate_id: deleteAffiliate.id, user_id: deleteAffiliate.user_id },
+      });
+      if (error) throw error;
+      if (data?.errors?.length) console.warn("Partial delete errors:", data.errors);
+      toast.success("Afiliado excluído");
+      await fetchAffiliates();
+    } catch (err: any) {
+      toast.error("Erro ao excluir afiliado: " + (err?.message || "erro desconhecido"));
+    }
     setDeleting(false);
     setDeleteOpen(false);
   };

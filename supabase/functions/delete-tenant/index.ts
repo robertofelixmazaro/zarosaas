@@ -65,12 +65,28 @@ Deno.serve(async (req) => {
 
     const errors: string[] = [];
 
+    // Collect auth users linked to this tenant BEFORE profiles are removed,
+    // so no orphan login accounts remain listed as users.
+    const { data: tenantProfiles } = await supabaseAdmin
+      .from("profiles")
+      .select("auth_id")
+      .eq("tenant_id", tenant_id);
+    const authIds = (tenantProfiles || [])
+      .map((p: { auth_id: string | null }) => p.auth_id)
+      .filter((id: string | null): id is string => !!id && id !== user.id);
+
     for (const table of tenantTables) {
       const { error } = await supabaseAdmin.from(table).delete().eq("tenant_id", tenant_id);
       if (error) {
         console.error(`Error deleting from ${table}:`, error.message);
         errors.push(`${table}: ${error.message}`);
       }
+    }
+
+    // Role bindings without tenant_id still point to these users
+    if (authIds.length > 0) {
+      const { error: roleErr } = await supabaseAdmin.from("user_roles").delete().in("user_id", authIds);
+      if (roleErr) errors.push(`user_roles(by user): ${roleErr.message}`);
     }
 
     // Now delete the tenant itself
@@ -89,7 +105,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    // Remove the login accounts of this tenant (service-role only)
+    for (const id of authIds) {
+      const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(id);
+      if (delErr) errors.push(`auth.users(${id}): ${delErr.message}`);
+    }
+
+    return new Response(JSON.stringify({ success: true, errors: errors.length ? errors : undefined }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
