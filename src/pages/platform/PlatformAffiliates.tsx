@@ -84,6 +84,7 @@ const PlatformAffiliates = () => {
     const { data: affs, error } = await supabase
       .from("affiliates")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) {
