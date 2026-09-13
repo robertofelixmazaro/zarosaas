@@ -13,44 +13,14 @@ const AffiliateReferrals = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      // Get affiliate record
-      const { data: aff } = await supabase
-        .from("affiliates" as any)
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!aff) {
-        setLoading(false);
-        return;
-      }
-
-      // Get tenants referred by this affiliate
-      const { data: tenants } = await supabase
-        .from("tenants" as any)
-        .select("id, name, slug, active, created_at, plan_id")
-        .eq("referred_by_affiliate_id", (aff as any).id)
-        .order("created_at", { ascending: false });
+      // Consulta segura: retorna apenas colunas não sensíveis das empresas indicadas
+      const { data: tenants } = await (supabase.rpc as any)("get_affiliate_referred_tenants");
 
       if (tenants) {
-        // Get plan names for each tenant
-        const planIds = [...new Set((tenants as any[]).map((t: any) => t.plan_id).filter(Boolean))];
-        let plansMap: Record<string, string> = {};
-
-        if (planIds.length > 0) {
-          const { data: plans } = await supabase
-            .from("plans")
-            .select("id, name")
-            .in("id", planIds);
-          if (plans) {
-            plansMap = Object.fromEntries(plans.map((p) => [p.id, p.name]));
-          }
-        }
-
         setReferrals(
           (tenants as any[]).map((t: any) => ({
             ...t,
-            plan_name: t.plan_id ? plansMap[t.plan_id] || "—" : "Sem plano",
+            plan_name: t.plan_name || (t.plan_id ? "—" : "Sem plano"),
           }))
         );
       }
