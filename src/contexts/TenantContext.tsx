@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,7 +117,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         if (profile && (profile as any).tenant_id) {
           const { data } = await supabase
             .from("tenants" as any)
-            .select("*")
+            .select(TENANT_SAFE_COLUMNS)
             .eq("id", (profile as any).tenant_id)
             .maybeSingle();
           if (data) setTenant(data as any);

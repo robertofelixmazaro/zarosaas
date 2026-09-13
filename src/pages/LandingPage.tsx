@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { Seo } from "@/components/Seo";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -52,7 +53,7 @@ const LandingPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("tenants" as any)
-        .select("*")
+        .select(TENANT_SAFE_COLUMNS)
         .order("created_at", { ascending: false });
       return (data as any[]) || [];
     },

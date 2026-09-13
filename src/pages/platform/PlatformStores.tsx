@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";
@@ -92,7 +93,7 @@ const PlatformStores = () => {
   const fetchStores = async () => {
     const { data: tenants, error } = await supabase
       .from("tenants")
-      .select("*")
+      .select(TENANT_SAFE_COLUMNS)
       .order("created_at", { ascending: false });
 
     if (error) {

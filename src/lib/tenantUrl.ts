@@ -31,3 +31,10 @@ export function getTenantBasePath(slug: string | null): string {
 export function getTenantAdminUrl(slug: string): string {
   return `/t/${slug}/admin`;
 }
+
+/**
+ * Colunas da empresa que podem ser lidas pelo aplicativo.
+ * Credenciais de pagamento ficam fora desta lista por segurança.
+ */
+export const TENANT_SAFE_COLUMNS =
+  "id, name, slug, owner_user_id, logo_url, phone, address, created_at, active, plan_id, niche, no_show_enabled, no_show_deposit_value, no_show_retention_percentage, no_show_cancel_limit_hours, referred_by_affiliate_id, onboarding_completed, marketplace_visible, city, custom_domain, marketplace_logo_url";
