@@ -86,17 +86,22 @@ const WhatsAppAutoMessages = () => {
     return data as any;
   };
 
+  const load = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const data = await call({ action: "get_auto" });
+      if (!data?.settings) throw new Error("Não foi possível carregar as mensagens automáticas.");
+      setS(data.settings);
+    } catch (e: any) {
+      setLoadError(e?.message || "Não foi possível carregar as mensagens automáticas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await call({ action: "get_auto" });
-        setS(data.settings);
-      } catch (e: any) {
-        toast.error(e.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    load();
   }, []);
 
   const handleSave = async () => {
