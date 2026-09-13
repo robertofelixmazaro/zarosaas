@@ -140,7 +140,24 @@ const WhatsAppAutoMessages = () => {
     );
   }
 
-  if (!s) return null;
+  if (!s) {
+    return (
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-base">Mensagens Automáticas</CardTitle>
+          <CardDescription>
+            {loadError || "Não foi possível carregar as mensagens automáticas."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={load} className="gap-2">
+            <Loader2 className="h-4 w-4" />
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
