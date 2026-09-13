@@ -65,6 +65,7 @@ const WhatsAppAutoMessages = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [s, setS] = useState<AutoSettings | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const set = <K extends keyof AutoSettings>(key: K, value: AutoSettings[K]) =>
     setS((prev) => (prev ? { ...prev, [key]: value } : prev));
