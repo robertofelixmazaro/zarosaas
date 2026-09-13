@@ -236,6 +236,7 @@ export type Database = {
           commission_percent: number
           cpf: string | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           phone: string | null
           pix_key: string | null
@@ -248,6 +249,7 @@ export type Database = {
           commission_percent?: number
           cpf?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           phone?: string | null
           pix_key?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           commission_percent?: number
           cpf?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           phone?: string | null
           pix_key?: string | null
