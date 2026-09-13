@@ -105,7 +105,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    // Remove the login accounts of this tenant (service-role only)
+    for (const id of authIds) {
+      const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(id);
+      if (delErr) errors.push(`auth.users(${id}): ${delErr.message}`);
+    }
+
+    return new Response(JSON.stringify({ success: true, errors: errors.length ? errors : undefined }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
