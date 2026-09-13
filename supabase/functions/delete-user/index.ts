@@ -50,16 +50,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { user_id, profile_id } = await req.json();
-    if (!user_id && !profile_id) {
-      return new Response(JSON.stringify({ error: "user_id or profile_id required" }), {
+    const { user_id, profile_id, affiliate_id } = await req.json();
+    if (!user_id && !profile_id && !affiliate_id) {
+      return new Response(JSON.stringify({ error: "user_id, profile_id or affiliate_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Resolve auth_id from profile if needed
-    let authId = user_id;
+    // Resolve auth_id from profile / affiliate if needed
+    let authId = user_id || null;
     if (!authId && profile_id) {
       const { data: profile } = await adminClient
         .from("profiles")
@@ -68,21 +68,36 @@ Deno.serve(async (req) => {
         .maybeSingle();
       authId = profile?.auth_id || null;
     }
+    if (!authId && affiliate_id) {
+      const { data: aff } = await adminClient
+        .from("affiliates")
+        .select("user_id")
+        .eq("id", affiliate_id)
+        .maybeSingle();
+      authId = aff?.user_id || null;
+    }
 
     const errors: string[] = [];
 
-    // Delete from application tables using auth_id
+    // Affiliates: SOFT delete — financial history (sales, commissions, withdrawals) is preserved
+    const softDelete = { deleted_at: new Date().toISOString() };
+    if (affiliate_id) {
+      const { error: affErr } = await adminClient
+        .from("affiliates").update(softDelete).eq("id", affiliate_id).is("deleted_at", null);
+      if (affErr) errors.push(`affiliates: ${affErr.message}`);
+    }
     if (authId) {
-      // Delete affiliates
-      const { error: affErr } = await adminClient.from("affiliates").delete().eq("user_id", authId);
+      const { error: affErr } = await adminClient
+        .from("affiliates").update(softDelete).eq("user_id", authId).is("deleted_at", null);
       if (affErr) errors.push(`affiliates: ${affErr.message}`);
 
-      // Delete user_roles
+      // Delete user_roles (role bindings are not history)
       const { error: roleErr } = await adminClient.from("user_roles").delete().eq("user_id", authId);
       if (roleErr) errors.push(`user_roles: ${roleErr.message}`);
 
-      // Delete barbers linked to this user
-      const { error: barberErr } = await adminClient.from("barbers").delete().eq("user_id", authId);
+      // Unlink staff records instead of deleting them (appointments history stays intact)
+      const { error: barberErr } = await adminClient
+        .from("barbers").update({ user_id: null, active: false }).eq("user_id", authId);
       if (barberErr) errors.push(`barbers: ${barberErr.message}`);
     }
 
