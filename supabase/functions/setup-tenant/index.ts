@@ -134,6 +134,7 @@ Deno.serve(async (req) => {
         .from("affiliates")
         .select("id")
         .eq("ref_code", refCode)
+        .is("deleted_at", null)
         .maybeSingle();
       if (affiliateData) {
         referredByAffiliateId = affiliateData.id;
@@ -229,6 +230,7 @@ Deno.serve(async (req) => {
           .from("affiliates")
           .select("id, commission_percent")
           .eq("ref_code", affRefCode)
+          .is("deleted_at", null)
           .maybeSingle();
 
         if (affiliate) {

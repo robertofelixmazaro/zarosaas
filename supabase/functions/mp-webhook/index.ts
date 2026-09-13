@@ -217,6 +217,7 @@ async function createAffiliateCommission(
       .from("affiliates")
       .select("id, commission_percent")
       .eq("ref_code", refData.ref_code)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (affiliate) {
