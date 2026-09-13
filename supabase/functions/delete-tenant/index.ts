@@ -83,6 +83,12 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Role bindings without tenant_id still point to these users
+    if (authIds.length > 0) {
+      const { error: roleErr } = await supabaseAdmin.from("user_roles").delete().in("user_id", authIds);
+      if (roleErr) errors.push(`user_roles(by user): ${roleErr.message}`);
+    }
+
     // Now delete the tenant itself
     const { error: tenantDeleteError } = await supabaseAdmin.from("tenants").delete().eq("id", tenant_id);
     if (tenantDeleteError) {
