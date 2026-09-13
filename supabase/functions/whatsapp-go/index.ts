@@ -165,18 +165,27 @@ Deno.serve(async (req) => {
 
     // ── AUTOMATIC MESSAGES: GET SETTINGS ──
     if (action === "get_auto") {
-      const { data } = await admin
+      const { data, error } = await admin
         .from("whatsapp_auto_settings")
         .select("*")
         .eq("tenant_id", tenantId)
         .maybeSingle();
 
+      if (error) {
+        console.error("get_auto select failed:", error.message);
+        return json({ error: "Não foi possível carregar as mensagens automáticas." }, 500);
+      }
+
       if (!data) {
-        const { data: created } = await admin
+        const { data: created, error: insertErr } = await admin
           .from("whatsapp_auto_settings")
-          .insert({ tenant_id: tenantId })
+          .upsert({ tenant_id: tenantId }, { onConflict: "tenant_id" })
           .select("*")
           .maybeSingle();
+        if (insertErr || !created) {
+          console.error("get_auto insert failed:", insertErr?.message);
+          return json({ error: "Não foi possível iniciar as mensagens automáticas." }, 500);
+        }
         return json({ settings: created });
       }
       return json({ settings: data });
