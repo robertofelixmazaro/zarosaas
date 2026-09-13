@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTenantExternalUrl } from "@/lib/tenantUrl";

@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { Seo } from "@/components/Seo";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

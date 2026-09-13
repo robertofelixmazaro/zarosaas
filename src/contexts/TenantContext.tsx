@@ -1,3 +1,4 @@
+import { TENANT_SAFE_COLUMNS } from "@/lib/tenantUrl";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
