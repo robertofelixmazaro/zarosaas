@@ -116,7 +116,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         if (profile && (profile as any).tenant_id) {
           const { data } = await supabase
             .from("tenants" as any)
-            .select("*")
+            .select(TENANT_SAFE_COLUMNS)
             .eq("id", (profile as any).tenant_id)
             .maybeSingle();
           if (data) setTenant(data as any);

@@ -58,7 +58,7 @@ const PlatformUserDetail = () => {
       }
 
       if (p?.tenant_id) {
-        const { data: t } = await supabase.from("tenants").select("*").eq("id", p.tenant_id).maybeSingle();
+        const { data: t } = await supabase.from("tenants").select(TENANT_SAFE_COLUMNS).eq("id", p.tenant_id).maybeSingle();
         setTenant(t);
 
         const { data: sub } = await supabase.from("subscriptions").select("*, plans(*)").eq("tenant_id", p.tenant_id).maybeSingle();

@@ -72,7 +72,7 @@ const PlatformTenants = () => {
 
   const fetchData = async () => {
     const [tenantsRes, plansRes, subsRes] = await Promise.all([
-      supabase.from("tenants").select("*").order("created_at", { ascending: false }),
+      supabase.from("tenants").select(TENANT_SAFE_COLUMNS).order("created_at", { ascending: false }),
       supabase.from("plans").select("id, name, active").eq("active", true).order("price", { ascending: true }),
       supabase.from("subscriptions" as any).select("*"),
     ]);

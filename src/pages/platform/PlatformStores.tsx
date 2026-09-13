@@ -92,7 +92,7 @@ const PlatformStores = () => {
   const fetchStores = async () => {
     const { data: tenants, error } = await supabase
       .from("tenants")
-      .select("*")
+      .select(TENANT_SAFE_COLUMNS)
       .order("created_at", { ascending: false });
 
     if (error) {
