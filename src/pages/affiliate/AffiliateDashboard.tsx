@@ -41,11 +41,9 @@ const AffiliateDashboard = () => {
         const paidSales = allSales.filter((s: any) => s.payment_status === "paid");
         const pendingSales = allSales.filter((s: any) => s.payment_status === "pending");
 
-        // Count referred stores
-        const { count: storeCount } = await supabase
-          .from("tenants" as any)
-          .select("id", { count: "exact", head: true })
-          .eq("referred_by_affiliate_id", affId);
+        // Count referred stores (consulta segura, sem colunas sensíveis)
+        const { data: referredTenants } = await (supabase.rpc as any)("get_affiliate_referred_tenants");
+        const storeCount = ((referredTenants as any[]) || []).length;
 
         // Get commissions
         const { data: commissions } = await supabase
