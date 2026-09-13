@@ -65,6 +65,16 @@ Deno.serve(async (req) => {
 
     const errors: string[] = [];
 
+    // Collect auth users linked to this tenant BEFORE profiles are removed,
+    // so no orphan login accounts remain listed as users.
+    const { data: tenantProfiles } = await supabaseAdmin
+      .from("profiles")
+      .select("auth_id")
+      .eq("tenant_id", tenant_id);
+    const authIds = (tenantProfiles || [])
+      .map((p: { auth_id: string | null }) => p.auth_id)
+      .filter((id: string | null): id is string => !!id && id !== user.id);
+
     for (const table of tenantTables) {
       const { error } = await supabaseAdmin.from(table).delete().eq("tenant_id", tenant_id);
       if (error) {
