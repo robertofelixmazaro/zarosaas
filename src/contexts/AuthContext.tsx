@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,6 +18,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
+  const lastUserIdRef = useRef<string | null | undefined>(undefined);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +51,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        // SECURITY: wipe all cached data whenever the signed-in account changes
+        const nextId = session?.user?.id ?? null;
+        if (lastUserIdRef.current !== undefined && lastUserIdRef.current !== nextId) {
+          queryClient.clear();
+        }
+        lastUserIdRef.current = nextId;
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -94,6 +103,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    queryClient.clear();
+    lastUserIdRef.current = null;
     setUser(null);
     setSession(null);
     setUserRole(null);
