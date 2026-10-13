@@ -888,6 +888,10 @@ const AdminConfig = () => {
             <h4 className="text-sm font-medium flex items-center gap-2"><Mail className="h-4 w-4" /> Alterar Email</h4>
             <Input
               type="email"
+              name="zaro-new-login-email"
+              autoComplete="off"
+              data-lpignore="true"
+              data-1p-ignore
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="Novo email"
@@ -933,6 +937,8 @@ const AdminConfig = () => {
             <h4 className="text-sm font-medium flex items-center gap-2"><Lock className="h-4 w-4" /> Alterar Senha</h4>
             <Input
               type={showNewPw ? "text" : "password"}
+              name="zaro-new-password"
+              autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Nova senha"
@@ -945,6 +951,8 @@ const AdminConfig = () => {
             <div className="relative">
               <Input
                 type={showConfirmPw ? "text" : "password"}
+                name="zaro-confirm-new-password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirmar nova senha"
